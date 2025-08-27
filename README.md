@@ -24,11 +24,24 @@ prototype_demos/
 - Font Awesome (图标)
 - Vue 3 CDN (可选，用于复杂交互)
 
-## 使用方法
+## 在线访问
+
+🌐 **GitHub Pages地址**: `https://YOUR_USERNAME.github.io/prototype-demos/`
+
+### 快速链接
+- [项目首页](https://YOUR_USERNAME.github.io/prototype-demos/) - 查看所有原型
+- [Offer管理系统](https://YOUR_USERNAME.github.io/prototype-demos/demos/offer-management/) - 广告产品原型
+- [基础模板](https://YOUR_USERNAME.github.io/prototype-demos/templates/basic.html) - 开发模板
+
+## 本地使用
 
 1. 直接用浏览器打开 `index.html` 查看原型列表
 2. 在 `demos/` 目录下创建新的原型文件夹
 3. 复制 `templates/` 中的模板开始快速开发
+
+## 部署到GitHub Pages
+
+查看 [deploy-guide.md](deploy-guide.md) 获取详细部署步骤。
 
 ## 特点
 
@@ -36,3 +49,4 @@ prototype_demos/
 - 快速迭代，即时预览
 - 轻量级，易于分享
 - 跨平台兼容
+- 支持在线访问，团队协作友好
