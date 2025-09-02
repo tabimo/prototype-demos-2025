@@ -312,6 +312,7 @@
                     <td>
                         <a href="https://3s.mobvista.com/dist/index.html#!/Channel/TrafficSource" 
                            target="_blank" class="hover-link" 
+                           data-bs-toggle="tooltip" data-bs-placement="top" 
                            title="点击查看渠道的更多出价配置">
                             ${config.channelPayout.toFixed(3)}
                         </a>
@@ -319,6 +320,7 @@
                     <td>
                         <a href="javascript:void(0)" class="hover-link" 
                            onclick="editConfig('${config.id}')" 
+                           data-bs-toggle="tooltip" data-bs-placement="top" 
                            title="点击编辑配置记录">
                             ${config.packageList.length}个Package
                         </a>
@@ -334,6 +336,12 @@
                     </td>
                 </tr>
             `).join('');
+            
+            // 初始化tooltip
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
         }
 
         // Channel UUID自动完成
