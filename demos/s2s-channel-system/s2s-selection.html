@@ -338,21 +338,6 @@
         let selectedChannels = [];
         let selectedOfferForChannel = null;
 
-        // 初始化页面
-        document.addEventListener('DOMContentLoaded', function() {
-            renderTemplates();
-            updateSummary();
-            
-            // 检查URL参数
-            const urlParams = new URLSearchParams(window.location.search);
-            const offerParam = urlParams.get('offer');
-            if (offerParam) {
-                selectedOffers = [offerParam];
-                updateOfferTags();
-                updateSummary();
-            }
-        });
-
         // 聚焦Offer输入框
         function focusOfferInput() {
             document.getElementById('offerInput').focus();
@@ -369,7 +354,6 @@
                 return;
             }
 
-            // 延迟处理，确保输入值已更新
             setTimeout(() => {
                 const currentKeyword = input.value.trim();
                 if (currentKeyword) {
@@ -389,10 +373,65 @@
             if (text.includes(',') || text.includes('\n') || text.includes('\t')) {
                 processBatchOffers(text);
             } else {
-                // 单个值，直接设置到输入框
                 event.target.value = text;
             }
         }
+
+        // 聚焦Channel输入框
+        function focusChannelInput() {
+            document.getElementById('channelInput').focus();
+        }
+
+        // 处理Channel输入
+        function handleChannelInput(event) {
+            const input = event.target;
+            const keyword = input.value.trim();
+            
+            if (event.key === 'Enter' && keyword) {
+                event.preventDefault();
+                addChannelFromInput(keyword);
+                return;
+            }
+
+            setTimeout(() => {
+                const currentKeyword = input.value.trim();
+                if (currentKeyword) {
+                    showChannelSuggestions(currentKeyword);
+                } else {
+                    hideChannelSuggestions();
+                }
+            }, 10);
+        }
+
+        // 处理Channel粘贴
+        function handleChannelPaste(event) {
+            event.preventDefault();
+            const pastedText = (event.clipboardData || window.clipboardData).getData('text');
+            const text = pastedText.trim();
+            
+            if (text.includes(',') || text.includes('\n') || text.includes('\t')) {
+                processBatchChannels(text);
+            } else {
+                event.target.value = text;
+            }
+        }
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            renderTemplates();
+            updateSummary();
+            
+            // 检查URL参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const offerParam = urlParams.get('offer');
+            if (offerParam) {
+                selectedOffers = [offerParam];
+                updateOfferTags();
+                updateSummary();
+            }
+        });
+
+
 
         // 显示Offer建议
         function showOfferSuggestions(keyword) {
@@ -494,46 +533,7 @@
             `).join('');
         }
 
-        // 聚焦Channel输入框
-        function focusChannelInput() {
-            document.getElementById('channelInput').focus();
-        }
 
-        // 处理Channel输入
-        function handleChannelInput(event) {
-            const input = event.target;
-            const keyword = input.value.trim();
-            
-            if (event.key === 'Enter' && keyword) {
-                event.preventDefault();
-                addChannelFromInput(keyword);
-                return;
-            }
-
-            // 延迟处理，确保输入值已更新
-            setTimeout(() => {
-                const currentKeyword = input.value.trim();
-                if (currentKeyword) {
-                    showChannelSuggestions(currentKeyword);
-                } else {
-                    hideChannelSuggestions();
-                }
-            }, 10);
-        }
-
-        // 处理Channel粘贴
-        function handleChannelPaste(event) {
-            event.preventDefault();
-            const pastedText = (event.clipboardData || window.clipboardData).getData('text');
-            const text = pastedText.trim();
-            
-            if (text.includes(',') || text.includes('\n') || text.includes('\t')) {
-                processBatchChannels(text);
-            } else {
-                // 单个值，直接设置到输入框
-                event.target.value = text;
-            }
-        }
 
         // 显示Channel建议
         function showChannelSuggestions(keyword) {
