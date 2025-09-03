@@ -382,14 +382,16 @@
 
         // 处理Offer粘贴
         function handleOfferPaste(event) {
-            setTimeout(() => {
-                const input = event.target;
-                const text = input.value.trim();
-                if (text.includes(',') || text.includes('\n')) {
-                    processBatchOffers(text);
-                    input.value = '';
-                }
-            }, 10);
+            event.preventDefault();
+            const pastedText = (event.clipboardData || window.clipboardData).getData('text');
+            const text = pastedText.trim();
+            
+            if (text.includes(',') || text.includes('\n') || text.includes('\t')) {
+                processBatchOffers(text);
+            } else {
+                // 单个值，直接设置到输入框
+                event.target.value = text;
+            }
         }
 
         // 显示Offer建议
@@ -440,10 +442,12 @@
 
         // 批量处理Offer
         function processBatchOffers(text) {
-            const offers = text.split(/[,\n]/).map(o => o.trim()).filter(o => o);
+            const offers = text.split(/[,\n\t]/).map(o => o.trim()).filter(o => o);
             let addedCount = 0;
             let duplicateCount = 0;
             let invalidCount = 0;
+
+            console.log('Processing offers:', offers); // 调试用
 
             offers.forEach(offer => {
                 if (mockOffers.includes(offer)) {
@@ -474,6 +478,8 @@
 
             if (message) {
                 Utils.showToast(message, addedCount > 0 ? 'success' : 'warning');
+            } else {
+                Utils.showToast('未识别到有效的Offer', 'warning');
             }
         }
 
@@ -517,14 +523,16 @@
 
         // 处理Channel粘贴
         function handleChannelPaste(event) {
-            setTimeout(() => {
-                const input = event.target;
-                const text = input.value.trim();
-                if (text.includes(',') || text.includes('\n')) {
-                    processBatchChannels(text);
-                    input.value = '';
-                }
-            }, 10);
+            event.preventDefault();
+            const pastedText = (event.clipboardData || window.clipboardData).getData('text');
+            const text = pastedText.trim();
+            
+            if (text.includes(',') || text.includes('\n') || text.includes('\t')) {
+                processBatchChannels(text);
+            } else {
+                // 单个值，直接设置到输入框
+                event.target.value = text;
+            }
         }
 
         // 显示Channel建议
@@ -578,29 +586,18 @@
 
         // 批量处理Channel
         function processBatchChannels(text) {
-            const channels = text.split(/[,\n]/).map(c => c.trim()).filter(c => c);
+            const channels = text.split(/[,\n\t]/).map(c => c.trim()).filter(c => c);
             let addedCount = 0;
             let duplicateCount = 0;
-            let validCount = 0;
-            let invalidCount = 0;
+
+            console.log('Processing channels:', channels); // 调试用
 
             channels.forEach(channel => {
-                if (mockChannels.includes(channel)) {
-                    validCount++;
-                    if (!selectedChannels.includes(channel)) {
-                        selectedChannels.push(channel);
-                        addedCount++;
-                    } else {
-                        duplicateCount++;
-                    }
+                if (!selectedChannels.includes(channel)) {
+                    selectedChannels.push(channel);
+                    addedCount++;
                 } else {
-                    // 对于Channel，即使不在预设列表中也允许添加
-                    if (!selectedChannels.includes(channel)) {
-                        selectedChannels.push(channel);
-                        addedCount++;
-                    } else {
-                        duplicateCount++;
-                    }
+                    duplicateCount++;
                 }
             });
 
@@ -617,6 +614,8 @@
 
             if (message) {
                 Utils.showToast(message, addedCount > 0 ? 'success' : 'info');
+            } else {
+                Utils.showToast('未识别到有效的Channel', 'warning');
             }
         }
 
