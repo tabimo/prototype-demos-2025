@@ -442,6 +442,7 @@
         function processBatchOffers(text) {
             const offers = text.split(/[,\n]/).map(o => o.trim()).filter(o => o);
             let addedCount = 0;
+            let duplicateCount = 0;
             let invalidCount = 0;
 
             offers.forEach(offer => {
@@ -449,6 +450,8 @@
                     if (!selectedOffers.includes(offer)) {
                         selectedOffers.push(offer);
                         addedCount++;
+                    } else {
+                        duplicateCount++;
                     }
                 } else {
                     invalidCount++;
@@ -458,10 +461,19 @@
             updateOfferTags();
             updateSummary();
 
+            let message = '';
             if (addedCount > 0) {
-                Utils.showToast(`成功添加${addedCount}个Offer${invalidCount > 0 ? `，${invalidCount}个无效已忽略` : ''}`, 'success');
-            } else if (invalidCount > 0) {
-                Utils.showToast(`${invalidCount}个Offer无效`, 'warning');
+                message += `成功添加${addedCount}个Offer`;
+            }
+            if (duplicateCount > 0) {
+                message += (message ? '，' : '') + `${duplicateCount}个已存在`;
+            }
+            if (invalidCount > 0) {
+                message += (message ? '，' : '') + `${invalidCount}个无效已忽略`;
+            }
+
+            if (message) {
+                Utils.showToast(message, addedCount > 0 ? 'success' : 'warning');
             }
         }
 
@@ -568,19 +580,43 @@
         function processBatchChannels(text) {
             const channels = text.split(/[,\n]/).map(c => c.trim()).filter(c => c);
             let addedCount = 0;
+            let duplicateCount = 0;
+            let validCount = 0;
+            let invalidCount = 0;
 
             channels.forEach(channel => {
-                if (!selectedChannels.includes(channel)) {
-                    selectedChannels.push(channel);
-                    addedCount++;
+                if (mockChannels.includes(channel)) {
+                    validCount++;
+                    if (!selectedChannels.includes(channel)) {
+                        selectedChannels.push(channel);
+                        addedCount++;
+                    } else {
+                        duplicateCount++;
+                    }
+                } else {
+                    // 对于Channel，即使不在预设列表中也允许添加
+                    if (!selectedChannels.includes(channel)) {
+                        selectedChannels.push(channel);
+                        addedCount++;
+                    } else {
+                        duplicateCount++;
+                    }
                 }
             });
 
             updateChannelTags();
             updateSummary();
 
+            let message = '';
             if (addedCount > 0) {
-                Utils.showToast(`成功添加${addedCount}个Channel`, 'success');
+                message += `成功添加${addedCount}个Channel`;
+            }
+            if (duplicateCount > 0) {
+                message += (message ? '，' : '') + `${duplicateCount}个已存在`;
+            }
+
+            if (message) {
+                Utils.showToast(message, addedCount > 0 ? 'success' : 'info');
             }
         }
 
