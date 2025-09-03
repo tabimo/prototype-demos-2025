@@ -348,10 +348,252 @@
             const offerParam = urlParams.get('offer');
             if (offerParam) {
                 selectedOffers = [offerParam];
-                updateSelectedOffers();
+                updateOfferTags();
                 updateSummary();
             }
         });
+
+        // 聚焦Offer输入框
+        function focusOfferInput() {
+            document.getElementById('offerInput').focus();
+        }
+
+        // 处理Offer输入
+        function handleOfferInput(event) {
+            const input = event.target;
+            const keyword = input.value.trim();
+            
+            if (event.key === 'Enter' && keyword) {
+                event.preventDefault();
+                addOfferFromInput(keyword);
+                return;
+            }
+
+            // 延迟处理，确保输入值已更新
+            setTimeout(() => {
+                const currentKeyword = input.value.trim();
+                if (currentKeyword) {
+                    showOfferSuggestions(currentKeyword);
+                } else {
+                    hideOfferSuggestions();
+                }
+            }, 10);
+        }
+
+        // 处理Offer粘贴
+        function handleOfferPaste(event) {
+            setTimeout(() => {
+                const input = event.target;
+                const text = input.value.trim();
+                if (text.includes(',') || text.includes('\n')) {
+                    processBatchOffers(text);
+                    input.value = '';
+                }
+            }, 10);
+        }
+
+        // 显示Offer建议
+        function showOfferSuggestions(keyword) {
+            const dropdown = document.getElementById('offerDropdown');
+            const matches = mockOffers.filter(offer => 
+                offer.toLowerCase().includes(keyword.toLowerCase()) &&
+                !selectedOffers.includes(offer)
+            );
+
+            if (matches.length === 0) {
+                hideOfferSuggestions();
+                return;
+            }
+
+            dropdown.innerHTML = matches.slice(0, 8).map(offer => `
+                <div class="autocomplete-item" onclick="selectOffer('${offer}')">
+                    <code>${offer}</code>
+                </div>
+            `).join('');
+            dropdown.style.display = 'block';
+        }
+
+        // 隐藏Offer建议
+        function hideOfferSuggestions() {
+            document.getElementById('offerDropdown').style.display = 'none';
+        }
+
+        // 选择Offer
+        function selectOffer(offer) {
+            if (!selectedOffers.includes(offer)) {
+                selectedOffers.push(offer);
+                updateOfferTags();
+                updateSummary();
+            }
+            document.getElementById('offerInput').value = '';
+            hideOfferSuggestions();
+        }
+
+        // 从输入框添加Offer
+        function addOfferFromInput(offer) {
+            if (mockOffers.includes(offer)) {
+                selectOffer(offer);
+            } else {
+                Utils.showToast('Offer不存在', 'warning');
+            }
+        }
+
+        // 批量处理Offer
+        function processBatchOffers(text) {
+            const offers = text.split(/[,\n]/).map(o => o.trim()).filter(o => o);
+            let addedCount = 0;
+            let invalidCount = 0;
+
+            offers.forEach(offer => {
+                if (mockOffers.includes(offer)) {
+                    if (!selectedOffers.includes(offer)) {
+                        selectedOffers.push(offer);
+                        addedCount++;
+                    }
+                } else {
+                    invalidCount++;
+                }
+            });
+
+            updateOfferTags();
+            updateSummary();
+
+            if (addedCount > 0) {
+                Utils.showToast(`成功添加${addedCount}个Offer${invalidCount > 0 ? `，${invalidCount}个无效已忽略` : ''}`, 'success');
+            } else if (invalidCount > 0) {
+                Utils.showToast(`${invalidCount}个Offer无效`, 'warning');
+            }
+        }
+
+        // 更新Offer标签
+        function updateOfferTags() {
+            const container = document.getElementById('offerTagList');
+            container.innerHTML = selectedOffers.map(offer => `
+                <span class="tag-item">
+                    <code>${offer}</code>
+                    <span class="tag-remove" onclick="removeOffer('${offer}')">&times;</span>
+                </span>
+            `).join('');
+        }
+
+        // 聚焦Channel输入框
+        function focusChannelInput() {
+            document.getElementById('channelInput').focus();
+        }
+
+        // 处理Channel输入
+        function handleChannelInput(event) {
+            const input = event.target;
+            const keyword = input.value.trim();
+            
+            if (event.key === 'Enter' && keyword) {
+                event.preventDefault();
+                addChannelFromInput(keyword);
+                return;
+            }
+
+            // 延迟处理，确保输入值已更新
+            setTimeout(() => {
+                const currentKeyword = input.value.trim();
+                if (currentKeyword) {
+                    showChannelSuggestions(currentKeyword);
+                } else {
+                    hideChannelSuggestions();
+                }
+            }, 10);
+        }
+
+        // 处理Channel粘贴
+        function handleChannelPaste(event) {
+            setTimeout(() => {
+                const input = event.target;
+                const text = input.value.trim();
+                if (text.includes(',') || text.includes('\n')) {
+                    processBatchChannels(text);
+                    input.value = '';
+                }
+            }, 10);
+        }
+
+        // 显示Channel建议
+        function showChannelSuggestions(keyword) {
+            const dropdown = document.getElementById('channelDropdown');
+            const matches = mockChannels.filter(channel => 
+                channel.toLowerCase().includes(keyword.toLowerCase()) &&
+                !selectedChannels.includes(channel)
+            );
+
+            if (matches.length === 0) {
+                hideChannelSuggestions();
+                return;
+            }
+
+            dropdown.innerHTML = matches.slice(0, 8).map(channel => `
+                <div class="autocomplete-item" onclick="selectChannel('${channel}')">
+                    <code>${channel}</code>
+                </div>
+            `).join('');
+            dropdown.style.display = 'block';
+        }
+
+        // 隐藏Channel建议
+        function hideChannelSuggestions() {
+            document.getElementById('channelDropdown').style.display = 'none';
+        }
+
+        // 选择Channel
+        function selectChannel(channel) {
+            if (!selectedChannels.includes(channel)) {
+                selectedChannels.push(channel);
+                updateChannelTags();
+                updateSummary();
+            }
+            document.getElementById('channelInput').value = '';
+            hideChannelSuggestions();
+        }
+
+        // 从输入框添加Channel
+        function addChannelFromInput(channel) {
+            if (!selectedChannels.includes(channel)) {
+                selectedChannels.push(channel);
+                updateChannelTags();
+                updateSummary();
+                Utils.showToast(`已添加Channel: ${channel}`, 'success');
+            } else {
+                Utils.showToast('Channel已存在', 'warning');
+            }
+        }
+
+        // 批量处理Channel
+        function processBatchChannels(text) {
+            const channels = text.split(/[,\n]/).map(c => c.trim()).filter(c => c);
+            let addedCount = 0;
+
+            channels.forEach(channel => {
+                if (!selectedChannels.includes(channel)) {
+                    selectedChannels.push(channel);
+                    addedCount++;
+                }
+            });
+
+            updateChannelTags();
+            updateSummary();
+
+            if (addedCount > 0) {
+                Utils.showToast(`成功添加${addedCount}个Channel`, 'success');
+            }
+        }
+
+        // 更新Channel标签
+        function updateChannelTags() {
+            const container = document.getElementById('channelTagList');
+            container.innerHTML = selectedChannels.map(channel => `
+                <span class="tag-item">
+                    <code>${channel}</code>
+                    <span class="tag-remove" onclick="removeChannel('${channel}')">&times;</span>
+                </span>
+            `).join('');
+        }
 
         // 渲染模板标签
         function renderTemplates() {
@@ -363,149 +605,7 @@
             `).join('');
         }
 
-        // 搜索Offer
-        function searchOffers(keyword) {
-            const suggestions = document.getElementById('offerSuggestions');
-            if (!keyword.trim()) {
-                suggestions.style.display = 'none';
-                return;
-            }
 
-            const matches = mockOffers.filter(offer => 
-                offer.toLowerCase().includes(keyword.toLowerCase())
-            );
-
-            if (matches.length === 0) {
-                suggestions.style.display = 'none';
-                return;
-            }
-
-            suggestions.innerHTML = matches.slice(0, 5).map(offer => `
-                <div class="suggestion-item p-2 border-bottom cursor-pointer" onclick="selectOfferSuggestion('${offer}')">
-                    <code>${offer}</code>
-                </div>
-            `).join('');
-            suggestions.style.display = 'block';
-        }
-
-        // 选择Offer建议
-        function selectOfferSuggestion(offer) {
-            document.getElementById('singleOfferInput').value = offer;
-            document.getElementById('offerSuggestions').style.display = 'none';
-        }
-
-        // 添加单个Offer
-        function addSingleOffer() {
-            const input = document.getElementById('singleOfferInput');
-            const offer = input.value.trim();
-            
-            if (!offer) {
-                Utils.showToast('请输入Offer UUID', 'warning');
-                return;
-            }
-
-            if (!mockOffers.includes(offer)) {
-                Utils.showToast('Offer不存在，请检查UUID', 'danger');
-                return;
-            }
-
-            if (selectedOffers.includes(offer)) {
-                Utils.showToast('Offer已存在', 'warning');
-                return;
-            }
-
-            selectedOffers.push(offer);
-            input.value = '';
-            document.getElementById('offerSuggestions').style.display = 'none';
-            updateSelectedOffers();
-            updateSummary();
-        }
-
-        // 批量添加Offer
-        function addBatchOffers() {
-            const input = document.getElementById('batchOfferInput');
-            const text = input.value.trim();
-            
-            if (!text) {
-                Utils.showToast('请输入Offer UUID', 'warning');
-                return;
-            }
-
-            const offers = text.split(/[,\n]/).map(o => o.trim()).filter(o => o);
-            let addedCount = 0;
-            let invalidCount = 0;
-
-            offers.forEach(offer => {
-                if (!mockOffers.includes(offer)) {
-                    invalidCount++;
-                    return;
-                }
-                if (!selectedOffers.includes(offer)) {
-                    selectedOffers.push(offer);
-                    addedCount++;
-                }
-            });
-
-            input.value = '';
-            updateSelectedOffers();
-            updateSummary();
-
-            if (addedCount > 0) {
-                Utils.showToast(`成功添加${addedCount}个Offer${invalidCount > 0 ? `，${invalidCount}个无效` : ''}`, 'success');
-            } else if (invalidCount > 0) {
-                Utils.showToast(`${invalidCount}个Offer无效`, 'warning');
-            }
-        }
-
-        // 添加单个Channel
-        function addSingleChannel() {
-            const input = document.getElementById('singleChannelInput');
-            const channel = input.value.trim();
-            
-            if (!channel) {
-                Utils.showToast('请输入Channel UUID', 'warning');
-                return;
-            }
-
-            if (selectedChannels.includes(channel)) {
-                Utils.showToast('Channel已存在', 'warning');
-                return;
-            }
-
-            selectedChannels.push(channel);
-            input.value = '';
-            updateSelectedChannels();
-            updateSummary();
-        }
-
-        // 批量添加Channel
-        function addBatchChannels() {
-            const input = document.getElementById('batchChannelInput');
-            const text = input.value.trim();
-            
-            if (!text) {
-                Utils.showToast('请输入Channel UUID', 'warning');
-                return;
-            }
-
-            const channels = text.split(/[,\n]/).map(c => c.trim()).filter(c => c);
-            let addedCount = 0;
-
-            channels.forEach(channel => {
-                if (!selectedChannels.includes(channel)) {
-                    selectedChannels.push(channel);
-                    addedCount++;
-                }
-            });
-
-            input.value = '';
-            updateSelectedChannels();
-            updateSummary();
-
-            if (addedCount > 0) {
-                Utils.showToast(`成功添加${addedCount}个Channel`, 'success');
-            }
-        }
 
         // 选择模板
         function selectTemplate(templateId) {
@@ -610,49 +710,19 @@
             });
         }
 
-        // 更新已选择的Offer显示
-        function updateSelectedOffers() {
-            const container = document.getElementById('selectedOffers');
-            if (selectedOffers.length === 0) {
-                container.innerHTML = '<small class="text-muted">暂未选择Offer</small>';
-                return;
-            }
 
-            container.innerHTML = selectedOffers.map(offer => `
-                <span class="selected-item">
-                    <code>${offer}</code>
-                    <button type="button" class="btn-close btn-close-sm ms-1" onclick="removeOffer('${offer}')"></button>
-                </span>
-            `).join('');
-        }
-
-        // 更新已选择的Channel显示
-        function updateSelectedChannels() {
-            const container = document.getElementById('selectedChannels');
-            if (selectedChannels.length === 0) {
-                container.innerHTML = '<small class="text-muted">暂未选择Channel</small>';
-                return;
-            }
-
-            container.innerHTML = selectedChannels.map(channel => `
-                <span class="selected-item">
-                    <code>${channel}</code>
-                    <button type="button" class="btn-close btn-close-sm ms-1" onclick="removeChannel('${channel}')"></button>
-                </span>
-            `).join('');
-        }
 
         // 移除Offer
         function removeOffer(offer) {
             selectedOffers = selectedOffers.filter(o => o !== offer);
-            updateSelectedOffers();
+            updateOfferTags();
             updateSummary();
         }
 
         // 移除Channel
         function removeChannel(channel) {
             selectedChannels = selectedChannels.filter(c => c !== channel);
-            updateSelectedChannels();
+            updateChannelTags();
             updateSummary();
         }
 
@@ -692,8 +762,8 @@
             if (confirm('确认清空所有选择？')) {
                 selectedOffers = [];
                 selectedChannels = [];
-                updateSelectedOffers();
-                updateSelectedChannels();
+                updateOfferTags();
+                updateChannelTags();
                 updateSummary();
                 Utils.showToast('已清空所有选择', 'info');
             }
@@ -720,8 +790,19 @@
 
         // 点击其他地方关闭建议
         document.addEventListener('click', function(e) {
-            if (!e.target.closest('#singleOfferInput') && !e.target.closest('#offerSuggestions')) {
-                document.getElementById('offerSuggestions').style.display = 'none';
+            if (!e.target.closest('#offerTagContainer') && !e.target.closest('#offerDropdown')) {
+                hideOfferSuggestions();
+            }
+            if (!e.target.closest('#channelTagContainer') && !e.target.closest('#channelDropdown')) {
+                hideChannelSuggestions();
+            }
+        });
+
+        // 键盘导航支持
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideOfferSuggestions();
+                hideChannelSuggestions();
             }
         });
     </script>
