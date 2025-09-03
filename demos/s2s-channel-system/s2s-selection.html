@@ -167,7 +167,12 @@
                                 <!-- 搜索建议将在这里显示 -->
                             </div>
                         </div>
-                        <small class="text-muted">支持输入关键词搜索选择，或直接粘贴多个UUID（逗号或换行符分隔）</small>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">支持输入关键词搜索选择，或直接粘贴多个UUID（逗号或换行符分隔）</small>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="copyChannelUuids()">
+                                <i class="fas fa-copy"></i> 复制
+                            </button>
+                        </div>
 
                         <!-- 快速选择 -->
                         <div class="row mt-4">
@@ -198,7 +203,7 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-12">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="addToWhiteList">
                                     <label class="form-check-label" for="addToWhiteList">
@@ -206,12 +211,6 @@
                                         <br><small class="text-muted">将选中的渠道加入Offer白名单</small>
                                     </label>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <button class="btn btn-outline-secondary" onclick="copyChannelUuids()">
-                                    <i class="fas fa-copy"></i> 复制Channel UUID
-                                </button>
-                                <small class="text-muted d-block">复制已选择的Channel UUID列表</small>
                             </div>
                         </div>
                     </div>
