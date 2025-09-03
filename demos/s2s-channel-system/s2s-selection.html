@@ -8,15 +8,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="../../assets/css/main.css" rel="stylesheet">
     <style>
-        .selected-item {
-            background: #e3f2fd;
-            border: 1px solid #2196f3;
-            border-radius: 4px;
-            padding: 4px 8px;
-            margin: 2px;
-            display: inline-block;
-            font-size: 12px;
-        }
+
         .template-tag {
             cursor: pointer;
             transition: all 0.2s;
@@ -30,6 +22,75 @@
             border-radius: 8px;
             padding: 15px;
             margin-top: 20px;
+        }
+        .tag-input-container {
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            padding: 8px;
+            min-height: 38px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px;
+            cursor: text;
+            background: white;
+        }
+        .tag-input-container:focus-within {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .tag-item {
+            background: #0d6efd;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .tag-remove {
+            cursor: pointer;
+            font-weight: bold;
+            opacity: 0.7;
+        }
+        .tag-remove:hover {
+            opacity: 1;
+        }
+        .tag-input {
+            border: none;
+            outline: none;
+            flex: 1;
+            min-width: 200px;
+            padding: 2px;
+            font-size: 14px;
+        }
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ced4da;
+            border-top: none;
+            border-radius: 0 0 0.375rem 0.375rem;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        .autocomplete-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        .autocomplete-item:hover, .autocomplete-item.active {
+            background-color: #e9ecef;
         }
     </style>
 </head>
@@ -62,38 +123,22 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label class="form-label">单个输入</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" id="singleOfferInput" 
-                                           placeholder="输入Offer UUID" onkeyup="searchOffers(this.value)">
-                                    <button class="btn btn-outline-primary" onclick="addSingleOffer()">
-                                        <i class="fas fa-plus"></i> 添加
-                                    </button>
+                        <label class="form-label">Offer UUID</label>
+                        <div class="position-relative">
+                            <div class="tag-input-container" id="offerTagContainer" onclick="focusOfferInput()">
+                                <div class="tag-list" id="offerTagList">
+                                    <!-- 已选择的Offer标签将在这里显示 -->
                                 </div>
-                                <div id="offerSuggestions" class="mt-2" style="display: none;">
-                                    <!-- 搜索建议将在这里显示 -->
-                                </div>
+                                <input type="text" class="tag-input" id="offerInput" 
+                                       placeholder="输入关键词搜索或粘贴多个Offer UUID"
+                                       onkeyup="handleOfferInput(event)" 
+                                       onpaste="handleOfferPaste(event)">
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">批量粘贴</label>
-                                <div class="input-group">
-                                    <textarea class="form-control" id="batchOfferInput" rows="2"
-                                              placeholder="多个Offer UUID用逗号或换行符分隔"></textarea>
-                                    <button class="btn btn-outline-success" onclick="addBatchOffers()">
-                                        <i class="fas fa-paste"></i> 批量添加
-                                    </button>
-                                </div>
+                            <div class="autocomplete-dropdown" id="offerDropdown">
+                                <!-- 搜索建议将在这里显示 -->
                             </div>
                         </div>
-                        
-                        <div class="mt-3">
-                            <label class="form-label">已选择的Offer</label>
-                            <div id="selectedOffers" class="border rounded p-2 min-height-50">
-                                <small class="text-muted">暂未选择Offer</small>
-                            </div>
-                        </div>
+                        <small class="text-muted">支持输入关键词搜索选择，或直接粘贴多个UUID（逗号或换行符分隔）</small>
                     </div>
                 </div>
 
@@ -106,32 +151,25 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <!-- 手动输入 -->
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">单个输入</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" id="singleChannelInput" 
-                                           placeholder="输入Channel UUID">
-                                    <button class="btn btn-outline-primary" onclick="addSingleChannel()">
-                                        <i class="fas fa-plus"></i> 添加
-                                    </button>
+                        <label class="form-label">Channel UUID</label>
+                        <div class="position-relative mb-3">
+                            <div class="tag-input-container" id="channelTagContainer" onclick="focusChannelInput()">
+                                <div class="tag-list" id="channelTagList">
+                                    <!-- 已选择的Channel标签将在这里显示 -->
                                 </div>
+                                <input type="text" class="tag-input" id="channelInput" 
+                                       placeholder="输入关键词搜索或粘贴多个Channel UUID"
+                                       onkeyup="handleChannelInput(event)" 
+                                       onpaste="handleChannelPaste(event)">
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">批量粘贴</label>
-                                <div class="input-group">
-                                    <textarea class="form-control" id="batchChannelInput" rows="2"
-                                              placeholder="多个Channel UUID用逗号或换行符分隔"></textarea>
-                                    <button class="btn btn-outline-success" onclick="addBatchChannels()">
-                                        <i class="fas fa-paste"></i> 批量添加
-                                    </button>
-                                </div>
+                            <div class="autocomplete-dropdown" id="channelDropdown">
+                                <!-- 搜索建议将在这里显示 -->
                             </div>
                         </div>
+                        <small class="text-muted">支持输入关键词搜索选择，或直接粘贴多个UUID（逗号或换行符分隔）</small>
 
                         <!-- 快速选择 -->
-                        <div class="row mb-3">
+                        <div class="row mt-4">
                             <div class="col-md-6">
                                 <label class="form-label">快速选择</label>
                                 <button class="btn btn-outline-warning w-100" onclick="showOfferChannelModal()">
@@ -144,13 +182,6 @@
                                 <div id="templateTags">
                                     <!-- 模板标签将在这里显示 -->
                                 </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-3">
-                            <label class="form-label">已选择的Channel</label>
-                            <div id="selectedChannels" class="border rounded p-2 min-height-50">
-                                <small class="text-muted">暂未选择Channel</small>
                             </div>
                         </div>
                     </div>
@@ -489,7 +520,7 @@
                 }
             });
 
-            updateSelectedChannels();
+            updateChannelTags();
             updateSummary();
 
             if (addedCount > 0) {
@@ -553,7 +584,7 @@
                 }
             });
 
-            updateSelectedChannels();
+            updateChannelTags();
             updateSummary();
             bootstrap.Modal.getInstance(document.getElementById('offerChannelModal')).hide();
 
