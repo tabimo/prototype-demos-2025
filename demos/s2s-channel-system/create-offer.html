@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创建Offer - S2S渠道对接系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-arrow-left"></i> S2S系统
+            </a>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="index.html" class="text-white-50">首页</a></li>
+                    <li class="breadcrumb-item active text-white">创建Offer</li>
+                </ol>
+            </nav>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">
+                            <i class="fas fa-plus-circle text-success"></i>
+                            创建新Offer
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="offerForm">
+                            <div class="row">
+                                <!-- Offer UUID -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Offer UUID <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="offerUuid" required
+                                           placeholder="如：zhitian_test_001">
+                                    <div class="invalid-feedback">请输入Offer UUID</div>
+                                </div>
+
+                                <!-- Package Name -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Package Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="packageName" required
+                                           placeholder="如：com.example.app">
+                                    <div class="invalid-feedback">请输入Package Name</div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <!-- Adv Price -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Adv Price <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="advPrice" required
+                                               step="0.001" min="0.001" placeholder="0.000">
+                                    </div>
+                                    <small class="text-muted">支持三位小数</small>
+                                    <div class="invalid-feedback">请输入有效的广告价格</div>
+                                </div>
+
+                                <!-- Third Party -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Third Party <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="thirdParty" required>
+                                        <option value="">请选择Third Party</option>
+                                        <option value="Appsflyer">Appsflyer</option>
+                                        <option value="Adjust">Adjust</option>
+                                        <option value="Singular">Singular</option>
+                                        <option value="Kochava">Kochava</option>
+                                        <option value="Branch">Branch</option>
+                                    </select>
+                                    <div class="invalid-feedback">请选择Third Party</div>
+                                </div>
+                            </div>
+
+                            <!-- Tracking Link -->
+                            <div class="mb-3">
+                                <label class="form-label">Tracking Link <span class="text-danger">*</span></label>
+                                <input type="url" class="form-control" id="trackingLink" required
+                                       placeholder="https://example.com/track?offer_id={offer_id}">
+                                <div class="invalid-feedback">请输入有效的跟踪链接</div>
+                            </div>
+
+                            <!-- Note -->
+                            <div class="mb-4">
+                                <label class="form-label">Note</label>
+                                <textarea class="form-control" id="note" rows="3"
+                                          placeholder="可选的备注信息..."></textarea>
+                            </div>
+
+                            <!-- 自动对接设置 -->
+                            <div class="card bg-light mb-4">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-link text-primary"></i>
+                                        渠道对接设置
+                                    </h5>
+                                    
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="autoConnect" checked>
+                                        <label class="form-check-label" for="autoConnect">
+                                            <strong>启用自动对接渠道</strong>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="mt-3">
+                                        <div id="autoConnectInfo" class="alert alert-info">
+                                            <i class="fas fa-info-circle"></i>
+                                            <strong>启用时：</strong>Offer将自动对接系统预设的自动对接渠道 + abc测试渠道<br>
+                                            <strong>关闭时：</strong>Offer仅对接abc测试渠道
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 提交按钮 -->
+                            <div class="text-center">
+                                <button type="button" class="btn btn-secondary me-3" onclick="history.back()">
+                                    <i class="fas fa-times"></i> 取消
+                                </button>
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-save"></i> 创建Offer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 已创建的Offer列表 -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list text-info"></i>
+                            最近创建的Offer
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Offer UUID</th>
+                                        <th>Package Name</th>
+                                        <th>Adv Price</th>
+                                        <th>Third Party</th>
+                                        <th>自动对接</th>
+                                        <th>创建时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="offerTableBody">
+                                    <!-- Offer列表将在这里动态生成 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script>
+        // 模拟已创建的Offer数据
+        let offerData = [
+            {
+                id: 1,
+                offerUuid: 'zhitian_test_001',
+                packageName: 'com.example.game1',
+                advPrice: 0.125,
+                thirdParty: 'Appsflyer',
+                trackingLink: 'https://app.appsflyer.com/track?offer_id=001',
+                note: '测试游戏应用',
+                autoConnect: true,
+                createTime: '2025-01-27 10:30'
+            },
+            {
+                id: 2,
+                offerUuid: 'zhitian_test_002',
+                packageName: 'com.example.shopping',
+                advPrice: 0.089,
+                thirdParty: 'Adjust',
+                trackingLink: 'https://adjust.com/track?offer_id=002',
+                note: '购物类应用',
+                autoConnect: false,
+                createTime: '2025-01-27 09:15'
+            },
+            {
+                id: 3,
+                offerUuid: 'zhitian_test_003',
+                packageName: 'com.example.finance',
+                advPrice: 0.256,
+                thirdParty: 'Singular',
+                trackingLink: 'https://singular.net/track?offer_id=003',
+                note: '金融理财应用',
+                autoConnect: true,
+                createTime: '2025-01-26 16:45'
+            }
+        ];
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            renderOfferTable();
+            
+            // 监听自动对接开关变化
+            document.getElementById('autoConnect').addEventListener('change', function() {
+                updateAutoConnectInfo();
+            });
+        });
+
+        // 更新自动对接信息显示
+        function updateAutoConnectInfo() {
+            const autoConnect = document.getElementById('autoConnect').checked;
+            const infoDiv = document.getElementById('autoConnectInfo');
+            
+            if (autoConnect) {
+                infoDiv.className = 'alert alert-info';
+                infoDiv.innerHTML = `
+                    <i class="fas fa-info-circle"></i>
+                    <strong>启用时：</strong>Offer将自动对接系统预设的自动对接渠道 + abc测试渠道<br>
+                    <strong>关闭时：</strong>Offer仅对接abc测试渠道
+                `;
+            } else {
+                infoDiv.className = 'alert alert-warning';
+                infoDiv.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>当前设置：</strong>Offer仅对接abc测试渠道
+                `;
+            }
+        }
+
+        // 渲染Offer表格
+        function renderOfferTable() {
+            const tbody = document.getElementById('offerTableBody');
+            tbody.innerHTML = offerData.map(offer => `
+                <tr>
+                    <td><code>${offer.offerUuid}</code></td>
+                    <td>${offer.packageName}</td>
+                    <td>$${offer.advPrice.toFixed(3)}</td>
+                    <td><span class="badge bg-primary">${offer.thirdParty}</span></td>
+                    <td>
+                        <span class="badge bg-${offer.autoConnect ? 'success' : 'warning'}">
+                            ${offer.autoConnect ? '启用' : '关闭'}
+                        </span>
+                    </td>
+                    <td>${offer.createTime}</td>
+                    <td>
+                        <a href="s2s-selection.html?offer=${offer.offerUuid}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-link"></i> 对接
+                        </a>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 表单提交处理
+        document.getElementById('offerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!this.checkValidity()) {
+                e.stopPropagation();
+                this.classList.add('was-validated');
+                return;
+            }
+
+            // 获取表单数据
+            const formData = {
+                offerUuid: document.getElementById('offerUuid').value,
+                packageName: document.getElementById('packageName').value,
+                advPrice: parseFloat(document.getElementById('advPrice').value),
+                thirdParty: document.getElementById('thirdParty').value,
+                trackingLink: document.getElementById('trackingLink').value,
+                note: document.getElementById('note').value,
+                autoConnect: document.getElementById('autoConnect').checked
+            };
+
+            // 检查Offer UUID是否重复
+            const exists = offerData.some(offer => offer.offerUuid === formData.offerUuid);
+            if (exists) {
+                Utils.showToast('Offer UUID已存在，请使用其他UUID', 'warning');
+                return;
+            }
+
+            // 模拟保存过程
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 创建中...';
+
+            setTimeout(() => {
+                // 添加到数据列表
+                const newOffer = {
+                    id: Math.max(...offerData.map(o => o.id)) + 1,
+                    ...formData,
+                    createTime: new Date().toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }).replace(/\//g, '-')
+                };
+                
+                offerData.unshift(newOffer);
+                renderOfferTable();
+
+                // 重置表单
+                this.reset();
+                this.classList.remove('was-validated');
+                document.getElementById('autoConnect').checked = true;
+                updateAutoConnectInfo();
+
+                // 恢复按钮状态
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-save"></i> 创建Offer';
+
+                Utils.showToast('Offer创建成功！', 'success');
+
+                // 询问是否立即进行S2S对接
+                setTimeout(() => {
+                    if (confirm('Offer创建成功！是否立即进行S2S对接设置？')) {
+                        window.location.href = `s2s-selection.html?offer=${formData.offerUuid}`;
+                    }
+                }, 1000);
+
+            }, 2000);
+        });
+
+        // 生成示例Offer UUID
+        function generateSampleUuid() {
+            const timestamp = Date.now().toString().slice(-6);
+            const uuid = `zhitian_test_${timestamp}`;
+            document.getElementById('offerUuid').value = uuid;
+        }
+
+        // 添加快捷生成按钮（可选）
+        document.addEventListener('DOMContentLoaded', function() {
+            const offerUuidInput = document.getElementById('offerUuid');
+            const generateBtn = document.createElement('button');
+            generateBtn.type = 'button';
+            generateBtn.className = 'btn btn-outline-secondary btn-sm mt-1';
+            generateBtn.innerHTML = '<i class="fas fa-magic"></i> 生成示例UUID';
+            generateBtn.onclick = generateSampleUuid;
+            offerUuidInput.parentNode.appendChild(generateBtn);
+        });
+    </script>
+</body>
+</html>
