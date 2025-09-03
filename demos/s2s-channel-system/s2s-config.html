@@ -92,23 +92,13 @@
                             <span id="totalRecords" class="fw-bold text-primary">0</span> 条记录
                         </p>
                     </div>
-                    <div>
-                        <div class="btn-group me-2">
-                            <button class="btn btn-outline-secondary" onclick="sortBy('offer')">
-                                <i class="fas fa-sort-alpha-down"></i> 按Offer排序
-                            </button>
-                            <button class="btn btn-outline-secondary" onclick="sortBy('channel')">
-                                <i class="fas fa-sort-alpha-down"></i> 按Channel排序
-                            </button>
-                        </div>
-                        <div class="btn-group">
-                            <button class="btn btn-outline-info" onclick="selectAll()">
-                                <i class="fas fa-check-square"></i> 全选
-                            </button>
-                            <button class="btn btn-outline-secondary" onclick="clearSelection()">
-                                <i class="fas fa-square"></i> 清除选择
-                            </button>
-                        </div>
+                    <div class="btn-group">
+                        <button class="btn btn-outline-info" onclick="selectAll()">
+                            <i class="fas fa-check-square"></i> 全选
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="clearSelection()">
+                            <i class="fas fa-square"></i> 清除选择
+                        </button>
                     </div>
                 </div>
             </div>
@@ -122,33 +112,58 @@
             </h5>
             <div class="row">
                 <div class="col-md-2">
-                    <label class="form-label">Discount of Payout</label>
-                    <input type="number" class="form-control form-control-sm" id="batchDiscount" 
-                           step="0.01" min="0" max="1" placeholder="0.85">
-                    <small class="text-muted">固定值，影响Channel Payout</small>
-                </div>
-                <div class="col-md-2">
                     <label class="form-label">Channel Payout</label>
                     <input type="number" class="form-control form-control-sm" id="batchPayout" 
-                           step="0.001" min="-100" max="1000" placeholder="0.000">
+                           step="0.001" min="-100" max="1000" placeholder="">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Deduction (%)</label>
                     <input type="number" class="form-control form-control-sm" id="batchDeduction" 
-                           step="0.1" min="0" max="100" placeholder="0">
+                           step="0.1" min="0" max="100" placeholder="">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Daily Cap</label>
-                    <input type="number" class="form-control form-control-sm" id="batchDailyCap" 
-                           min="0" max="1000000" placeholder="1000">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="batchDailyCapOpen">
+                            <label class="form-check-label" for="batchDailyCapOpen">Open</label>
+                        </div>
+                        <input type="number" class="form-control form-control-sm" id="batchDailyCap" 
+                               min="0" max="1000000" placeholder="" style="width: 80px;">
+                    </div>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Daily Click Cap</label>
-                    <input type="number" class="form-control form-control-sm" id="batchDailyClickCap" 
-                           min="0" max="1000000000" placeholder="10000">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="batchDailyClickCapOpen">
+                            <label class="form-check-label" for="batchDailyClickCapOpen">Open</label>
+                        </div>
+                        <input type="number" class="form-control form-control-sm" id="batchDailyClickCap" 
+                               min="0" max="1000000000" placeholder="" style="width: 80px;">
+                    </div>
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button class="btn btn-info btn-sm w-100" onclick="showBatchConfirm()">
+                <div class="col-md-2">
+                    <label class="form-label">Note</label>
+                    <input type="text" class="form-control form-control-sm" id="batchNote" placeholder="">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Event/Reject</label>
+                    <div class="d-flex gap-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="batchEvent">
+                            <label class="form-check-label" for="batchEvent">Event</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="batchReject">
+                            <label class="form-check-label" for="batchReject">Reject</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12 text-end">
+                    <button class="btn btn-info btn-sm" onclick="showBatchConfirm()">
                         <i class="fas fa-magic"></i> 应用到选中记录
                     </button>
                 </div>
@@ -175,6 +190,17 @@
 
         <!-- S2S配置表格 -->
         <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">S2S配置列表</h6>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary" onclick="sortBy('offer')">
+                        <i class="fas fa-sort-alpha-down"></i> 按Offer排序
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="sortBy('channel')">
+                        <i class="fas fa-sort-alpha-down"></i> 按Channel排序
+                    </button>
+                </div>
+            </div>
             <div class="card-body p-0">
                 <div class="table-responsive" style="max-height: 600px;">
                     <table class="table table-hover config-table mb-0">
@@ -573,17 +599,25 @@
             
             // 生成批量操作摘要
             const summary = [];
-            const discount = document.getElementById('batchDiscount').value;
             const payout = document.getElementById('batchPayout').value;
             const deduction = document.getElementById('batchDeduction').value;
             const dailyCap = document.getElementById('batchDailyCap').value;
             const dailyClickCap = document.getElementById('batchDailyClickCap').value;
+            const dailyCapOpen = document.getElementById('batchDailyCapOpen').checked;
+            const dailyClickCapOpen = document.getElementById('batchDailyClickCapOpen').checked;
+            const note = document.getElementById('batchNote').value;
+            const event = document.getElementById('batchEvent').checked;
+            const reject = document.getElementById('batchReject').checked;
 
-            if (discount) summary.push(`Discount of Payout: ${discount}`);
             if (payout) summary.push(`Channel Payout: $${payout}`);
             if (deduction) summary.push(`Deduction: ${deduction}%`);
-            if (dailyCap) summary.push(`Daily Cap: ${dailyCap}`);
-            if (dailyClickCap) summary.push(`Daily Click Cap: ${dailyClickCap}`);
+            if (dailyCapOpen) summary.push(`Daily Cap: Open`);
+            else if (dailyCap) summary.push(`Daily Cap: ${dailyCap}`);
+            if (dailyClickCapOpen) summary.push(`Daily Click Cap: Open`);
+            else if (dailyClickCap) summary.push(`Daily Click Cap: ${dailyClickCap}`);
+            if (note) summary.push(`Note: ${note}`);
+            if (event) summary.push(`Event: 启用`);
+            if (reject) summary.push(`Reject: 启用`);
 
             document.getElementById('batchSummary').innerHTML = summary.length > 0 ? 
                 summary.map(s => `<li>${s}</li>`).join('') : '未设置批量值';
@@ -594,41 +628,55 @@
         // 应用批量设置
         function applyBatchSettings() {
             const selectedRecords = configRecords.filter(r => r.selected);
-            const discount = parseFloat(document.getElementById('batchDiscount').value);
             const payout = parseFloat(document.getElementById('batchPayout').value);
             const deduction = parseFloat(document.getElementById('batchDeduction').value);
             const dailyCap = parseInt(document.getElementById('batchDailyCap').value);
             const dailyClickCap = parseInt(document.getElementById('batchDailyClickCap').value);
+            const dailyCapOpen = document.getElementById('batchDailyCapOpen').checked;
+            const dailyClickCapOpen = document.getElementById('batchDailyClickCapOpen').checked;
+            const note = document.getElementById('batchNote').value;
+            const event = document.getElementById('batchEvent').checked;
+            const reject = document.getElementById('batchReject').checked;
 
             selectedRecords.forEach(record => {
-                if (discount && !isNaN(discount)) {
-                    record.channelPayout = record.offerAdvPrice * discount;
-                }
                 if (payout && !isNaN(payout)) {
                     record.channelPayout = payout;
                 }
                 if (deduction && !isNaN(deduction) && !record.isAutoConnect) {
                     record.deduction = deduction;
                 }
-                if (dailyCap && !isNaN(dailyCap)) {
+                if (dailyCapOpen) {
+                    record.dailyCapMode = 'open';
+                } else if (dailyCap && !isNaN(dailyCap)) {
                     record.dailyCapMode = 'value';
                     record.dailyCapValue = dailyCap;
                 }
-                if (dailyClickCap && !isNaN(dailyClickCap)) {
+                if (dailyClickCapOpen) {
+                    record.dailyClickCapMode = 'open';
+                } else if (dailyClickCap && !isNaN(dailyClickCap)) {
                     record.dailyClickCapMode = 'value';
                     record.dailyClickCapValue = dailyClickCap;
                 }
+                if (note !== undefined && note !== '') {
+                    record.note = note;
+                }
+                record.event = event;
+                record.reject = reject;
 
                 // 重新计算Theory Margin
                 record.theoryMargin = calculateTheoryMargin(record);
             });
 
             // 清空批量输入框
-            document.getElementById('batchDiscount').value = '';
             document.getElementById('batchPayout').value = '';
             document.getElementById('batchDeduction').value = '';
             document.getElementById('batchDailyCap').value = '';
             document.getElementById('batchDailyClickCap').value = '';
+            document.getElementById('batchDailyCapOpen').checked = false;
+            document.getElementById('batchDailyClickCapOpen').checked = false;
+            document.getElementById('batchNote').value = '';
+            document.getElementById('batchEvent').checked = false;
+            document.getElementById('batchReject').checked = false;
 
             renderConfigTable();
             bootstrap.Modal.getInstance(document.getElementById('batchConfirmModal')).hide();
