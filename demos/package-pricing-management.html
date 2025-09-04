@@ -483,7 +483,7 @@
                 selectedPackageFilters.push(pkg);
                 updateSelectedPackages();
                 document.getElementById('packageFilter').value = '';
-                hidePackageSuggestions();
+                // 不隐藏下拉框，允许继续选择
             }
         }
 
@@ -495,17 +495,31 @@
         // 更新选中的Package显示
         function updateSelectedPackages() {
             const container = document.getElementById('selectedPackages');
-            const maxVisible = 3; // 最多显示3个标签
             
             if (selectedPackageFilters.length === 0) {
                 container.innerHTML = '';
                 return;
             }
             
+            // 计算可显示的标签数量
+            const containerWidth = container.parentElement.offsetWidth - 120; // 预留输入框空间
+            let totalWidth = 0;
+            let visibleCount = 0;
+            
+            // 估算每个标签的宽度（包名长度 * 8 + 固定宽度）
+            for (let i = 0; i < selectedPackageFilters.length; i++) {
+                const estimatedWidth = selectedPackageFilters[i].length * 8 + 40; // 8px per char + padding
+                if (totalWidth + estimatedWidth > containerWidth && visibleCount > 0) {
+                    break;
+                }
+                totalWidth += estimatedWidth + 8; // 8px gap
+                visibleCount++;
+            }
+            
             let html = '';
             
-            // 显示前几个标签
-            const visiblePackages = selectedPackageFilters.slice(0, maxVisible);
+            // 显示可见的标签
+            const visiblePackages = selectedPackageFilters.slice(0, visibleCount);
             html += visiblePackages.map(pkg => `
                 <span class="package-tag">
                     <code>${pkg}</code>
@@ -514,9 +528,9 @@
             `).join('');
             
             // 如果有更多，显示+n
-            if (selectedPackageFilters.length > maxVisible) {
-                const moreCount = selectedPackageFilters.length - maxVisible;
-                html += `<span class="more-packages" title="${selectedPackageFilters.slice(maxVisible).join(', ')}">+${moreCount}</span>`;
+            if (selectedPackageFilters.length > visibleCount) {
+                const moreCount = selectedPackageFilters.length - visibleCount;
+                html += `<span class="more-packages" title="${selectedPackageFilters.slice(visibleCount).join(', ')}">+${moreCount}</span>`;
             }
             
             container.innerHTML = html;
@@ -526,6 +540,11 @@
         function removePackageFilter(pkg) {
             selectedPackageFilters = selectedPackageFilters.filter(p => p !== pkg);
             updateSelectedPackages();
+            // 重新显示下拉框如果输入框有焦点
+            const input = document.getElementById('packageFilter');
+            if (document.activeElement === input && input.value.trim()) {
+                showPackageSuggestions(input.value.trim());
+            }
         }
 
         // 更新Package计数
@@ -835,6 +854,9 @@
             if (!e.target.closest('.position-relative')) {
                 hideChannelSuggestions('channelDropdown');
                 hideChannelSuggestions('channelFilterDropdown');
+            }
+            // Package下拉框只在失焦时关闭
+            if (!e.target.closest('#packageFilter') && !e.target.closest('#packageFilterDropdown') && !e.target.closest('.package-input-container')) {
                 hidePackageSuggestions();
             }
         });
