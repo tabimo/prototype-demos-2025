@@ -570,6 +570,8 @@
             const record = configRecords.find(r => r.id === recordId);
             if (record) {
                 record.note = value;
+                // 更新title属性
+                event.target.title = value;
             }
         }
 
