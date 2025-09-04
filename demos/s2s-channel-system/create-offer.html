@@ -152,6 +152,7 @@
                                         <th>Package Name</th>
                                         <th>Adv Price</th>
                                         <th>Third Party</th>
+                                        <th>Note</th>
                                         <th>自动对接</th>
                                         <th>创建时间</th>
                                         <th>操作</th>
@@ -248,6 +249,7 @@
                     <td>${offer.packageName}</td>
                     <td>$${offer.advPrice.toFixed(3)}</td>
                     <td><span class="badge bg-primary">${offer.thirdParty}</span></td>
+                    <td><span class="text-muted" title="${offer.note}">${offer.note || '-'}</span></td>
                     <td>
                         <span class="badge bg-${offer.autoConnect ? 'success' : 'warning'}">
                             ${offer.autoConnect ? '启用' : '关闭'}
