@@ -602,11 +602,20 @@
                 processedPackages.add(pkg);
 
                 // 检查是否已存在于系统中
-                const exists = configRecords.some(record => 
+                const existingRecord = configRecords.find(record => 
                     record.channelUuid === channelUuid && record.package === pkg
                 );
 
-                if (exists) {
+                if (existingRecord) {
+                    // 覆盖现有记录的出价
+                    existingRecord.payout = payout;
+                    existingRecord.updateTime = new Date().toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }).replace(/\//g, '-');
                     duplicateRecords.push(`${channelUuid} - ${pkg}`);
                     return;
                 }
@@ -636,7 +645,7 @@
             }
             if (duplicateRecords.length > 0) {
                 if (message) message += '\n\n';
-                message += `检测到 ${duplicateRecords.length} 条系统重复配置，将自动过滤：\n${duplicateRecords.join('\n')}`;
+                message += `检测到 ${duplicateRecords.length} 条系统重复配置，将覆盖原有出价：\n${duplicateRecords.join('\n')}`;
             }
             if (message) {
                 message += `\n\n${newRecords.length > 0 ? `将添加 ${newRecords.length} 条新配置` : '没有新配置需要添加'}`;
@@ -655,10 +664,20 @@
             applyFilters();
             bootstrap.Modal.getInstance(document.getElementById('addConfigModal')).hide();
             
-            let successMessage = `成功添加 ${newRecords.length} 条配置记录`;
-            const totalFiltered = inputDuplicates.length + duplicateRecords.length;
-            if (totalFiltered > 0) {
-                successMessage += `，已自动过滤 ${totalFiltered} 条重复记录`;
+            let successMessage = '';
+            if (newRecords.length > 0) {
+                successMessage += `成功添加 ${newRecords.length} 条配置记录`;
+            }
+            if (duplicateRecords.length > 0) {
+                if (successMessage) successMessage += '，';
+                successMessage += `覆盖 ${duplicateRecords.length} 条现有配置`;
+            }
+            if (inputDuplicates.length > 0) {
+                if (successMessage) successMessage += '，';
+                successMessage += `过滤 ${inputDuplicates.length} 条输入重复`;
+            }
+            if (!successMessage) {
+                successMessage = '没有有效的操作';
             }
             alert(successMessage);
         }
