@@ -429,8 +429,8 @@
                     </td>
                     <td>
                         <input type="text" class="form-control form-control-sm" 
-                               value="${record.note}" placeholder="备注..."
-                               title="${record.note}"
+                               value="${record.note || ''}" placeholder="备注..."
+                               title="${record.note || ''}"
                                onchange="updateNote('${record.id}', this.value)">
                     </td>
                     <td>
