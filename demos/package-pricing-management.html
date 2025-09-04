@@ -573,6 +573,8 @@
             const lines = packagePricing.split('\n').filter(line => line.trim());
             const newRecords = [];
             const duplicateRecords = [];
+            const inputDuplicates = []; // 输入中的重复包名
+            const processedPackages = new Set(); // 已处理的包名
             let hasError = false;
 
             lines.forEach((line, index) => {
@@ -592,14 +594,21 @@
                     return;
                 }
 
-                // 检查是否已存在
+                // 检查输入中是否重复（保留最先输入的）
+                if (processedPackages.has(pkg)) {
+                    inputDuplicates.push(`第${index + 1}行: ${pkg}`);
+                    return;
+                }
+                processedPackages.add(pkg);
+
+                // 检查是否已存在于系统中
                 const exists = configRecords.some(record => 
                     record.channelUuid === channelUuid && record.package === pkg
                 );
 
                 if (exists) {
                     duplicateRecords.push(`${channelUuid} - ${pkg}`);
-                    return; // 跳过重复记录，不添加到hasError
+                    return;
                 }
 
                 newRecords.push({
@@ -621,8 +630,16 @@
             if (hasError) return;
 
             // 处理重复记录提示
+            let message = '';
+            if (inputDuplicates.length > 0) {
+                message += `输入中检测到 ${inputDuplicates.length} 条重复包名（已保留最先输入的）：\n${inputDuplicates.join('\n')}`;
+            }
             if (duplicateRecords.length > 0) {
-                const message = `检测到 ${duplicateRecords.length} 条重复配置，系统将自动过滤：\n${duplicateRecords.join('\n')}\n\n${newRecords.length > 0 ? `将添加 ${newRecords.length} 条新配置` : '没有新配置需要添加'}`;
+                if (message) message += '\n\n';
+                message += `检测到 ${duplicateRecords.length} 条系统重复配置，将自动过滤：\n${duplicateRecords.join('\n')}`;
+            }
+            if (message) {
+                message += `\n\n${newRecords.length > 0 ? `将添加 ${newRecords.length} 条新配置` : '没有新配置需要添加'}`;
                 alert(message);
             }
 
@@ -638,9 +655,11 @@
             applyFilters();
             bootstrap.Modal.getInstance(document.getElementById('addConfigModal')).hide();
             
-            const successMessage = duplicateRecords.length > 0 
-                ? `成功添加 ${newRecords.length} 条配置记录，已自动过滤 ${duplicateRecords.length} 条重复记录`
-                : `成功添加 ${newRecords.length} 条配置记录`;
+            let successMessage = `成功添加 ${newRecords.length} 条配置记录`;
+            const totalFiltered = inputDuplicates.length + duplicateRecords.length;
+            if (totalFiltered > 0) {
+                successMessage += `，已自动过滤 ${totalFiltered} 条重复记录`;
+            }
             alert(successMessage);
         }
 
