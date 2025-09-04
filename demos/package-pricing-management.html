@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>包名出价管理 - 3S系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .filter-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .package-count {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        .payout-link {
+            color: #0d6efd;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .payout-link:hover {
+            text-decoration: underline;
+        }
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ced4da;
+            border-top: none;
+            border-radius: 0 0 0.375rem 0.375rem;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        .autocomplete-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        .autocomplete-item:hover, .autocomplete-item.active {
+            background-color: #e9ecef;
+        }
+        .selected-packages {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+        }
+        .package-tag {
+            background: #0d6efd;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .package-tag .remove {
+            cursor: pointer;
+            font-weight: bold;
+            opacity: 0.7;
+        }
+        .package-tag .remove:hover {
+            opacity: 1;
+        }
+        .table-container {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <!-- 页面标题 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h3>
+                    <i class="fas fa-tags text-primary"></i>
+                    包名出价管理
+                </h3>
+                <p class="text-muted">管理Channel与Package的出价配置</p>
+            </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <button class="btn btn-primary me-2" onclick="showAddConfigModal()">
+                    <i class="fas fa-plus"></i> 包名出价设置
+                </button>
+                <button class="btn btn-warning" onclick="showBatchPricingModal()" id="batchPricingBtn" disabled>
+                    <i class="fas fa-edit"></i> 批量设置出价
+                </button>
+            </div>
+        </div>
+
+        <!-- 筛选区域 -->
+        <div class="filter-section">
+            <h5 class="mb-3">
+                <i class="fas fa-filter text-info"></i>
+                筛选条件
+            </h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="form-label">Channel UUID</label>
+                    <div class="position-relative">
+                        <input type="text" class="form-control" id="channelFilter" 
+                               placeholder="输入关键词搜索Channel" 
+                               onkeyup="handleChannelFilterInput(event)">
+                        <div class="autocomplete-dropdown" id="channelFilterDropdown"></div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Package</label>
+                    <div class="position-relative">
+                        <input type="text" class="form-control" id="packageFilter" 
+                               placeholder="输入关键词搜索Package" 
+                               onkeyup="handlePackageFilterInput(event)">
+                        <div class="autocomplete-dropdown" id="packageFilterDropdown"></div>
+                        <div class="selected-packages" id="selectedPackages"></div>
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button class="btn btn-outline-secondary me-2" onclick="applyFilters()">
+                        <i class="fas fa-search"></i> 筛选
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                        <i class="fas fa-times"></i> 清空
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 配置记录列表 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list text-success"></i>
+                    配置记录列表
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-container">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th width="40">
+                                    <input type="checkbox" class="form-check-input" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                                </th>
+                                <th>配置ID</th>
+                                <th>Channel UUID</th>
+                                <th>Package</th>
+                                <th>Channel Payout</th>
+                                <th>更新时间</th>
+                                <th width="200">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="configTableBody">
+                            <!-- 配置记录将在这里动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 包名出价设置模态框 -->
+    <div class="modal fade" id="addConfigModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">包名出价设置</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addConfigForm">
+                        <div class="mb-3">
+                            <label class="form-label">Channel UUID <span class="text-danger">*</span></label>
+                            <div class="position-relative">
+                                <input type="text" class="form-control" id="channelUuid" required
+                                       placeholder="输入关键词搜索Channel" 
+                                       onkeyup="handleChannelInput(event)">
+                                <div class="autocomplete-dropdown" id="channelDropdown"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">包名出价 <span class="text-danger">*</span></label>
+                            <div class="position-relative">
+                                <textarea class="form-control" id="packagePricing" rows="8" required
+                                          placeholder="请输入包名及其出价，格式形如：package 0.03，多个Package用换行符分隔"
+                                          oninput="updatePackageCount()"></textarea>
+                                <div class="package-count" id="packageCount">已输入 0 个Package</div>
+                            </div>
+                            <small class="text-muted">
+                                出价支持范围 [0.001, 50.000]，支持三位小数<br>
+                                示例：<br>
+                                id12345678 0.03<br>
+                                com.aos.package 0.030
+                            </small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAddConfig()">确认</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 批量设置出价模态框 -->
+    <div class="modal fade" id="batchPricingModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">批量设置出价</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>将对选中的 <span id="selectedCount">0</span> 条记录设置新的出价</p>
+                    <div class="mb-3">
+                        <label class="form-label">Channel Payout <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="batchPayout" required
+                               step="0.001" min="0.001" max="50.000" placeholder="0.000">
+                        <small class="text-muted">支持范围 [0.001, 50.000]，支持三位小数</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-warning" onclick="submitBatchPricing()">确认</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑出价模态框 -->
+    <div class="modal fade" id="editPricingModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">编辑出价</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Channel Payout <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="editPayout" required
+                               step="0.001" min="0.001" max="50.000" placeholder="0.000">
+                        <small class="text-muted">支持范围 [0.001, 50.000]，支持三位小数</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="submitEditPricing()">确认</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 删除确认模态框 -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">确认删除</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>确认要删除此配置记录吗？</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDelete()">确认删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 模拟数据
+        const mockChannels = [
+            'abc', 'abcd', 'abcd_01', 'facebook_ads', 'google_ads', 'tiktok_ads', 
+            'snapchat_ads', 'twitter_ads', 'alphamobi', 'ntd_dsp', 'nx_dsp'
+        ];
+
+        const mockPackages = [
+            'com.example.game1', 'com.example.shopping', 'com.example.finance',
+            'com.aos.package', 'id12345678', 'id34567892', 'com.test.app',
+            'com.demo.application', 'org.sample.project'
+        ];
+
+        let configRecords = [
+            {
+                id: 'CFG001',
+                channelUuid: 'abc',
+                package: 'com.example.game1',
+                payout: 0.125,
+                updateTime: '2025-01-27 15:23',
+                selected: false
+            },
+            {
+                id: 'CFG002',
+                channelUuid: 'facebook_ads',
+                package: 'com.example.shopping',
+                payout: 0.089,
+                updateTime: '2025-01-27 14:15',
+                selected: false
+            },
+            {
+                id: 'CFG003',
+                channelUuid: 'google_ads',
+                package: 'id12345678',
+                payout: 0.030,
+                updateTime: '2025-01-27 13:45',
+                selected: false
+            }
+        ];
+
+        let filteredRecords = [...configRecords];
+        let selectedChannelFilter = '';
+        let selectedPackageFilters = [];
+        let currentEditId = null;
+        let currentDeleteId = null;
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            renderConfigTable();
+            updateBatchButton();
+        });
+
+        // 显示添加配置模态框
+        function showAddConfigModal() {
+            document.getElementById('channelUuid').value = '';
+            document.getElementById('packagePricing').value = '';
+            updatePackageCount();
+            new bootstrap.Modal(document.getElementById('addConfigModal')).show();
+        }
+
+        // 处理Channel输入
+        function handleChannelInput(event) {
+            const input = event.target;
+            const keyword = input.value.trim();
+            
+            if (keyword) {
+                showChannelSuggestions(keyword, 'channelDropdown');
+            } else {
+                hideChannelSuggestions('channelDropdown');
+            }
+        }
+
+        // 处理Channel筛选输入
+        function handleChannelFilterInput(event) {
+            const input = event.target;
+            const keyword = input.value.trim();
+            
+            if (keyword) {
+                showChannelSuggestions(keyword, 'channelFilterDropdown');
+            } else {
+                hideChannelSuggestions('channelFilterDropdown');
+            }
+        }
+
+        // 显示Channel建议
+        function showChannelSuggestions(keyword, dropdownId) {
+            const dropdown = document.getElementById(dropdownId);
+            const matches = mockChannels.filter(channel => 
+                channel.toLowerCase().includes(keyword.toLowerCase())
+            );
+
+            if (matches.length === 0) {
+                hideChannelSuggestions(dropdownId);
+                return;
+            }
+
+            dropdown.innerHTML = matches.slice(0, 8).map(channel => `
+                <div class="autocomplete-item" onclick="selectChannel('${channel}', '${dropdownId}')">
+                    <code>${channel}</code>
+                </div>
+            `).join('');
+            dropdown.style.display = 'block';
+        }
+
+        // 隐藏Channel建议
+        function hideChannelSuggestions(dropdownId) {
+            document.getElementById(dropdownId).style.display = 'none';
+        }
+
+        // 选择Channel
+        function selectChannel(channel, dropdownId) {
+            if (dropdownId === 'channelDropdown') {
+                document.getElementById('channelUuid').value = channel;
+            } else if (dropdownId === 'channelFilterDropdown') {
+                document.getElementById('channelFilter').value = channel;
+                selectedChannelFilter = channel;
+            }
+            hideChannelSuggestions(dropdownId);
+        }
+
+        // 处理Package筛选输入
+        function handlePackageFilterInput(event) {
+            const input = event.target;
+            const keyword = input.value.trim();
+            
+            if (keyword) {
+                showPackageSuggestions(keyword);
+            } else {
+                hidePackageSuggestions();
+            }
+        }
+
+        // 显示Package建议
+        function showPackageSuggestions(keyword) {
+            const dropdown = document.getElementById('packageFilterDropdown');
+            const matches = mockPackages.filter(pkg => 
+                pkg.toLowerCase().includes(keyword.toLowerCase()) &&
+                !selectedPackageFilters.includes(pkg)
+            );
+
+            if (matches.length === 0) {
+                hidePackageSuggestions();
+                return;
+            }
+
+            dropdown.innerHTML = matches.slice(0, 8).map(pkg => `
+                <div class="autocomplete-item" onclick="selectPackageFilter('${pkg}')">
+                    <code>${pkg}</code>
+                </div>
+            `).join('');
+            dropdown.style.display = 'block';
+        }
+
+        // 隐藏Package建议
+        function hidePackageSuggestions() {
+            document.getElementById('packageFilterDropdown').style.display = 'none';
+        }
+
+        // 选择Package筛选
+        function selectPackageFilter(pkg) {
+            if (!selectedPackageFilters.includes(pkg)) {
+                selectedPackageFilters.push(pkg);
+                updateSelectedPackages();
+                document.getElementById('packageFilter').value = '';
+            }
+        }
+
+        // 更新选中的Package显示
+        function updateSelectedPackages() {
+            const container = document.getElementById('selectedPackages');
+            container.innerHTML = selectedPackageFilters.map(pkg => `
+                <span class="package-tag">
+                    <code>${pkg}</code>
+                    <span class="remove" onclick="removePackageFilter('${pkg}')">&times;</span>
+                </span>
+            `).join('');
+        }
+
+        // 移除Package筛选
+        function removePackageFilter(pkg) {
+            selectedPackageFilters = selectedPackageFilters.filter(p => p !== pkg);
+            updateSelectedPackages();
+        }
+
+        // 更新Package计数
+        function updatePackageCount() {
+            const textarea = document.getElementById('packagePricing');
+            const lines = textarea.value.trim().split('\n').filter(line => line.trim());
+            document.getElementById('packageCount').textContent = `已输入 ${lines.length} 个Package`;
+        }
+
+        // 提交添加配置
+        function submitAddConfig() {
+            const channelUuid = document.getElementById('channelUuid').value.trim();
+            const packagePricing = document.getElementById('packagePricing').value.trim();
+
+            if (!channelUuid) {
+                alert('请选择Channel UUID');
+                return;
+            }
+
+            if (!packagePricing) {
+                alert('请输入包名出价');
+                return;
+            }
+
+            // 解析包名出价
+            const lines = packagePricing.split('\n').filter(line => line.trim());
+            const newRecords = [];
+            let hasError = false;
+
+            lines.forEach((line, index) => {
+                const parts = line.trim().split(/\s+/);
+                if (parts.length !== 2) {
+                    alert(`第${index + 1}行格式错误，应为：package 0.03`);
+                    hasError = true;
+                    return;
+                }
+
+                const pkg = parts[0];
+                const payout = parseFloat(parts[1]);
+
+                if (isNaN(payout) || payout < 0.001 || payout > 50.000) {
+                    alert(`第${index + 1}行出价错误，应在 [0.001, 50.000] 范围内`);
+                    hasError = true;
+                    return;
+                }
+
+                // 检查是否已存在
+                const exists = configRecords.some(record => 
+                    record.channelUuid === channelUuid && record.package === pkg
+                );
+
+                if (exists) {
+                    alert(`Channel ${channelUuid} 和 Package ${pkg} 的配置已存在`);
+                    hasError = true;
+                    return;
+                }
+
+                newRecords.push({
+                    id: 'CFG' + String(Date.now() + index).slice(-6),
+                    channelUuid: channelUuid,
+                    package: pkg,
+                    payout: payout,
+                    updateTime: new Date().toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }).replace(/\//g, '-'),
+                    selected: false
+                });
+            });
+
+            if (hasError) return;
+
+            // 添加记录
+            configRecords.unshift(...newRecords);
+            applyFilters();
+            bootstrap.Modal.getInstance(document.getElementById('addConfigModal')).hide();
+            alert(`成功添加 ${newRecords.length} 条配置记录`);
+        }
+
+        // 应用筛选
+        function applyFilters() {
+            filteredRecords = configRecords.filter(record => {
+                // Channel筛选
+                if (selectedChannelFilter && record.channelUuid !== selectedChannelFilter) {
+                    return false;
+                }
+
+                // Package筛选
+                if (selectedPackageFilters.length > 0 && 
+                    !selectedPackageFilters.includes(record.package)) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            renderConfigTable();
+        }
+
+        // 清空筛选
+        function clearFilters() {
+            document.getElementById('channelFilter').value = '';
+            document.getElementById('packageFilter').value = '';
+            selectedChannelFilter = '';
+            selectedPackageFilters = [];
+            updateSelectedPackages();
+            filteredRecords = [...configRecords];
+            renderConfigTable();
+        }
+
+        // 渲染配置表格
+        function renderConfigTable() {
+            const tbody = document.getElementById('configTableBody');
+            
+            // 按更新时间倒序排序
+            const sortedRecords = [...filteredRecords].sort((a, b) => 
+                new Date(b.updateTime) - new Date(a.updateTime)
+            );
+
+            tbody.innerHTML = sortedRecords.map(record => `
+                <tr>
+                    <td>
+                        <input type="checkbox" class="form-check-input record-checkbox" 
+                               value="${record.id}" ${record.selected ? 'checked' : ''} 
+                               onchange="toggleRecordSelection('${record.id}')">
+                    </td>
+                    <td><code>${record.id}</code></td>
+                    <td><code>${record.channelUuid}</code></td>
+                    <td><code>${record.package}</code></td>
+                    <td>
+                        <a href="#" class="payout-link" title="点击设置价格" 
+                           onclick="showEditPricingModal('${record.id}')">
+                            $${record.payout.toFixed(3)}
+                        </a>
+                    </td>
+                    <td>${record.updateTime}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info me-1" 
+                                title="点击查看渠道的更多出价配置"
+                                onclick="openS2SConfig('${record.channelUuid}')">
+                            <i class="fas fa-cog"></i> S2S默认配置
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" 
+                                onclick="showDeleteConfirm('${record.id}')">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            updateSelectAllState();
+        }
+
+        // 切换记录选择
+        function toggleRecordSelection(recordId) {
+            const record = configRecords.find(r => r.id === recordId);
+            if (record) {
+                record.selected = !record.selected;
+                updateSelectAllState();
+                updateBatchButton();
+            }
+        }
+
+        // 全选/取消全选
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAllCheckbox').checked;
+            filteredRecords.forEach(record => {
+                const originalRecord = configRecords.find(r => r.id === record.id);
+                if (originalRecord) {
+                    originalRecord.selected = selectAll;
+                }
+            });
+            renderConfigTable();
+            updateBatchButton();
+        }
+
+        // 更新全选状态
+        function updateSelectAllState() {
+            const visibleRecords = filteredRecords.map(r => configRecords.find(cr => cr.id === r.id));
+            const selectedCount = visibleRecords.filter(r => r.selected).length;
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            
+            if (selectedCount === 0) {
+                selectAllCheckbox.indeterminate = false;
+                selectAllCheckbox.checked = false;
+            } else if (selectedCount === visibleRecords.length) {
+                selectAllCheckbox.indeterminate = false;
+                selectAllCheckbox.checked = true;
+            } else {
+                selectAllCheckbox.indeterminate = true;
+                selectAllCheckbox.checked = false;
+            }
+        }
+
+        // 更新批量按钮状态
+        function updateBatchButton() {
+            const selectedCount = configRecords.filter(r => r.selected).length;
+            const batchBtn = document.getElementById('batchPricingBtn');
+            batchBtn.disabled = selectedCount === 0;
+        }
+
+        // 显示批量设置出价模态框
+        function showBatchPricingModal() {
+            const selectedCount = configRecords.filter(r => r.selected).length;
+            if (selectedCount === 0) {
+                alert('请先选择要操作的记录');
+                return;
+            }
+
+            document.getElementById('selectedCount').textContent = selectedCount;
+            document.getElementById('batchPayout').value = '';
+            new bootstrap.Modal(document.getElementById('batchPricingModal')).show();
+        }
+
+        // 提交批量设置出价
+        function submitBatchPricing() {
+            const payout = parseFloat(document.getElementById('batchPayout').value);
+            
+            if (isNaN(payout) || payout < 0.001 || payout > 50.000) {
+                alert('出价应在 [0.001, 50.000] 范围内');
+                return;
+            }
+
+            const selectedRecords = configRecords.filter(r => r.selected);
+            const currentTime = new Date().toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).replace(/\//g, '-');
+
+            selectedRecords.forEach(record => {
+                record.payout = payout;
+                record.updateTime = currentTime;
+                record.selected = false;
+            });
+
+            applyFilters();
+            updateBatchButton();
+            bootstrap.Modal.getInstance(document.getElementById('batchPricingModal')).hide();
+            alert(`成功更新 ${selectedRecords.length} 条记录的出价`);
+        }
+
+        // 显示编辑出价模态框
+        function showEditPricingModal(recordId) {
+            const record = configRecords.find(r => r.id === recordId);
+            if (!record) return;
+
+            currentEditId = recordId;
+            document.getElementById('editPayout').value = record.payout.toFixed(3);
+            new bootstrap.Modal(document.getElementById('editPricingModal')).show();
+        }
+
+        // 提交编辑出价
+        function submitEditPricing() {
+            const payout = parseFloat(document.getElementById('editPayout').value);
+            
+            if (isNaN(payout) || payout < 0.001 || payout > 50.000) {
+                alert('出价应在 [0.001, 50.000] 范围内');
+                return;
+            }
+
+            const record = configRecords.find(r => r.id === currentEditId);
+            if (record) {
+                record.payout = payout;
+                record.updateTime = new Date().toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }).replace(/\//g, '-');
+            }
+
+            applyFilters();
+            bootstrap.Modal.getInstance(document.getElementById('editPricingModal')).hide();
+            alert('出价更新成功');
+        }
+
+        // 显示删除确认
+        function showDeleteConfirm(recordId) {
+            currentDeleteId = recordId;
+            new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
+        }
+
+        // 确认删除
+        function confirmDelete() {
+            configRecords = configRecords.filter(r => r.id !== currentDeleteId);
+            applyFilters();
+            updateBatchButton();
+            bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
+            alert('配置记录已删除');
+        }
+
+        // 打开S2S配置
+        function openS2SConfig(channelUuid) {
+            const url = `https://3s.mobvista.com/dist/index.html#!/Channel/TrafficSource?channel=${channelUuid}`;
+            window.open(url, '_blank');
+        }
+
+        // 点击其他地方关闭建议
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.position-relative')) {
+                hideChannelSuggestions('channelDropdown');
+                hideChannelSuggestions('channelFilterDropdown');
+                hidePackageSuggestions();
+            }
+        });
+    </script>
+</body>
+</html>
