@@ -167,7 +167,7 @@
                 <button class="btn btn-primary me-2" onclick="showAddConfigModal()">
                     <i class="fas fa-plus"></i> 添加包名出价
                 </button>
-                <span class="d-inline-block" title="请至少选中一条需要修改的记录">
+                <span class="d-inline-block" data-bs-toggle="tooltip" data-bs-title="请至少选中一条需要修改的记录">
                     <button class="btn btn-warning" onclick="showBatchPricingModal()" id="batchPricingBtn" disabled>
                         <i class="fas fa-edit"></i> 批量修改出价
                     </button>
@@ -371,7 +371,18 @@
         document.addEventListener('DOMContentLoaded', function() {
             renderConfigTable();
             updateBatchButton();
+            initTooltips();
         });
+
+        // 初始化tooltip
+        function initTooltips() {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl, {
+                    delay: { show: 0, hide: 100 }
+                });
+            });
+        }
 
         // 显示添加配置模态框
         function showAddConfigModal() {
@@ -735,7 +746,7 @@
                     <td><code>${record.channelUuid}</code></td>
                     <td><code>${record.package}</code></td>
                     <td>
-                        <a href="#" class="payout-link" title="点击修改价格" 
+                        <a href="#" class="payout-link" data-bs-toggle="tooltip" data-bs-title="点击修改价格" 
                            onclick="showEditPricingModal('${record.id}')">
                             $${record.payout.toFixed(3)}
                         </a>
@@ -756,6 +767,8 @@
             `).join('');
 
             updateSelectAllState();
+            // 重新初始化tooltip
+            initTooltips();
         }
 
         // 切换记录选择
