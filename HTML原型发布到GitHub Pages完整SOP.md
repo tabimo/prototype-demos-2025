@@ -38,7 +38,63 @@ git --version
 # 应该显示类似：git version 2.x.x
 ```
 
-### 2. 安装代码编辑器
+### 2. 安装GitHub CLI
+
+GitHub CLI (gh) 是GitHub官方命令行工具，可以简化仓库创建和管理操作。
+
+#### Windows系统
+```bash
+# 使用winget（Windows 10/11）
+winget install --id GitHub.cli
+
+# 或下载安装包
+# 访问 https://github.com/cli/cli/releases
+# 下载 gh_*_windows_amd64.msi 并安装
+```
+
+#### macOS系统
+```bash
+# 使用Homebrew（推荐）
+brew install gh
+
+# 或使用MacPorts
+sudo port install gh
+```
+
+#### Linux系统
+```bash
+# Ubuntu/Debian
+curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+sudo apt update
+sudo apt install gh
+
+# CentOS/RHEL/Fedora
+sudo dnf install gh
+```
+
+#### 验证安装
+```bash
+gh --version
+# 应该显示类似：gh version 2.x.x
+```
+
+#### 登录GitHub CLI
+```bash
+# 登录GitHub账号
+gh auth login
+
+# 选择：
+# 1. GitHub.com
+# 2. HTTPS (推荐) 或 SSH
+# 3. 使用浏览器登录
+# 4. 按提示完成认证
+
+# 验证登录状态
+gh auth status
+```
+
+### 3. 安装代码编辑器
 
 推荐使用 **Visual Studio Code**：
 1. 访问 [VS Code官网](https://code.visualstudio.com/)
@@ -112,6 +168,17 @@ ssh -T git@github.com
 
 ### 1. 创建GitHub仓库
 
+#### 方法1：使用GitHub CLI（推荐）
+```bash
+# 创建公开仓库
+gh repo create prototype-demos-2025 --public --description "HTML原型演示项目" --add-readme
+
+# 克隆到本地
+gh repo clone prototype-demos-2025
+cd prototype-demos-2025
+```
+
+#### 方法2：使用GitHub网页界面
 1. 登录GitHub，点击右上角"+"号 → "New repository"
 2. 填写仓库信息：
    - **Repository name**: `prototype-demos-2025`
@@ -255,6 +322,19 @@ git push origin main
 
 ### 4. 启用GitHub Pages
 
+#### 方法1：使用GitHub CLI（推荐）
+```bash
+# 启用GitHub Pages
+gh api repos/:owner/:repo/pages -X POST -f source.branch=main -f source.path=/
+
+# 或使用更简单的命令（需要gh版本2.0+）
+gh repo edit --enable-pages --pages-branch main
+
+# 查看Pages状态
+gh api repos/:owner/:repo/pages
+```
+
+#### 方法2：使用GitHub网页界面
 1. 进入GitHub仓库页面
 2. 点击 **Settings** 标签
 3. 滚动到左侧菜单的 **Pages** 部分
@@ -311,6 +391,23 @@ git push origin main
 
 ### 4. 快速提交命令
 
+#### 使用GitHub CLI的便捷操作
+```bash
+# 快速创建和发布新原型
+gh repo create my-new-prototype --public --clone
+cd my-new-prototype
+echo "<h1>Hello World</h1>" > index.html
+gh repo edit --enable-pages --pages-branch main
+git add . && git commit -m "Initial prototype" && git push
+
+# 查看仓库信息
+gh repo view
+
+# 在浏览器中打开仓库
+gh repo view --web
+```
+
+#### 传统快捷命令
 创建快捷命令（可选）：
 ```bash
 # 在 ~/.bashrc 或 ~/.zshrc 中添加
@@ -434,7 +531,7 @@ const Utils = {
 
 ## 🔧 常见问题
 
-### 1. Git相关问题
+### 1. Git和GitHub CLI相关问题
 
 **Q: 推送时提示权限错误**
 ```bash
@@ -443,12 +540,44 @@ git remote -v
 
 # 如果是HTTPS，改为SSH
 git remote set-url origin git@github.com:用户名/仓库名.git
+
+# 或使用GitHub CLI重新认证
+gh auth login
 ```
 
 **Q: 提交时提示用户信息未配置**
 ```bash
 git config --global user.name "你的用户名"
 git config --global user.email "你的邮箱"
+```
+
+**Q: GitHub CLI命令失败**
+```bash
+# 检查登录状态
+gh auth status
+
+# 重新登录
+gh auth logout
+gh auth login
+
+# 检查版本
+gh --version
+
+# 更新GitHub CLI
+brew upgrade gh  # macOS
+winget upgrade GitHub.cli  # Windows
+```
+
+**Q: GitHub CLI创建仓库失败**
+```bash
+# 检查是否有创建仓库的权限
+gh auth status
+
+# 使用详细模式查看错误
+gh repo create test-repo --public --debug
+
+# 检查仓库名是否已存在
+gh repo list
 ```
 
 ### 2. GitHub Pages问题
@@ -512,7 +641,58 @@ python -m http.server 8000
 
 ## 🎉 完整示例
 
-以下是一个完整的操作示例：
+### 使用GitHub CLI的完整流程（推荐）
+
+```bash
+# 1. 创建新仓库并克隆
+gh repo create prototype-demos-2025 --public --description "HTML原型演示项目" --add-readme --clone
+cd prototype-demos-2025
+
+# 2. 创建项目结构
+mkdir -p demos assets/css assets/js
+echo "/* Global styles */" > assets/css/main.css
+echo "// Global scripts" > assets/js/main.js
+
+# 3. 创建原型文件
+cat > demos/user-dashboard.html << 'EOF'
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户仪表板</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>📊 用户仪表板</h1>
+        <div class="card">
+            <div class="card-body">
+                <p>这是一个用户仪表板原型。</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+EOF
+
+# 4. 提交初始版本
+git add .
+git commit -m "feat: add initial project structure and user dashboard prototype"
+git push origin main
+
+# 5. 启用GitHub Pages
+gh repo edit --enable-pages --pages-branch main
+
+# 6. 查看仓库信息和链接
+gh repo view
+echo "访问链接: https://$(gh api user --jq .login).github.io/prototype-demos-2025/demos/user-dashboard.html"
+
+# 7. 在浏览器中打开仓库
+gh repo view --web
+```
+
+### 传统方式的完整流程
 
 ```bash
 # 1. 克隆仓库
