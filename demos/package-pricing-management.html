@@ -572,6 +572,7 @@
             // 解析包名出价
             const lines = packagePricing.split('\n').filter(line => line.trim());
             const newRecords = [];
+            const duplicateRecords = [];
             let hasError = false;
 
             lines.forEach((line, index) => {
@@ -597,9 +598,8 @@
                 );
 
                 if (exists) {
-                    alert(`Channel ${channelUuid} 和 Package ${pkg} 的配置已存在`);
-                    hasError = true;
-                    return;
+                    duplicateRecords.push(`${channelUuid} - ${pkg}`);
+                    return; // 跳过重复记录，不添加到hasError
                 }
 
                 newRecords.push({
@@ -620,11 +620,28 @@
 
             if (hasError) return;
 
+            // 处理重复记录提示
+            if (duplicateRecords.length > 0) {
+                const message = `检测到 ${duplicateRecords.length} 条重复配置，系统将自动过滤：\n${duplicateRecords.join('\n')}\n\n${newRecords.length > 0 ? `将添加 ${newRecords.length} 条新配置` : '没有新配置需要添加'}`;
+                alert(message);
+            }
+
+            if (newRecords.length === 0) {
+                if (duplicateRecords.length === 0) {
+                    alert('没有有效的配置记录');
+                }
+                return;
+            }
+
             // 添加记录
             configRecords.unshift(...newRecords);
             applyFilters();
             bootstrap.Modal.getInstance(document.getElementById('addConfigModal')).hide();
-            alert(`成功添加 ${newRecords.length} 条配置记录`);
+            
+            const successMessage = duplicateRecords.length > 0 
+                ? `成功添加 ${newRecords.length} 条配置记录，已自动过滤 ${duplicateRecords.length} 条重复记录`
+                : `成功添加 ${newRecords.length} 条配置记录`;
+            alert(successMessage);
         }
 
         // 应用筛选
