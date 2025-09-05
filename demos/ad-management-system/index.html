@@ -30,12 +30,25 @@
             width: 100% !important;
             table-layout: fixed !important;
         }
-        .el-table th {
+        .el-table__body-wrapper {
+            width: 100% !important;
+        }
+        .el-table__body {
+            width: 100% !important;
+            table-layout: fixed !important;
+        }
+        .el-table th, .el-table td {
             white-space: nowrap !important;
             text-align: left !important;
+            padding: 12px 0 !important;
+            border-right: 1px solid #EBEEF5 !important;
         }
-        .el-table td {
-            white-space: nowrap !important;
+        .el-table th:first-child, .el-table td:first-child {
+            padding-left: 16px !important;
+        }
+        .el-table th:last-child, .el-table td:last-child {
+            padding-right: 16px !important;
+            border-right: none !important;
         }
     </style>
 </head>
@@ -98,25 +111,24 @@
                     </div>
 
                     <!-- 数据表格 -->
-                    <div style="width: 100%; overflow-x: auto;">
-                        <el-table 
-                            :data="paginatedUsers" 
-                            v-loading="loading"
-                            @sort-change="handleSortChange"
-                            stripe
-                            border>
-                            <el-table-column prop="username" label="Username" sortable="custom" width="200"></el-table-column>
-                            <el-table-column prop="bd" label="BD" width="150"></el-table-column>
-                            <el-table-column prop="advPm" label="Adv PM" width="150"></el-table-column>
-                            <el-table-column prop="updateTime" label="更新日期" sortable="custom" width="180"></el-table-column>
-                            <el-table-column label="操作" width="180">
-                                <template #default="scope">
-                                    <el-button size="small" @click="editUser(scope.row)">编辑</el-button>
-                                    <el-button size="small" type="danger" @click="deleteUser(scope.row)">删除</el-button>
-                                </template>
-                            </el-table-column>
-                        </el-table>
-                    </div>
+                    <el-table 
+                        :data="paginatedUsers" 
+                        v-loading="loading"
+                        @sort-change="handleSortChange"
+                        stripe
+                        border
+                        style="width: 100%">
+                        <el-table-column prop="username" label="Username" sortable="custom" width="200" align="left"></el-table-column>
+                        <el-table-column prop="bd" label="BD" width="150" align="left"></el-table-column>
+                        <el-table-column prop="advPm" label="Adv PM" width="150" align="left"></el-table-column>
+                        <el-table-column prop="updateTime" label="更新日期" sortable="custom" width="180" align="left"></el-table-column>
+                        <el-table-column label="操作" width="180" align="center">
+                            <template #default="scope">
+                                <el-button size="small" @click="editUser(scope.row)">编辑</el-button>
+                                <el-button size="small" type="danger" @click="deleteUser(scope.row)">删除</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
 
                     <!-- 分页 -->
                     <div style="margin-top: 20px; text-align: right;">
