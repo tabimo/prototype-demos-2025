@@ -156,8 +156,9 @@
                         style="width: 100%">
                         <el-table-column label="Icon" width="80" align="center">
                             <template #default="scope">
-                                <img :src="scope.row.icon" :alt="scope.row.appName" class="app-icon" 
-                                     @error="handleImageError" />
+                                <img :src="scope.row.icon || 'https://via.placeholder.com/40x40/DCDFE6/909399?text=?'" 
+                                     :alt="scope.row.appName" class="app-icon" 
+                                     @error="handleImageError($event)" />
                             </template>
                         </el-table-column>
                         <el-table-column prop="packageName" label="Package Name" sortable="custom" width="200" align="left"></el-table-column>
@@ -252,6 +253,9 @@
                 <el-form-item label="App Rate" prop="appRate">
                     <el-input v-model="packageForm.appRate" :disabled="!editingPackage"></el-input>
                 </el-form-item>
+                <el-form-item label="Icon URL" prop="icon">
+                    <el-input v-model="packageForm.icon" placeholder="应用图标URL" :disabled="!editingPackage"></el-input>
+                </el-form-item>
                 <el-form-item label="App Description" prop="appDescription">
                     <el-input v-model="packageForm.appDescription" type="textarea" :rows="3" :disabled="!editingPackage"></el-input>
                 </el-form-item>
@@ -266,7 +270,9 @@
         <el-dialog v-model="showDetailDialog" title="Package 详情" width="600px">
             <el-descriptions :column="2" border v-if="currentPackage">
                 <el-descriptions-item label="Icon">
-                    <img :src="currentPackage.icon" :alt="currentPackage.appName" class="app-icon" />
+                    <img :src="currentPackage.icon || 'https://via.placeholder.com/40x40/DCDFE6/909399?text=?'" 
+                         :alt="currentPackage.appName" class="app-icon" 
+                         @error="handleImageError($event)" />
                 </el-descriptions-item>
                 <el-descriptions-item label="Package Name">{{ currentPackage.packageName }}</el-descriptions-item>
                 <el-descriptions-item label="App Name">{{ currentPackage.appName }}</el-descriptions-item>
@@ -552,8 +558,8 @@
                     };
                 };
 
-                const handleImageError = (e) => {
-                    e.target.src = 'https://via.placeholder.com/40x40/DCDFE6/909399?text=?';
+                const handleImageError = (event) => {
+                    event.target.src = 'https://via.placeholder.com/40x40/DCDFE6/909399?text=?';
                 };
 
                 const saveToStorage = () => {
