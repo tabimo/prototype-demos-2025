@@ -12,10 +12,12 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     <style>
         body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; }
-        .header { background: #409EFF; color: white; padding: 0 20px; }
+        .header { background: #409EFF; color: white; padding: 0 20px; height: 60px; }
         .main-container { padding: 20px; }
         .filter-section { margin-bottom: 20px; padding: 20px; background: #f5f7fa; border-radius: 8px; }
         .selected-tag { background: white !important; color: #f56c6c !important; border: 1px solid #f56c6c !important; }
+        .el-table { width: 100% !important; }
+        .el-table th { white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -85,12 +87,14 @@
                         :data="paginatedUsers" 
                         v-loading="loading"
                         @sort-change="handleSortChange"
+                        stripe
+                        border
                         style="width: 100%">
-                        <el-table-column prop="username" label="Username" sortable="custom" width="200" />
-                        <el-table-column prop="bd" label="BD" width="150" />
-                        <el-table-column prop="advPm" label="Adv PM" width="150" />
-                        <el-table-column prop="updateTime" label="更新日期" sortable="custom" width="180" />
-                        <el-table-column label="操作" width="120">
+                        <el-table-column prop="username" label="Username" sortable="custom" min-width="180" show-overflow-tooltip />
+                        <el-table-column prop="bd" label="BD" min-width="120" show-overflow-tooltip />
+                        <el-table-column prop="advPm" label="Adv PM" min-width="120" show-overflow-tooltip />
+                        <el-table-column prop="updateTime" label="更新日期" sortable="custom" min-width="160" show-overflow-tooltip />
+                        <el-table-column label="操作" width="160" fixed="right">
                             <template #default="scope">
                                 <el-button size="small" @click="editUser(scope.row)">编辑</el-button>
                                 <el-button size="small" type="danger" @click="deleteUser(scope.row)">删除</el-button>
@@ -367,23 +371,36 @@
                 };
 
                 const loadFromStorage = () => {
-                    const stored = localStorage.getItem('advUsers');
-                    if (stored) {
-                        users.value = JSON.parse(stored);
-                    } else {
-                        // 初始化示例数据
-                        users.value = [
-                            { username: 'demo_user_1', bd: '张三', advPm: '刘一', updateTime: '2025-01-15 10:30:25' },
-                            { username: 'test_advertiser', bd: '李四', advPm: '陈二', updateTime: '2025-01-14 16:45:12' },
-                            { username: 'sample_client', bd: '王五', advPm: '杨三', updateTime: '2025-01-13 09:15:33' }
-                        ];
-                        saveToStorage();
+                    try {
+                        const stored = localStorage.getItem('advUsers');
+                        if (stored) {
+                            users.value = JSON.parse(stored);
+                        } else {
+                            // 初始化示例数据
+                            initSampleData();
+                        }
+                    } catch (error) {
+                        console.error('加载数据失败:', error);
+                        initSampleData();
                     }
+                };
+
+                const initSampleData = () => {
+                    users.value = [
+                        { username: 'demo_user_1', bd: '张三', advPm: '刘一', updateTime: '2025-01-15 10:30:25' },
+                        { username: 'test_advertiser', bd: '李四', advPm: '陈二', updateTime: '2025-01-14 16:45:12' },
+                        { username: 'sample_client', bd: '王五', advPm: '杨三', updateTime: '2025-01-13 09:15:33' },
+                        { username: 'mobile_app_user', bd: '赵六', advPm: '黄四', updateTime: '2025-01-12 14:20:18' },
+                        { username: 'web_platform_client', bd: '钱七', advPm: '朱五', updateTime: '2025-01-11 09:45:30' }
+                    ];
+                    saveToStorage();
                 };
 
                 // 生命周期
                 onMounted(() => {
+                    console.log('组件挂载，开始加载数据');
                     loadFromStorage();
+                    console.log('数据加载完成，用户数量:', users.value.length);
                 });
 
                 return {
@@ -412,7 +429,8 @@
                     handleCurrentChange,
                     editUser,
                     deleteUser,
-                    saveUser
+                    saveUser,
+                    initSampleData
                 };
             }
         }).use(ElementPlus).mount('#app');
