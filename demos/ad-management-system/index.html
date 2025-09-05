@@ -158,7 +158,7 @@
                     <el-input 
                         v-model="userForm.username" 
                         :disabled="editingUser"
-                        placeholder="只支持英文字符和下划线">
+                        placeholder="只支持英文字符、数字和下划线">
                     </el-input>
                 </el-form-item>
                 <el-form-item label="BD" prop="bd">
@@ -226,7 +226,7 @@
                 const userRules = {
                     username: [
                         { required: true, message: '请输入Username', trigger: 'blur' },
-                        { pattern: /^[a-zA-Z_]+$/, message: '只支持英文字符和下划线', trigger: 'blur' }
+                        { pattern: /^[a-zA-Z0-9_]+$/, message: '只支持英文字符、数字和下划线', trigger: 'blur' }
                     ],
                     bd: [{ required: true, message: '请选择BD', trigger: 'change' }],
                     advPm: [{ required: true, message: '请选择Adv PM', trigger: 'change' }]
@@ -337,8 +337,8 @@
                         return;
                     }
                     
-                    if (!/^[a-zA-Z_]+$/.test(userForm.value.username)) {
-                        ElMessage.error('Username只支持英文字符和下划线');
+                    if (!/^[a-zA-Z0-9_]+$/.test(userForm.value.username)) {
+                        ElMessage.error('Username只支持英文字符、数字和下划线');
                         return;
                     }
 
