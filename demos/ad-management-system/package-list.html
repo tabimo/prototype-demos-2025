@@ -171,13 +171,11 @@
                         style="width: 100%">
                         <el-table-column label="Icon" width="80" align="center">
                             <template #default="scope">
-                                <div v-if="scope.row.icon && scope.row.icon !== 'https://via.placeholder.com/40x40/DCDFE6/909399?text=?'">
-                                    <img :src="scope.row.icon" :alt="scope.row.appName" class="app-icon" 
-                                         @error="handleImageError($event)" />
-                                </div>
-                                <div v-else class="icon-placeholder">
+                                <div class="icon-placeholder" v-if="!scope.row.icon">
                                     <span>{{ scope.row.platform === 'iOS' ? 'iOS' : 'AND' }}</span>
                                 </div>
+                                <img v-else :src="scope.row.icon" :alt="scope.row.appName" class="app-icon" 
+                                     @error="handleImageError($event, scope.row)" />
                             </template>
                         </el-table-column>
                         <el-table-column prop="packageName" label="Package Name" sortable="custom" width="200" align="left"></el-table-column>
@@ -290,13 +288,11 @@
         <el-dialog v-model="showDetailDialog" title="Package 详情" width="600px">
             <el-descriptions :column="2" border v-if="currentPackage">
                 <el-descriptions-item label="Icon">
-                    <div v-if="currentPackage.icon && currentPackage.icon !== 'https://via.placeholder.com/40x40/DCDFE6/909399?text=?'">
-                        <img :src="currentPackage.icon" :alt="currentPackage.appName" class="app-icon" 
-                             @error="handleImageError($event)" />
-                    </div>
-                    <div v-else class="icon-placeholder">
+                    <div class="icon-placeholder" v-if="!currentPackage.icon">
                         <span>{{ currentPackage.platform === 'iOS' ? 'iOS' : 'AND' }}</span>
                     </div>
+                    <img v-else :src="currentPackage.icon" :alt="currentPackage.appName" class="app-icon" 
+                         @error="handleImageError($event, currentPackage)" />
                 </el-descriptions-item>
                 <el-descriptions-item label="Package Name">{{ currentPackage.packageName }}</el-descriptions-item>
                 <el-descriptions-item label="App Name">{{ currentPackage.appName }}</el-descriptions-item>
@@ -582,8 +578,12 @@
                     };
                 };
 
-                const handleImageError = (event) => {
-                    event.target.src = 'https://via.placeholder.com/40x40/DCDFE6/909399?text=?';
+                const handleImageError = (event, packageData) => {
+                    // 图片加载失败时，隐藏图片元素，显示占位符
+                    event.target.style.display = 'none';
+                    if (packageData) {
+                        packageData.icon = '';
+                    }
                 };
 
                 const saveToStorage = () => {
