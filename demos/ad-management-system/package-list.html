@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Package List 管理</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.4.4/dist/index.css">
+    <script src="https://unpkg.com/vue@3.4.15/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus@2.4.4/dist/index.full.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; }
+        .header { background: #409EFF; color: white; padding: 0 20px; height: 60px; line-height: 60px; }
+        .main-container { padding: 20px; }
+        .filter-section { margin-bottom: 20px; padding: 20px; background: #f5f7fa; border-radius: 8px; }
+        .selected-tag { background: white !important; color: #f56c6c !important; border: 1px solid #f56c6c !important; }
+        
+        .el-table {
+            width: 100% !important;
+            table-layout: fixed !important;
+        }
+        .el-table__header-wrapper {
+            width: 100% !important;
+        }
+        .el-table__header {
+            width: 100% !important;
+            table-layout: fixed !important;
+        }
+        .el-table__body-wrapper {
+            width: 100% !important;
+        }
+        .el-table__body {
+            width: 100% !important;
+            table-layout: fixed !important;
+        }
+        .el-table th, .el-table td {
+            white-space: nowrap !important;
+            text-align: left !important;
+            padding: 12px 0 !important;
+            border-right: 1px solid #EBEEF5 !important;
+        }
+        .el-table th:first-child, .el-table td:first-child {
+            padding-left: 16px !important;
+        }
+        .el-table th:last-child, .el-table td:last-child {
+            padding-right: 16px !important;
+            border-right: none !important;
+        }
+        
+        .app-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        
+        .preview-link {
+            color: #409EFF;
+            text-decoration: none;
+            max-width: 200px;
+            display: inline-block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .preview-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <el-container>
+            <!-- 顶部导航 -->
+            <el-header class="header">
+                <div style="display: flex; align-items: center; height: 100%;">
+                    <el-menu mode="horizontal" :default-active="activeMenu" @select="handleMenuSelect" 
+                             background-color="#409EFF" text-color="#fff" active-text-color="#fff"
+                             style="border: none;">
+                        <el-sub-menu index="offer">
+                            <template #title>Offer</template>
+                            <el-menu-item index="adv-user">Adv User</el-menu-item>
+                            <el-menu-item index="package-list">Package List</el-menu-item>
+                            <el-menu-item index="offer-list">Offer List</el-menu-item>
+                        </el-sub-menu>
+                        <el-menu-item index="channel">Channel</el-menu-item>
+                    </el-menu>
+                </div>
+            </el-header>
+
+            <!-- 主内容区 -->
+            <el-main class="main-container">
+                <div v-if="activeMenu === 'package-list'">
+                    <h2>Package List 管理</h2>
+                    
+                    <!-- 筛选器 -->
+                    <div class="filter-section">
+                        <el-row :gutter="20">
+                            <el-col :span="6">
+                                <el-select
+                                    v-model="selectedPackage"
+                                    filterable
+                                    remote
+                                    reserve-keyword
+                                    placeholder="搜索 Package Name"
+                                    :remote-method="searchPackages"
+                                    :loading="searchLoading"
+                                    clearable
+                                    @change="handlePackageFilter"
+                                    style="width: 100%">
+                                    <el-option
+                                        v-for="pkg in packageSearchResults"
+                                        :key="pkg.packageName"
+                                        :label="pkg.packageName"
+                                        :value="pkg.packageName">
+                                    </el-option>
+                                </el-select>
+                            </el-col>
+                            <el-col :span="6">
+                                <el-select
+                                    v-model="selectedUser"
+                                    filterable
+                                    remote
+                                    reserve-keyword
+                                    placeholder="搜索 Adv User"
+                                    :remote-method="searchUsers"
+                                    :loading="userSearchLoading"
+                                    clearable
+                                    @change="handleUserFilter"
+                                    style="width: 100%">
+                                    <el-option
+                                        v-for="user in userSearchResults"
+                                        :key="user.username"
+                                        :label="user.username"
+                                        :value="user.username">
+                                    </el-option>
+                                </el-select>
+                            </el-col>
+                            <el-col :span="4">
+                                <el-button type="primary" @click="showCreateDialog = true">
+                                    <el-icon><Plus /></el-icon>
+                                    新建 Package
+                                </el-button>
+                            </el-col>
+                        </el-row>
+                    </div>
+
+                    <!-- 数据表格 -->
+                    <el-table 
+                        :data="paginatedPackages" 
+                        v-loading="loading"
+                        @sort-change="handleSortChange"
+                        stripe
+                        border
+                        style="width: 100%">
+                        <el-table-column label="Icon" width="80" align="center">
+                            <template #default="scope">
+                                <img :src="scope.row.icon" :alt="scope.row.appName" class="app-icon" 
+                                     @error="handleImageError" />
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="packageName" label="Package Name" sortable="custom" width="200" align="left"></el-table-column>
+                        <el-table-column prop="appName" label="App Name" width="150" align="left"></el-table-column>
+                        <el-table-column label="Preview Link" width="220" align="left">
+                            <template #default="scope">
+                                <a :href="scope.row.previewLink" target="_blank" class="preview-link">
+                                    {{ scope.row.previewLink }}
+                                </a>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="appCategory" label="App Category" width="120" align="left"></el-table-column>
+                        <el-table-column prop="appSize" label="App Size" width="100" align="left"></el-table-column>
+                        <el-table-column prop="updateTime" label="更新时间" sortable="custom" width="160" align="left"></el-table-column>
+                        <el-table-column label="操作" width="160" align="center">
+                            <template #default="scope">
+                                <el-button size="small" @click="viewDetails(scope.row)">详情</el-button>
+                                <el-button size="small" type="danger" @click="deletePackage(scope.row)">删除</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+
+                    <!-- 分页 -->
+                    <div style="margin-top: 20px; text-align: right;">
+                        <el-pagination
+                            v-model:current-page="currentPage"
+                            v-model:page-size="pageSize"
+                            :page-sizes="[10, 20, 50]"
+                            :total="filteredPackages.length"
+                            layout="total, sizes, prev, pager, next, jumper"
+                            @size-change="handleSizeChange"
+                            @current-change="handleCurrentChange">
+                        </el-pagination>
+                    </div>
+                </div>
+
+                <!-- 其他页面占位 -->
+                <div v-else-if="activeMenu === 'adv-user'">
+                    <h2>Adv User</h2>
+                    <p><a href="./index.html">返回 Adv User 管理</a></p>
+                </div>
+                <div v-else-if="activeMenu === 'offer-list'">
+                    <h2>Offer List</h2>
+                    <p>功能开发中...</p>
+                </div>
+                <div v-else-if="activeMenu === 'channel'">
+                    <h2>Channel</h2>
+                    <p>功能开发中...</p>
+                </div>
+            </el-main>
+        </el-container>
+
+        <!-- 新建/编辑Package弹窗 -->
+        <el-dialog 
+            v-model="showCreateDialog" 
+            :title="editingPackage ? '编辑 Package' : '新建 Package'"
+            width="600px">
+            <el-form :model="packageForm" :rules="packageRules" ref="packageFormRef" label-width="120px">
+                <el-form-item label="Adv User" prop="username">
+                    <el-select v-model="packageForm.username" placeholder="选择Adv User" style="width: 100%">
+                        <el-option v-for="user in allUsers" :key="user.username" :label="user.username" :value="user.username" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="Preview Link" prop="previewLink">
+                    <el-input 
+                        v-model="packageForm.previewLink" 
+                        placeholder="输入Google Play或App Store链接"
+                        @blur="loadPackageInfo">
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="Package Name" prop="packageName">
+                    <el-input v-model="packageForm.packageName" :disabled="!editingPackage"></el-input>
+                </el-form-item>
+                <el-form-item label="App Name" prop="appName">
+                    <el-input v-model="packageForm.appName" :disabled="!editingPackage"></el-input>
+                </el-form-item>
+                <el-form-item label="Platform" prop="platform">
+                    <el-select v-model="packageForm.platform" :disabled="!editingPackage" style="width: 100%">
+                        <el-option label="Android" value="Android" />
+                        <el-option label="iOS" value="iOS" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="App Category" prop="appCategory">
+                    <el-input v-model="packageForm.appCategory" :disabled="!editingPackage"></el-input>
+                </el-form-item>
+                <el-form-item label="App Size" prop="appSize">
+                    <el-input v-model="packageForm.appSize" :disabled="!editingPackage"></el-input>
+                </el-form-item>
+                <el-form-item label="Version" prop="version">
+                    <el-input v-model="packageForm.version" :disabled="!editingPackage"></el-input>
+                </el-form-item>
+                <el-form-item label="App Rate" prop="appRate">
+                    <el-input v-model="packageForm.appRate" :disabled="!editingPackage"></el-input>
+                </el-form-item>
+                <el-form-item label="App Description" prop="appDescription">
+                    <el-input v-model="packageForm.appDescription" type="textarea" :rows="3" :disabled="!editingPackage"></el-input>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="showCreateDialog = false">取消</el-button>
+                <el-button type="primary" @click="savePackage">保存</el-button>
+            </template>
+        </el-dialog>
+
+        <!-- 详情查看弹窗 -->
+        <el-dialog v-model="showDetailDialog" title="Package 详情" width="600px">
+            <el-descriptions :column="2" border v-if="currentPackage">
+                <el-descriptions-item label="Icon">
+                    <img :src="currentPackage.icon" :alt="currentPackage.appName" class="app-icon" />
+                </el-descriptions-item>
+                <el-descriptions-item label="Package Name">{{ currentPackage.packageName }}</el-descriptions-item>
+                <el-descriptions-item label="App Name">{{ currentPackage.appName }}</el-descriptions-item>
+                <el-descriptions-item label="Platform">{{ currentPackage.platform }}</el-descriptions-item>
+                <el-descriptions-item label="App Category">{{ currentPackage.appCategory }}</el-descriptions-item>
+                <el-descriptions-item label="App Size">{{ currentPackage.appSize }}</el-descriptions-item>
+                <el-descriptions-item label="Version">{{ currentPackage.version }}</el-descriptions-item>
+                <el-descriptions-item label="App Rate">{{ currentPackage.appRate }}</el-descriptions-item>
+                <el-descriptions-item label="Preview Link" :span="2">
+                    <a :href="currentPackage.previewLink" target="_blank" class="preview-link">
+                        {{ currentPackage.previewLink }}
+                    </a>
+                </el-descriptions-item>
+                <el-descriptions-item label="App Description" :span="2">
+                    {{ currentPackage.appDescription }}
+                </el-descriptions-item>
+                <el-descriptions-item label="更新时间" :span="2">{{ currentPackage.updateTime }}</el-descriptions-item>
+            </el-descriptions>
+        </el-dialog>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+        const { ElMessage, ElMessageBox } = ElementPlus;
+
+        createApp({
+            setup() {
+                // 响应式数据
+                const activeMenu = ref('package-list');
+                const loading = ref(false);
+                const searchLoading = ref(false);
+                const userSearchLoading = ref(false);
+                const showCreateDialog = ref(false);
+                const showDetailDialog = ref(false);
+                const editingPackage = ref(null);
+                const currentPackage = ref(null);
+                const selectedPackage = ref('');
+                const selectedUser = ref('');
+                const packageSearchResults = ref([]);
+                const userSearchResults = ref([]);
+                const currentPage = ref(1);
+                const pageSize = ref(20);
+                const sortField = ref('updateTime');
+                const sortOrder = ref('desc');
+
+                // 表单数据
+                const packageForm = ref({
+                    username: '',
+                    previewLink: '',
+                    packageName: '',
+                    appName: '',
+                    platform: '',
+                    appCategory: '',
+                    appSize: '',
+                    version: '',
+                    appRate: '',
+                    appDescription: '',
+                    icon: ''
+                });
+
+                // 数据
+                const packages = ref([]);
+                const allUsers = ref([]);
+
+                // 表单验证规则
+                const packageRules = {
+                    username: [{ required: true, message: '请选择Adv User', trigger: 'change' }],
+                    previewLink: [{ required: true, message: '请输入Preview Link', trigger: 'blur' }],
+                    packageName: [{ required: true, message: '请输入Package Name', trigger: 'blur' }],
+                    appName: [{ required: true, message: '请输入App Name', trigger: 'blur' }]
+                };
+
+                // 计算属性
+                const filteredPackages = computed(() => {
+                    let result = packages.value;
+                    
+                    if (selectedPackage.value) {
+                        result = result.filter(pkg => pkg.packageName.includes(selectedPackage.value));
+                    }
+                    
+                    if (selectedUser.value) {
+                        result = result.filter(pkg => pkg.username === selectedUser.value);
+                    }
+                    
+                    // 排序
+                    result.sort((a, b) => {
+                        const aVal = a[sortField.value];
+                        const bVal = b[sortField.value];
+                        if (sortOrder.value === 'asc') {
+                            return aVal > bVal ? 1 : -1;
+                        } else {
+                            return aVal < bVal ? 1 : -1;
+                        }
+                    });
+                    
+                    return result;
+                });
+
+                const paginatedPackages = computed(() => {
+                    const start = (currentPage.value - 1) * pageSize.value;
+                    const end = start + pageSize.value;
+                    return filteredPackages.value.slice(start, end);
+                });
+
+                // 方法
+                const handleMenuSelect = (key) => {
+                    activeMenu.value = key;
+                    if (key === 'adv-user') {
+                        window.location.href = './index.html';
+                    }
+                };
+
+                const searchPackages = (query) => {
+                    if (query) {
+                        searchLoading.value = true;
+                        setTimeout(() => {
+                            packageSearchResults.value = packages.value.filter(pkg => 
+                                pkg.packageName.toLowerCase().includes(query.toLowerCase())
+                            ).slice(0, 10);
+                            searchLoading.value = false;
+                        }, 200);
+                    } else {
+                        packageSearchResults.value = [];
+                    }
+                };
+
+                const searchUsers = (query) => {
+                    if (query) {
+                        userSearchLoading.value = true;
+                        setTimeout(() => {
+                            userSearchResults.value = allUsers.value.filter(user => 
+                                user.username.toLowerCase().includes(query.toLowerCase())
+                            ).slice(0, 10);
+                            userSearchLoading.value = false;
+                        }, 200);
+                    } else {
+                        userSearchResults.value = [];
+                    }
+                };
+
+                const handlePackageFilter = (value) => {
+                    selectedPackage.value = value;
+                    currentPage.value = 1;
+                };
+
+                const handleUserFilter = (value) => {
+                    selectedUser.value = value;
+                    currentPage.value = 1;
+                };
+
+                const handleSortChange = ({ prop, order }) => {
+                    sortField.value = prop;
+                    sortOrder.value = order === 'ascending' ? 'asc' : 'desc';
+                };
+
+                const handleSizeChange = (size) => {
+                    pageSize.value = size;
+                    currentPage.value = 1;
+                };
+
+                const handleCurrentChange = (page) => {
+                    currentPage.value = page;
+                };
+
+                const viewDetails = (pkg) => {
+                    currentPackage.value = pkg;
+                    showDetailDialog.value = true;
+                };
+
+                const deletePackage = async (pkg) => {
+                    try {
+                        await ElMessageBox.confirm('确定要删除这个Package吗？', '确认删除', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            type: 'warning'
+                        });
+                        
+                        const index = packages.value.findIndex(p => p.packageName === pkg.packageName && p.username === pkg.username);
+                        if (index > -1) {
+                            packages.value.splice(index, 1);
+                            saveToStorage();
+                            ElMessage.success('删除成功');
+                        }
+                    } catch {
+                        // 用户取消删除
+                    }
+                };
+
+                const loadPackageInfo = () => {
+                    if (!packageForm.value.previewLink) return;
+                    
+                    // 模拟从链接加载应用信息
+                    const link = packageForm.value.previewLink;
+                    if (link.includes('play.google.com')) {
+                        // Android应用
+                        const match = link.match(/id=([^&]+)/);
+                        if (match) {
+                            packageForm.value.packageName = match[1];
+                            packageForm.value.platform = 'Android';
+                            packageForm.value.appName = 'Sample Android App';
+                            packageForm.value.appCategory = 'Entertainment';
+                            packageForm.value.appSize = '25.6MB';
+                            packageForm.value.version = '1.2.3';
+                            packageForm.value.appRate = '4.2';
+                            packageForm.value.appDescription = 'This is a sample Android application description.';
+                            packageForm.value.icon = 'https://via.placeholder.com/40x40/409EFF/FFFFFF?text=A';
+                        }
+                    } else if (link.includes('apps.apple.com')) {
+                        // iOS应用
+                        const match = link.match(/id(\d+)/);
+                        if (match) {
+                            packageForm.value.packageName = `id${match[1]}`;
+                            packageForm.value.platform = 'iOS';
+                            packageForm.value.appName = 'Sample iOS App';
+                            packageForm.value.appCategory = 'Games';
+                            packageForm.value.appSize = '18.3MB';
+                            packageForm.value.version = '2.1.0';
+                            packageForm.value.appRate = '4.5';
+                            packageForm.value.appDescription = 'This is a sample iOS application description.';
+                            packageForm.value.icon = 'https://via.placeholder.com/40x40/67C23A/FFFFFF?text=i';
+                        }
+                    }
+                };
+
+                const savePackage = () => {
+                    if (!packageForm.value.username || !packageForm.value.previewLink || !packageForm.value.packageName || !packageForm.value.appName) {
+                        ElMessage.error('请填写完整信息');
+                        return;
+                    }
+
+                    const now = new Date().toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                    }).replace(/\//g, '-');
+
+                    if (editingPackage.value) {
+                        // 编辑
+                        const index = packages.value.findIndex(p => 
+                            p.packageName === editingPackage.value.packageName && 
+                            p.username === editingPackage.value.username
+                        );
+                        if (index > -1) {
+                            packages.value[index] = {
+                                ...packageForm.value,
+                                updateTime: now
+                            };
+                        }
+                        ElMessage.success('更新成功');
+                    } else {
+                        // 新建
+                        if (packages.value.some(p => p.packageName === packageForm.value.packageName && p.username === packageForm.value.username)) {
+                            ElMessage.error('该用户下已存在相同的Package Name');
+                            return;
+                        }
+                        
+                        packages.value.push({
+                            ...packageForm.value,
+                            updateTime: now
+                        });
+                        ElMessage.success('创建成功');
+                    }
+
+                    saveToStorage();
+                    showCreateDialog.value = false;
+                    editingPackage.value = null;
+                    packageForm.value = {
+                        username: '',
+                        previewLink: '',
+                        packageName: '',
+                        appName: '',
+                        platform: '',
+                        appCategory: '',
+                        appSize: '',
+                        version: '',
+                        appRate: '',
+                        appDescription: '',
+                        icon: ''
+                    };
+                };
+
+                const handleImageError = (e) => {
+                    e.target.src = 'https://via.placeholder.com/40x40/DCDFE6/909399?text=?';
+                };
+
+                const saveToStorage = () => {
+                    localStorage.setItem('packages', JSON.stringify(packages.value));
+                };
+
+                const loadFromStorage = () => {
+                    try {
+                        // 加载用户数据
+                        const storedUsers = localStorage.getItem('advUsers');
+                        if (storedUsers) {
+                            allUsers.value = JSON.parse(storedUsers);
+                        }
+
+                        // 加载包数据
+                        const storedPackages = localStorage.getItem('packages');
+                        if (storedPackages) {
+                            packages.value = JSON.parse(storedPackages);
+                        } else {
+                            initSampleData();
+                        }
+                    } catch (error) {
+                        console.error('加载数据失败:', error);
+                        initSampleData();
+                    }
+                };
+
+                const initSampleData = () => {
+                    packages.value = [
+                        {
+                            username: 'demo_user_1',
+                            previewLink: 'https://play.google.com/store/apps/details?id=com.example.demo',
+                            packageName: 'com.example.demo',
+                            appName: 'Demo App',
+                            platform: 'Android',
+                            appCategory: 'Entertainment',
+                            appSize: '25.6MB',
+                            version: '1.2.3',
+                            appRate: '4.2',
+                            appDescription: 'This is a demo application for testing purposes.',
+                            icon: 'https://via.placeholder.com/40x40/409EFF/FFFFFF?text=D',
+                            updateTime: '2025-01-15 10:30:25'
+                        },
+                        {
+                            username: 'test_advertiser',
+                            previewLink: 'https://apps.apple.com/app/id123456789',
+                            packageName: 'id123456789',
+                            appName: 'Test iOS App',
+                            platform: 'iOS',
+                            appCategory: 'Games',
+                            appSize: '18.3MB',
+                            version: '2.1.0',
+                            appRate: '4.5',
+                            appDescription: 'A test iOS application with great features.',
+                            icon: 'https://via.placeholder.com/40x40/67C23A/FFFFFF?text=T',
+                            updateTime: '2025-01-14 16:45:12'
+                        },
+                        {
+                            username: 'sample_client',
+                            previewLink: 'https://play.google.com/store/apps/details?id=net.sample.app',
+                            packageName: 'net.sample.app',
+                            appName: 'Sample Network App',
+                            platform: 'Android',
+                            appCategory: 'Social',
+                            appSize: '42.1MB',
+                            version: '3.0.1',
+                            appRate: '4.0',
+                            appDescription: 'A social networking application for connecting people.',
+                            icon: 'https://via.placeholder.com/40x40/E6A23C/FFFFFF?text=S',
+                            updateTime: '2025-01-13 09:15:33'
+                        },
+                        {
+                            username: 'mobile_app_user',
+                            previewLink: 'https://apps.apple.com/app/id987654321',
+                            packageName: 'id987654321',
+                            appName: 'Mobile Utility',
+                            platform: 'iOS',
+                            appCategory: 'Utilities',
+                            appSize: '12.8MB',
+                            version: '1.5.2',
+                            appRate: '4.3',
+                            appDescription: 'Essential mobile utilities for daily use.',
+                            icon: 'https://via.placeholder.com/40x40/F56C6C/FFFFFF?text=M',
+                            updateTime: '2025-01-12 14:20:18'
+                        },
+                        {
+                            username: 'web_platform_client',
+                            previewLink: 'https://play.google.com/store/apps/details?id=com.webplatform.client',
+                            packageName: 'com.webplatform.client',
+                            appName: 'Web Platform Client',
+                            platform: 'Android',
+                            appCategory: 'Business',
+                            appSize: '35.7MB',
+                            version: '2.3.4',
+                            appRate: '4.1',
+                            appDescription: 'Professional web platform client application.',
+                            icon: 'https://via.placeholder.com/40x40/909399/FFFFFF?text=W',
+                            updateTime: '2025-01-11 09:45:30'
+                        }
+                    ];
+                    saveToStorage();
+                };
+
+                const parseUrlParams = () => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const username = urlParams.get('username');
+                    const action = urlParams.get('action');
+                    
+                    if (username) {
+                        selectedUser.value = username;
+                    }
+                    
+                    if (action === 'add' && username) {
+                        packageForm.value.username = username;
+                        showCreateDialog.value = true;
+                    }
+                };
+
+                // 生命周期
+                onMounted(() => {
+                    loadFromStorage();
+                    parseUrlParams();
+                });
+
+                return {
+                    activeMenu,
+                    loading,
+                    searchLoading,
+                    userSearchLoading,
+                    showCreateDialog,
+                    showDetailDialog,
+                    editingPackage,
+                    currentPackage,
+                    selectedPackage,
+                    selectedUser,
+                    packageSearchResults,
+                    userSearchResults,
+                    currentPage,
+                    pageSize,
+                    packageForm,
+                    packages,
+                    allUsers,
+                    packageRules,
+                    filteredPackages,
+                    paginatedPackages,
+                    handleMenuSelect,
+                    searchPackages,
+                    searchUsers,
+                    handlePackageFilter,
+                    handleUserFilter,
+                    handleSortChange,
+                    handleSizeChange,
+                    handleCurrentChange,
+                    viewDetails,
+                    deletePackage,
+                    loadPackageInfo,
+                    savePackage,
+                    handleImageError
+                };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>
