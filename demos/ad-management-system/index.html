@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>广告产品管理系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus/dist/index.full.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue/dist/index.iife.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <style>
+        body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; }
+        .header { background: #409EFF; color: white; padding: 0 20px; }
+        .main-container { padding: 20px; }
+        .filter-section { margin-bottom: 20px; padding: 20px; background: #f5f7fa; border-radius: 8px; }
+        .selected-tag { background: white !important; color: #f56c6c !important; border: 1px solid #f56c6c !important; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <el-container>
+            <!-- 顶部导航 -->
+            <el-header class="header">
+                <el-menu mode="horizontal" :default-active="activeMenu" @select="handleMenuSelect" 
+                         background-color="#409EFF" text-color="#fff" active-text-color="#fff">
+                    <el-sub-menu index="offer">
+                        <template #title>Offer</template>
+                        <el-menu-item index="adv-user">Adv User</el-menu-item>
+                        <el-menu-item index="package-list">Package List</el-menu-item>
+                        <el-menu-item index="offer-list">Offer List</el-menu-item>
+                    </el-sub-menu>
+                    <el-menu-item index="channel">Channel</el-menu-item>
+                </el-menu>
+            </el-header>
+
+            <!-- 主内容区 -->
+            <el-main class="main-container">
+                <!-- Adv User 页面 -->
+                <div v-if="activeMenu === 'adv-user'">
+                    <h2>Adv User 管理</h2>
+                    
+                    <!-- 筛选器 -->
+                    <div class="filter-section">
+                        <el-row :gutter="20">
+                            <el-col :span="8">
+                                <el-select
+                                    v-model="selectedUser"
+                                    filterable
+                                    remote
+                                    reserve-keyword
+                                    placeholder="搜索 Adv User"
+                                    :remote-method="searchUsers"
+                                    :loading="searchLoading"
+                                    clearable
+                                    @change="handleUserFilter"
+                                    style="width: 100%">
+                                    <el-option
+                                        v-for="user in searchResults"
+                                        :key="user.username"
+                                        :label="user.username"
+                                        :value="user.username">
+                                    </el-option>
+                                </el-select>
+                            </el-col>
+                            <el-col :span="4">
+                                <el-button type="primary" @click="showCreateDialog = true">
+                                    <el-icon><Plus /></el-icon>
+                                    新建 Adv User
+                                </el-button>
+                            </el-col>
+                        </el-row>
+                        
+                        <!-- 选中的筛选标签 -->
+                        <div v-if="selectedUser" style="margin-top: 10px;">
+                            <el-tag class="selected-tag" closable @close="clearUserFilter">
+                                {{ selectedUser }}
+                            </el-tag>
+                        </div>
+                    </div>
+
+                    <!-- 数据表格 -->
+                    <el-table 
+                        :data="paginatedUsers" 
+                        v-loading="loading"
+                        @sort-change="handleSortChange"
+                        style="width: 100%">
+                        <el-table-column prop="username" label="Username" sortable="custom" width="200" />
+                        <el-table-column prop="bd" label="BD" width="150" />
+                        <el-table-column prop="advPm" label="Adv PM" width="150" />
+                        <el-table-column prop="updateTime" label="更新日期" sortable="custom" width="180" />
+                        <el-table-column label="操作" width="120">
+                            <template #default="scope">
+                                <el-button size="small" @click="editUser(scope.row)">编辑</el-button>
+                                <el-button size="small" type="danger" @click="deleteUser(scope.row)">删除</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+
+                    <!-- 分页 -->
+                    <div style="margin-top: 20px; text-align: right;">
+                        <el-pagination
+                            v-model:current-page="currentPage"
+                            v-model:page-size="pageSize"
+                            :page-sizes="[10, 20, 50]"
+                            :total="filteredUsers.length"
+                            layout="total, sizes, prev, pager, next, jumper"
+                            @size-change="handleSizeChange"
+                            @current-change="handleCurrentChange">
+                        </el-pagination>
+                    </div>
+                </div>
+
+                <!-- 其他页面占位 -->
+                <div v-else-if="activeMenu === 'package-list'">
+                    <h2>Package List</h2>
+                    <p>功能开发中...</p>
+                </div>
+                <div v-else-if="activeMenu === 'offer-list'">
+                    <h2>Offer List</h2>
+                    <p>功能开发中...</p>
+                </div>
+                <div v-else-if="activeMenu === 'channel'">
+                    <h2>Channel</h2>
+                    <p>功能开发中...</p>
+                </div>
+            </el-main>
+        </el-container>
+
+        <!-- 新建/编辑用户弹窗 -->
+        <el-dialog 
+            v-model="showCreateDialog" 
+            :title="editingUser ? '编辑 Adv User' : '新建 Adv User'"
+            width="500px">
+            <el-form :model="userForm" :rules="userRules" ref="userFormRef" label-width="100px">
+                <el-form-item label="Username" prop="username">
+                    <el-input 
+                        v-model="userForm.username" 
+                        :disabled="editingUser"
+                        placeholder="只支持英文字符和下划线">
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="BD" prop="bd">
+                    <el-select v-model="userForm.bd" placeholder="选择BD" style="width: 100%">
+                        <el-option v-for="bd in bdList" :key="bd" :label="bd" :value="bd" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="Adv PM" prop="advPm">
+                    <el-select v-model="userForm.advPm" placeholder="选择Adv PM" style="width: 100%">
+                        <el-option v-for="pm in advPmList" :key="pm" :label="pm" :value="pm" />
+                    </el-select>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="showCreateDialog = false">取消</el-button>
+                <el-button type="primary" @click="saveUser">保存</el-button>
+            </template>
+        </el-dialog>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+        const { ElMessage, ElMessageBox } = ElementPlus;
+
+        // Firebase 配置 (使用演示配置)
+        const firebaseConfig = {
+            apiKey: "demo-key",
+            authDomain: "demo.firebaseapp.com",
+            projectId: "demo-project",
+            storageBucket: "demo.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "demo-app-id"
+        };
+
+        createApp({
+            setup() {
+                // 响应式数据
+                const activeMenu = ref('adv-user');
+                const loading = ref(false);
+                const searchLoading = ref(false);
+                const showCreateDialog = ref(false);
+                const editingUser = ref(null);
+                const selectedUser = ref('');
+                const searchResults = ref([]);
+                const currentPage = ref(1);
+                const pageSize = ref(20);
+                const sortField = ref('updateTime');
+                const sortOrder = ref('desc');
+
+                // 表单数据
+                const userForm = ref({
+                    username: '',
+                    bd: '',
+                    advPm: ''
+                });
+
+                // 用户数据
+                const users = ref([]);
+                
+                // 系统用户列表
+                const bdList = ref(['张三', '李四', '王五', '赵六', '钱七', '孙八', '周九', '吴十']);
+                const advPmList = ref(['刘一', '陈二', '杨三', '黄四', '朱五', '林六', '郭七', '何八']);
+
+                // 表单验证规则
+                const userRules = {
+                    username: [
+                        { required: true, message: '请输入Username', trigger: 'blur' },
+                        { pattern: /^[a-zA-Z_]+$/, message: '只支持英文字符和下划线', trigger: 'blur' }
+                    ],
+                    bd: [{ required: true, message: '请选择BD', trigger: 'change' }],
+                    advPm: [{ required: true, message: '请选择Adv PM', trigger: 'change' }]
+                };
+
+                // 计算属性
+                const filteredUsers = computed(() => {
+                    let result = users.value;
+                    if (selectedUser.value) {
+                        result = result.filter(user => user.username.includes(selectedUser.value));
+                    }
+                    
+                    // 排序
+                    result.sort((a, b) => {
+                        const aVal = a[sortField.value];
+                        const bVal = b[sortField.value];
+                        if (sortOrder.value === 'asc') {
+                            return aVal > bVal ? 1 : -1;
+                        } else {
+                            return aVal < bVal ? 1 : -1;
+                        }
+                    });
+                    
+                    return result;
+                });
+
+                const paginatedUsers = computed(() => {
+                    const start = (currentPage.value - 1) * pageSize.value;
+                    const end = start + pageSize.value;
+                    return filteredUsers.value.slice(start, end);
+                });
+
+                // 方法
+                const handleMenuSelect = (key) => {
+                    activeMenu.value = key;
+                };
+
+                const searchUsers = (query) => {
+                    if (query) {
+                        searchLoading.value = true;
+                        setTimeout(() => {
+                            searchResults.value = users.value.filter(user => 
+                                user.username.toLowerCase().includes(query.toLowerCase())
+                            );
+                            searchLoading.value = false;
+                        }, 200);
+                    } else {
+                        searchResults.value = [];
+                    }
+                };
+
+                const handleUserFilter = (value) => {
+                    selectedUser.value = value;
+                    currentPage.value = 1;
+                };
+
+                const clearUserFilter = () => {
+                    selectedUser.value = '';
+                    currentPage.value = 1;
+                };
+
+                const handleSortChange = ({ prop, order }) => {
+                    sortField.value = prop;
+                    sortOrder.value = order === 'ascending' ? 'asc' : 'desc';
+                };
+
+                const handleSizeChange = (size) => {
+                    pageSize.value = size;
+                    currentPage.value = 1;
+                };
+
+                const handleCurrentChange = (page) => {
+                    currentPage.value = page;
+                };
+
+                const editUser = (user) => {
+                    editingUser.value = user;
+                    userForm.value = { ...user };
+                    showCreateDialog.value = true;
+                };
+
+                const deleteUser = async (user) => {
+                    try {
+                        await ElMessageBox.confirm('确定要删除这个用户吗？', '确认删除', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            type: 'warning'
+                        });
+                        
+                        const index = users.value.findIndex(u => u.username === user.username);
+                        if (index > -1) {
+                            users.value.splice(index, 1);
+                            saveToStorage();
+                            ElMessage.success('删除成功');
+                        }
+                    } catch {
+                        // 用户取消删除
+                    }
+                };
+
+                const saveUser = async () => {
+                    const formRef = document.querySelector('.el-form');
+                    if (!formRef) return;
+                    
+                    // 简单验证
+                    if (!userForm.value.username || !userForm.value.bd || !userForm.value.advPm) {
+                        ElMessage.error('请填写完整信息');
+                        return;
+                    }
+                    
+                    if (!/^[a-zA-Z_]+$/.test(userForm.value.username)) {
+                        ElMessage.error('Username只支持英文字符和下划线');
+                        return;
+                    }
+
+                    const now = new Date().toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                    }).replace(/\//g, '-');
+
+                    if (editingUser.value) {
+                        // 编辑
+                        const index = users.value.findIndex(u => u.username === editingUser.value.username);
+                        if (index > -1) {
+                            users.value[index] = {
+                                ...userForm.value,
+                                updateTime: now
+                            };
+                        }
+                        ElMessage.success('更新成功');
+                    } else {
+                        // 新建
+                        if (users.value.some(u => u.username === userForm.value.username)) {
+                            ElMessage.error('Username已存在');
+                            return;
+                        }
+                        
+                        users.value.push({
+                            ...userForm.value,
+                            updateTime: now
+                        });
+                        ElMessage.success('创建成功');
+                    }
+
+                    saveToStorage();
+                    showCreateDialog.value = false;
+                    editingUser.value = null;
+                    userForm.value = { username: '', bd: '', advPm: '' };
+                };
+
+                const saveToStorage = () => {
+                    localStorage.setItem('advUsers', JSON.stringify(users.value));
+                };
+
+                const loadFromStorage = () => {
+                    const stored = localStorage.getItem('advUsers');
+                    if (stored) {
+                        users.value = JSON.parse(stored);
+                    } else {
+                        // 初始化示例数据
+                        users.value = [
+                            { username: 'demo_user_1', bd: '张三', advPm: '刘一', updateTime: '2025-01-15 10:30:25' },
+                            { username: 'test_advertiser', bd: '李四', advPm: '陈二', updateTime: '2025-01-14 16:45:12' },
+                            { username: 'sample_client', bd: '王五', advPm: '杨三', updateTime: '2025-01-13 09:15:33' }
+                        ];
+                        saveToStorage();
+                    }
+                };
+
+                // 生命周期
+                onMounted(() => {
+                    loadFromStorage();
+                });
+
+                return {
+                    activeMenu,
+                    loading,
+                    searchLoading,
+                    showCreateDialog,
+                    editingUser,
+                    selectedUser,
+                    searchResults,
+                    currentPage,
+                    pageSize,
+                    userForm,
+                    users,
+                    bdList,
+                    advPmList,
+                    userRules,
+                    filteredUsers,
+                    paginatedUsers,
+                    handleMenuSelect,
+                    searchUsers,
+                    handleUserFilter,
+                    clearUserFilter,
+                    handleSortChange,
+                    handleSizeChange,
+                    handleCurrentChange,
+                    editUser,
+                    deleteUser,
+                    saveUser
+                };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>
