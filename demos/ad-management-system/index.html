@@ -4,20 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>广告产品管理系统</title>
-    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://unpkg.com/element-plus/dist/index.full.js"></script>
-    <script src="https://unpkg.com/@element-plus/icons-vue/dist/index.iife.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.4.4/dist/index.css">
+    <script src="https://unpkg.com/vue@3.4.15/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus@2.4.4/dist/index.full.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     <style>
+        * { box-sizing: border-box; }
         body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; }
-        .header { background: #409EFF; color: white; padding: 0 20px; height: 60px; }
+        .header { background: #409EFF; color: white; padding: 0 20px; height: 60px; line-height: 60px; }
         .main-container { padding: 20px; }
         .filter-section { margin-bottom: 20px; padding: 20px; background: #f5f7fa; border-radius: 8px; }
         .selected-tag { background: white !important; color: #f56c6c !important; border: 1px solid #f56c6c !important; }
-        .el-table { width: 100% !important; }
-        .el-table th { white-space: nowrap; }
+        
+        /* 强制修复表格样式 */
+        .el-table {
+            width: 100% !important;
+            table-layout: fixed !important;
+        }
+        .el-table__header-wrapper {
+            width: 100% !important;
+        }
+        .el-table__header {
+            width: 100% !important;
+            table-layout: fixed !important;
+        }
+        .el-table th {
+            white-space: nowrap !important;
+            text-align: left !important;
+        }
+        .el-table td {
+            white-space: nowrap !important;
+        }
     </style>
 </head>
 <body>
@@ -25,16 +44,19 @@
         <el-container>
             <!-- 顶部导航 -->
             <el-header class="header">
-                <el-menu mode="horizontal" :default-active="activeMenu" @select="handleMenuSelect" 
-                         background-color="#409EFF" text-color="#fff" active-text-color="#fff">
-                    <el-sub-menu index="offer">
-                        <template #title>Offer</template>
-                        <el-menu-item index="adv-user">Adv User</el-menu-item>
-                        <el-menu-item index="package-list">Package List</el-menu-item>
-                        <el-menu-item index="offer-list">Offer List</el-menu-item>
-                    </el-sub-menu>
-                    <el-menu-item index="channel">Channel</el-menu-item>
-                </el-menu>
+                <div style="display: flex; align-items: center; height: 100%;">
+                    <el-menu mode="horizontal" :default-active="activeMenu" @select="handleMenuSelect" 
+                             background-color="#409EFF" text-color="#fff" active-text-color="#fff"
+                             style="border: none;">
+                        <el-sub-menu index="offer">
+                            <template #title>Offer</template>
+                            <el-menu-item index="adv-user">Adv User</el-menu-item>
+                            <el-menu-item index="package-list">Package List</el-menu-item>
+                            <el-menu-item index="offer-list">Offer List</el-menu-item>
+                        </el-sub-menu>
+                        <el-menu-item index="channel">Channel</el-menu-item>
+                    </el-menu>
+                </div>
             </el-header>
 
             <!-- 主内容区 -->
@@ -83,24 +105,25 @@
                     </div>
 
                     <!-- 数据表格 -->
-                    <el-table 
-                        :data="paginatedUsers" 
-                        v-loading="loading"
-                        @sort-change="handleSortChange"
-                        stripe
-                        border
-                        style="width: 100%">
-                        <el-table-column prop="username" label="Username" sortable="custom" min-width="180" show-overflow-tooltip />
-                        <el-table-column prop="bd" label="BD" min-width="120" show-overflow-tooltip />
-                        <el-table-column prop="advPm" label="Adv PM" min-width="120" show-overflow-tooltip />
-                        <el-table-column prop="updateTime" label="更新日期" sortable="custom" min-width="160" show-overflow-tooltip />
-                        <el-table-column label="操作" width="160" fixed="right">
-                            <template #default="scope">
-                                <el-button size="small" @click="editUser(scope.row)">编辑</el-button>
-                                <el-button size="small" type="danger" @click="deleteUser(scope.row)">删除</el-button>
-                            </template>
-                        </el-table-column>
-                    </el-table>
+                    <div style="width: 100%; overflow-x: auto;">
+                        <el-table 
+                            :data="paginatedUsers" 
+                            v-loading="loading"
+                            @sort-change="handleSortChange"
+                            stripe
+                            border>
+                            <el-table-column prop="username" label="Username" sortable="custom" width="200"></el-table-column>
+                            <el-table-column prop="bd" label="BD" width="150"></el-table-column>
+                            <el-table-column prop="advPm" label="Adv PM" width="150"></el-table-column>
+                            <el-table-column prop="updateTime" label="更新日期" sortable="custom" width="180"></el-table-column>
+                            <el-table-column label="操作" width="180">
+                                <template #default="scope">
+                                    <el-button size="small" @click="editUser(scope.row)">编辑</el-button>
+                                    <el-button size="small" type="danger" @click="deleteUser(scope.row)">删除</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
 
                     <!-- 分页 -->
                     <div style="margin-top: 20px; text-align: right;">
@@ -433,7 +456,9 @@
                     initSampleData
                 };
             }
-        }).use(ElementPlus).mount('#app');
+        }).use(ElementPlus, {
+            // Element Plus 配置
+        }).mount('#app');
     </script>
 </body>
 </html>
