@@ -230,11 +230,12 @@
             </el-main>
         </el-container>
 
-        <!-- 新建/编辑Package弹窗 -->
-        <el-dialog 
+        <!-- 新建/编辑Package抽屉 -->
+        <el-drawer 
             v-model="showCreateDialog" 
             :title="editingPackage ? '编辑 Package' : '新建 Package'"
-            width="600px">
+            size="500px"
+            direction="rtl">
             <el-form :model="packageForm" :rules="packageRules" ref="packageFormRef" label-width="120px">
                 <el-form-item label="Adv User" prop="username">
                     <el-select v-model="packageForm.username" placeholder="选择Adv User" style="width: 100%">
@@ -276,14 +277,16 @@
                     <el-input v-model="packageForm.icon" placeholder="应用图标URL" :disabled="!editingPackage"></el-input>
                 </el-form-item>
                 <el-form-item label="App Description" prop="appDescription">
-                    <el-input v-model="packageForm.appDescription" type="textarea" :rows="3" :disabled="!editingPackage"></el-input>
+                    <el-input v-model="packageForm.appDescription" type="textarea" :rows="4" :disabled="!editingPackage"></el-input>
                 </el-form-item>
             </el-form>
             <template #footer>
-                <el-button @click="showCreateDialog = false">取消</el-button>
-                <el-button type="primary" @click="savePackage">保存</el-button>
+                <div style="text-align: right; padding: 20px 0;">
+                    <el-button @click="showCreateDialog = false">取消</el-button>
+                    <el-button type="primary" @click="savePackage">保存</el-button>
+                </div>
             </template>
-        </el-dialog>
+        </el-drawer>
 
         <!-- 详情查看弹窗 -->
         <el-dialog v-model="showDetailDialog" title="Package 详情" width="600px">
