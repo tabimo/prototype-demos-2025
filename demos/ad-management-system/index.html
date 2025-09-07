@@ -244,39 +244,27 @@
                     <!-- 基础信息 -->
                     <div class="form-section">
                         <h3 class="section-title">📝 基础信息</h3>
-                        <el-row :gutter="20">
-                            <el-col :span="12">
-                                <el-form-item label="Adv User" prop="advUser">
-                                    <el-select v-model="offerForm.advUser" filterable remote :remote-method="loadAdvUsers" 
-                                               :disabled="editingOffer" placeholder="选择Adv User" style="width: 100%">
-                                        <el-option v-for="user in allUsers" :key="user.username" :label="user.username" :value="user.username" />
-                                    </el-select>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="12">
-                                <el-form-item label="Package Name" prop="packageName">
-                                    <el-select v-model="offerForm.packageName" filterable remote :remote-method="loadPackages" 
-                                               :disabled="editingOffer" placeholder="选择Package Name" style="width: 100%">
-                                        <el-option v-for="pkg in userPackages" :key="pkg.packageName" :label="pkg.packageName" :value="pkg.packageName" />
-                                    </el-select>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
-                        <el-row :gutter="20">
-                            <el-col :span="12">
-                                <el-form-item label="Offer UUID" prop="offerUuid">
-                                    <el-input v-model="offerForm.offerUuid" :disabled="editingOffer" placeholder="支持英文字母、数字、下划线、横杠"></el-input>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="12">
-                                <el-form-item label="Optimization Goal" prop="optimizationGoal">
-                                    <el-select v-model="offerForm.optimizationGoal" placeholder="选择推广目标" style="width: 100%">
-                                        <el-option label="UA (拉新)" value="UA" />
-                                        <el-option label="RT (重定向)" value="RT" />
-                                    </el-select>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
+                        <el-form-item label="Adv User" prop="advUser">
+                            <el-select v-model="offerForm.advUser" filterable remote :remote-method="loadAdvUsers" 
+                                       :disabled="editingOffer" placeholder="选择Adv User" style="width: 100%">
+                                <el-option v-for="user in allUsers" :key="user.username" :label="user.username" :value="user.username" />
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="Package Name" prop="packageName">
+                            <el-select v-model="offerForm.packageName" filterable remote :remote-method="loadPackages" 
+                                       :disabled="editingOffer" placeholder="选择Package Name" style="width: 100%">
+                                <el-option v-for="pkg in userPackages" :key="pkg.packageName" :label="pkg.packageName" :value="pkg.packageName" />
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="Offer UUID" prop="offerUuid">
+                            <el-input v-model="offerForm.offerUuid" :disabled="editingOffer" placeholder="支持英文字母、数字、下划线、横杠"></el-input>
+                        </el-form-item>
+                        <el-form-item label="Optimization Goal" prop="optimizationGoal">
+                            <el-select v-model="offerForm.optimizationGoal" placeholder="选择推广目标" style="width: 100%">
+                                <el-option label="UA (拉新)" value="UA" />
+                                <el-option label="RT (重定向)" value="RT" />
+                            </el-select>
+                        </el-form-item>
                         <el-form-item label="Notes" prop="notes">
                             <el-input v-model="offerForm.notes" type="textarea" :rows="2" placeholder="KPI要求附言"></el-input>
                         </el-form-item>
@@ -285,77 +273,55 @@
                     <!-- 结算信息 -->
                     <div class="form-section">
                         <h3 class="section-title">💰 结算信息</h3>
-                        <el-row :gutter="20">
-                            <el-col :span="8">
-                                <el-form-item label="Adv Pricing Model" prop="advPricingModel">
-                                    <el-select v-model="offerForm.advPricingModel" :disabled="editingOffer" placeholder="选择结算模式" style="width: 100%">
-                                        <el-option label="CPI" value="CPI" />
-                                        <el-option label="CPE" value="CPE" />
-                                        <el-option label="CPS" value="CPS" />
-                                    </el-select>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="8">
-                                <el-form-item label="Adv Conversion Price" prop="advConversionPrice">
-                                    <el-input v-model="offerForm.advConversionPrice" placeholder="记录用转化事件单价"></el-input>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="8">
-                                <el-form-item label="Adv Conversion Real Price" prop="advConversionRealPrice">
-                                    <el-input v-model="offerForm.advConversionRealPrice" placeholder="真实转化事件单价"></el-input>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
+                        <el-form-item label="Adv Pricing Model" prop="advPricingModel">
+                            <el-select v-model="offerForm.advPricingModel" :disabled="editingOffer" placeholder="选择结算模式" style="width: 100%">
+                                <el-option label="CPI" value="CPI" />
+                                <el-option label="CPE" value="CPE" />
+                                <el-option label="CPS" value="CPS" />
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="Adv Conversion Price" prop="advConversionPrice">
+                            <el-input v-model="offerForm.advConversionPrice" placeholder="记录用转化事件单价"></el-input>
+                        </el-form-item>
+                        <el-form-item label="Adv Conversion Real Price" prop="advConversionRealPrice">
+                            <el-input v-model="offerForm.advConversionRealPrice" placeholder="真实转化事件单价"></el-input>
+                        </el-form-item>
                     </div>
 
                     <!-- 预算信息 -->
                     <div class="form-section">
                         <h3 class="section-title">📈 预算信息</h3>
-                        <el-row :gutter="20">
-                            <el-col :span="12">
-                                <el-form-item label="Adv Daily Cap" prop="advDailyCap">
-                                    <el-input v-model="offerForm.advDailyCap" placeholder="广告主约定预算值"></el-input>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="12">
-                                <el-form-item label="Daily Control Cap" prop="dailyControlCap">
-                                    <el-input v-model="offerForm.dailyControlCap" placeholder="运营控制预算值"></el-input>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
+                        <el-form-item label="Adv Daily Cap" prop="advDailyCap">
+                            <el-input v-model="offerForm.advDailyCap" placeholder="广告主约定预算值"></el-input>
+                        </el-form-item>
+                        <el-form-item label="Daily Control Cap" prop="dailyControlCap">
+                            <el-input v-model="offerForm.dailyControlCap" placeholder="运营控制预算值"></el-input>
+                        </el-form-item>
                     </div>
 
                     <!-- 定向设置 -->
                     <div class="form-section">
                         <h3 class="section-title">🎯 定向设置</h3>
-                        <el-row :gutter="20">
-                            <el-col :span="8">
-                                <el-form-item label="Platform" prop="platform">
-                                    <el-select v-model="offerForm.platform" placeholder="选择平台" style="width: 100%">
-                                        <el-option label="iOS" value="ios" />
-                                        <el-option label="Android" value="android" />
-                                        <el-option label="Windows" value="windows" />
-                                        <el-option label="All" value="all" />
-                                        <el-option label="Others" value="others" />
-                                    </el-select>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="8">
-                                <el-form-item label="Target Geo" prop="targetGeo">
-                                    <el-input v-model="offerForm.targetGeo" placeholder="如：美国 US"></el-input>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="8">
-                                <el-form-item label="Network" prop="network">
-                                    <el-select v-model="offerForm.network" placeholder="选择网络环境" style="width: 100%">
-                                        <el-option label="WiFi" value="wifi" />
-                                        <el-option label="2G" value="2G" />
-                                        <el-option label="3G" value="3G" />
-                                        <el-option label="4G" value="4G" />
-                                    </el-select>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
+                        <el-form-item label="Platform" prop="platform">
+                            <el-select v-model="offerForm.platform" placeholder="选择平台" style="width: 100%">
+                                <el-option label="iOS" value="ios" />
+                                <el-option label="Android" value="android" />
+                                <el-option label="Windows" value="windows" />
+                                <el-option label="All" value="all" />
+                                <el-option label="Others" value="others" />
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="Target Geo" prop="targetGeo">
+                            <el-input v-model="offerForm.targetGeo" placeholder="如：美国 US"></el-input>
+                        </el-form-item>
+                        <el-form-item label="Network" prop="network">
+                            <el-select v-model="offerForm.network" placeholder="选择网络环境" style="width: 100%">
+                                <el-option label="WiFi" value="wifi" />
+                                <el-option label="2G" value="2G" />
+                                <el-option label="3G" value="3G" />
+                                <el-option label="4G" value="4G" />
+                            </el-select>
+                        </el-form-item>
                     </div>
 
                     <!-- 运营设置 -->
@@ -371,18 +337,12 @@
                     <!-- Tracking link与归因 -->
                     <div class="form-section">
                         <h3 class="section-title">🔗 Tracking link与归因</h3>
-                        <el-row :gutter="20">
-                            <el-col :span="12">
-                                <el-form-item label="Impression Tracking" prop="impressionTracking">
-                                    <el-input v-model="offerForm.impressionTracking" placeholder="曝光监测链接"></el-input>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="12">
-                                <el-form-item label="Click Tracking" prop="clickTracking">
-                                    <el-input v-model="offerForm.clickTracking" placeholder="点击监测链接"></el-input>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
+                        <el-form-item label="Impression Tracking" prop="impressionTracking">
+                            <el-input v-model="offerForm.impressionTracking" placeholder="曝光监测链接"></el-input>
+                        </el-form-item>
+                        <el-form-item label="Click Tracking" prop="clickTracking">
+                            <el-input v-model="offerForm.clickTracking" placeholder="点击监测链接"></el-input>
+                        </el-form-item>
                         <el-form-item label="Third Party" prop="thirdParty">
                             <el-select v-model="offerForm.thirdParty" placeholder="选择监测平台" style="width: 100%">
                                 <el-option label="S2S (自归因)" value="S2S" />
