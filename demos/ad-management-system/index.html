@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>广告产品管理系统</title>
+    <title>Offer List 管理</title>
     <link rel="stylesheet" href="https://unpkg.com/element-plus@2.4.4/dist/index.css">
     <script src="https://unpkg.com/vue@3.4.15/dist/vue.global.js"></script>
     <script src="https://unpkg.com/element-plus@2.4.4/dist/index.full.js"></script>
     <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; }
@@ -18,7 +16,6 @@
         .filter-section { margin-bottom: 20px; padding: 20px; background: #f5f7fa; border-radius: 8px; }
         .selected-tag { background: white !important; color: #f56c6c !important; border: 1px solid #f56c6c !important; }
         
-        /* 强制修复表格样式 */
         .el-table {
             width: 100% !important;
             table-layout: fixed !important;
@@ -74,14 +71,53 @@
 
             <!-- 主内容区 -->
             <el-main class="main-container">
-                <!-- Adv User 页面 -->
-                <div v-if="activeMenu === 'adv-user'">
-                    <h2>Adv User 管理</h2>
+                <div v-if="activeMenu === 'offer-list'">
+                    <h2>Offer List 管理</h2>
                     
                     <!-- 筛选器 -->
                     <div class="filter-section">
                         <el-row :gutter="20">
-                            <el-col :span="8">
+                            <el-col :span="5">
+                                <el-select
+                                    v-model="selectedOffer"
+                                    filterable
+                                    remote
+                                    reserve-keyword
+                                    placeholder="搜索 Offer UUID"
+                                    :remote-method="searchOffers"
+                                    :loading="searchLoading"
+                                    clearable
+                                    @change="handleOfferFilter"
+                                    style="width: 100%">
+                                    <el-option
+                                        v-for="offer in offerSearchResults"
+                                        :key="offer.offerUuid"
+                                        :label="offer.offerUuid"
+                                        :value="offer.offerUuid">
+                                    </el-option>
+                                </el-select>
+                            </el-col>
+                            <el-col :span="5">
+                                <el-select
+                                    v-model="selectedPackage"
+                                    filterable
+                                    remote
+                                    reserve-keyword
+                                    placeholder="搜索 Package Name"
+                                    :remote-method="searchPackages"
+                                    :loading="packageSearchLoading"
+                                    clearable
+                                    @change="handlePackageFilter"
+                                    style="width: 100%">
+                                    <el-option
+                                        v-for="pkg in packageSearchResults"
+                                        :key="pkg.packageName"
+                                        :label="pkg.packageName"
+                                        :value="pkg.packageName">
+                                    </el-option>
+                                </el-select>
+                            </el-col>
+                            <el-col :span="5">
                                 <el-select
                                     v-model="selectedUser"
                                     filterable
@@ -89,22 +125,34 @@
                                     reserve-keyword
                                     placeholder="搜索 Adv User"
                                     :remote-method="searchUsers"
-                                    :loading="searchLoading"
+                                    :loading="userSearchLoading"
                                     clearable
                                     @change="handleUserFilter"
                                     style="width: 100%">
                                     <el-option
-                                        v-for="user in searchResults"
+                                        v-for="user in userSearchResults"
                                         :key="user.username"
                                         :label="user.username"
                                         :value="user.username">
                                     </el-option>
                                 </el-select>
                             </el-col>
+                            <el-col :span="5">
+                                <el-select
+                                    v-model="selectedPricingModel"
+                                    placeholder="Adv Pricing Model"
+                                    clearable
+                                    @change="handlePricingModelFilter"
+                                    style="width: 100%">
+                                    <el-option label="CPI" value="CPI" />
+                                    <el-option label="CPE" value="CPE" />
+                                    <el-option label="CPS" value="CPS" />
+                                </el-select>
+                            </el-col>
                             <el-col :span="4">
-                                <el-button type="primary" @click="showCreateDialog = true">
+                                <el-button type="primary" @click="showCreateDrawer = true">
                                     <el-icon><Plus /></el-icon>
-                                    新建 Adv User
+                                    新建 Offer
                                 </el-button>
                             </el-col>
                         </el-row>
@@ -112,21 +160,26 @@
 
                     <!-- 数据表格 -->
                     <el-table 
-                        :data="paginatedUsers" 
+                        :data="paginatedOffers" 
                         v-loading="loading"
                         @sort-change="handleSortChange"
                         stripe
                         border
                         style="width: 100%">
-                        <el-table-column prop="username" label="Username" sortable="custom" width="200" align="left"></el-table-column>
-                        <el-table-column prop="bd" label="BD" width="150" align="left"></el-table-column>
-                        <el-table-column prop="advPm" label="Adv PM" width="150" align="left"></el-table-column>
-                        <el-table-column prop="updateTime" label="更新日期" sortable="custom" width="180" align="left"></el-table-column>
-                        <el-table-column label="操作" width="280" align="center">
+                        <el-table-column prop="offerUuid" label="Offer UUID" sortable="custom" width="180" align="left"></el-table-column>
+                        <el-table-column prop="packageName" label="Package Name" width="180" align="left"></el-table-column>
+                        <el-table-column prop="advUser" label="Adv User" width="120" align="left"></el-table-column>
+                        <el-table-column prop="advPricingModel" label="Adv Pricing Model" width="140" align="left"></el-table-column>
+                        <el-table-column prop="advConversionPrice" label="Adv Conversion Price" width="160" align="left"></el-table-column>
+                        <el-table-column prop="advConversionRealPrice" label="Adv Conversion Real Price" width="180" align="left"></el-table-column>
+                        <el-table-column prop="offerPm" label="Offer PM" width="120" align="left"></el-table-column>
+                        <el-table-column prop="bd" label="BD" width="100" align="left"></el-table-column>
+                        <el-table-column prop="updateTime" label="更新时间" sortable="custom" width="160" align="left"></el-table-column>
+                        <el-table-column label="操作" width="160" align="center">
                             <template #default="scope">
-                                <el-button size="small" @click="editUser(scope.row)">编辑</el-button>
-                                <el-button size="small" type="primary" @click="managePackages(scope.row)">添加Package</el-button>
-                                <el-button size="small" type="danger" @click="deleteUser(scope.row)">删除</el-button>
+                                <el-button size="small" @click="viewDetails(scope.row)">详情</el-button>
+                                <el-button size="small" @click="editOffer(scope.row)">编辑</el-button>
+                                <el-button size="small" type="danger" @click="deleteOffer(scope.row)">删除</el-button>
                             </template>
                         </el-table-column>
                     </el-table>
@@ -137,7 +190,7 @@
                             v-model:current-page="currentPage"
                             v-model:page-size="pageSize"
                             :page-sizes="[10, 20, 50]"
-                            :total="filteredUsers.length"
+                            :total="filteredOffers.length"
                             layout="total, sizes, prev, pager, next, jumper"
                             @size-change="handleSizeChange"
                             @current-change="handleCurrentChange">
@@ -146,13 +199,13 @@
                 </div>
 
                 <!-- 其他页面占位 -->
+                <div v-else-if="activeMenu === 'adv-user'">
+                    <h2>Adv User</h2>
+                    <p><a href="./adv-user.html">进入 Adv User 管理</a></p>
+                </div>
                 <div v-else-if="activeMenu === 'package-list'">
                     <h2>Package List</h2>
                     <p><a href="./package-list.html">进入 Package List 管理</a></p>
-                </div>
-                <div v-else-if="activeMenu === 'offer-list'">
-                    <h2>Offer List</h2>
-                    <p>功能开发中...</p>
                 </div>
                 <div v-else-if="activeMenu === 'channel'">
                     <h2>Channel</h2>
@@ -161,95 +214,232 @@
             </el-main>
         </el-container>
 
-        <!-- 新建/编辑用户弹窗 -->
-        <el-dialog 
-            v-model="showCreateDialog" 
-            :title="editingUser ? '编辑 Adv User' : '新建 Adv User'"
-            width="500px">
-            <el-form :model="userForm" :rules="userRules" ref="userFormRef" label-width="100px">
-                <el-form-item label="Username" prop="username">
-                    <el-input 
-                        v-model="userForm.username" 
-                        :disabled="editingUser"
-                        placeholder="只支持英文字符、数字和下划线">
-                    </el-input>
-                </el-form-item>
-                <el-form-item label="BD" prop="bd">
-                    <el-select v-model="userForm.bd" placeholder="选择BD" style="width: 100%">
-                        <el-option v-for="bd in bdList" :key="bd" :label="bd" :value="bd" />
+        <!-- 新建/编辑Offer抽屉 -->
+        <el-drawer 
+            v-model="showCreateDrawer" 
+            :title="editingOffer ? '编辑 Offer' : '新建 Offer'"
+            size="600px"
+            direction="rtl">
+            <el-form :model="offerForm" :rules="offerRules" ref="offerFormRef" label-width="140px">
+                <!-- 基础信息 -->
+                <h3>基础信息</h3>
+                <el-form-item label="Adv User" prop="advUser">
+                    <el-select v-model="offerForm.advUser" filterable remote :remote-method="loadAdvUsers" 
+                               :disabled="editingOffer" placeholder="选择Adv User" style="width: 100%">
+                        <el-option v-for="user in allUsers" :key="user.username" :label="user.username" :value="user.username" />
                     </el-select>
                 </el-form-item>
-                <el-form-item label="Adv PM" prop="advPm">
-                    <el-select v-model="userForm.advPm" placeholder="选择Adv PM" style="width: 100%">
-                        <el-option v-for="pm in advPmList" :key="pm" :label="pm" :value="pm" />
+                <el-form-item label="Package Name" prop="packageName">
+                    <el-select v-model="offerForm.packageName" filterable remote :remote-method="loadPackages" 
+                               :disabled="editingOffer" placeholder="选择Package Name" style="width: 100%">
+                        <el-option v-for="pkg in userPackages" :key="pkg.packageName" :label="pkg.packageName" :value="pkg.packageName" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="Offer UUID" prop="offerUuid">
+                    <el-input v-model="offerForm.offerUuid" :disabled="editingOffer" placeholder="支持英文字母、数字、下划线、横杠"></el-input>
+                </el-form-item>
+                <el-form-item label="Optimization Goal" prop="optimizationGoal">
+                    <el-select v-model="offerForm.optimizationGoal" placeholder="选择推广目标" style="width: 100%">
+                        <el-option label="UA (拉新)" value="UA" />
+                        <el-option label="RT (重定向)" value="RT" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="Notes" prop="notes">
+                    <el-input v-model="offerForm.notes" type="textarea" :rows="2" placeholder="KPI要求附言"></el-input>
+                </el-form-item>
+
+                <!-- 结算信息 -->
+                <h3>结算信息</h3>
+                <el-form-item label="Adv Pricing Model" prop="advPricingModel">
+                    <el-select v-model="offerForm.advPricingModel" :disabled="editingOffer" placeholder="选择结算模式" style="width: 100%">
+                        <el-option label="CPI" value="CPI" />
+                        <el-option label="CPE" value="CPE" />
+                        <el-option label="CPS" value="CPS" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="Adv Conversion Price" prop="advConversionPrice">
+                    <el-input v-model="offerForm.advConversionPrice" placeholder="记录用转化事件单价"></el-input>
+                </el-form-item>
+                <el-form-item label="Adv Conversion Real Price" prop="advConversionRealPrice">
+                    <el-input v-model="offerForm.advConversionRealPrice" placeholder="真实转化事件单价"></el-input>
+                </el-form-item>
+
+                <!-- 预算信息 -->
+                <h3>预算信息</h3>
+                <el-form-item label="Adv Daily Cap" prop="advDailyCap">
+                    <el-input v-model="offerForm.advDailyCap" placeholder="广告主约定预算值"></el-input>
+                </el-form-item>
+                <el-form-item label="Daily Control Cap" prop="dailyControlCap">
+                    <el-input v-model="offerForm.dailyControlCap" placeholder="运营控制预算值"></el-input>
+                </el-form-item>
+
+                <!-- 定向设置 -->
+                <h3>定向设置</h3>
+                <el-form-item label="Platform" prop="platform">
+                    <el-select v-model="offerForm.platform" placeholder="选择平台" style="width: 100%">
+                        <el-option label="iOS" value="ios" />
+                        <el-option label="Android" value="android" />
+                        <el-option label="Windows" value="windows" />
+                        <el-option label="All" value="all" />
+                        <el-option label="Others" value="others" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="Target Geo" prop="targetGeo">
+                    <el-input v-model="offerForm.targetGeo" placeholder="如：美国 US"></el-input>
+                </el-form-item>
+                <el-form-item label="Network" prop="network">
+                    <el-select v-model="offerForm.network" placeholder="选择网络环境" style="width: 100%">
+                        <el-option label="WiFi" value="wifi" />
+                        <el-option label="2G" value="2G" />
+                        <el-option label="3G" value="3G" />
+                        <el-option label="4G" value="4G" />
+                    </el-select>
+                </el-form-item>
+
+                <!-- 运营设置 -->
+                <h3>运营设置</h3>
+                <el-form-item label="Offer PM" prop="offerPm">
+                    <el-select v-model="offerForm.offerPm" placeholder="选择Offer PM" style="width: 100%">
+                        <el-option v-for="pm in offerPmList" :key="pm" :label="pm" :value="pm" />
+                    </el-select>
+                </el-form-item>
+
+                <!-- Tracking link与归因 -->
+                <h3>Tracking link与归因</h3>
+                <el-form-item label="Impression Tracking" prop="impressionTracking">
+                    <el-input v-model="offerForm.impressionTracking" placeholder="曝光监测链接"></el-input>
+                </el-form-item>
+                <el-form-item label="Click Tracking" prop="clickTracking">
+                    <el-input v-model="offerForm.clickTracking" placeholder="点击监测链接"></el-input>
+                </el-form-item>
+                <el-form-item label="Third Party" prop="thirdParty">
+                    <el-select v-model="offerForm.thirdParty" placeholder="选择监测平台" style="width: 100%">
+                        <el-option label="S2S (自归因)" value="S2S" />
+                        <el-option label="Appsflyer" value="Appsflyer" />
+                        <el-option label="Adjust" value="Adjust" />
+                        <el-option label="Singular" value="Singular" />
                     </el-select>
                 </el-form-item>
             </el-form>
             <template #footer>
-                <el-button @click="showCreateDialog = false">取消</el-button>
-                <el-button type="primary" @click="saveUser">保存</el-button>
+                <div style="text-align: right; padding: 20px 0;">
+                    <el-button @click="showCreateDrawer = false">取消</el-button>
+                    <el-button type="primary" @click="saveOffer">保存</el-button>
+                </div>
             </template>
+        </el-drawer>
+
+        <!-- 详情查看弹窗 -->
+        <el-dialog v-model="showDetailDialog" title="Offer 详情" width="800px">
+            <el-descriptions :column="2" border v-if="currentOffer">
+                <el-descriptions-item label="Offer UUID" :span="2">{{ currentOffer.offerUuid }}</el-descriptions-item>
+                <el-descriptions-item label="Adv User">{{ currentOffer.advUser }}</el-descriptions-item>
+                <el-descriptions-item label="Package Name">{{ currentOffer.packageName }}</el-descriptions-item>
+                <el-descriptions-item label="Optimization Goal">{{ currentOffer.optimizationGoal }}</el-descriptions-item>
+                <el-descriptions-item label="Adv Pricing Model">{{ currentOffer.advPricingModel }}</el-descriptions-item>
+                <el-descriptions-item label="Adv Conversion Price">{{ currentOffer.advConversionPrice }}</el-descriptions-item>
+                <el-descriptions-item label="Adv Conversion Real Price">{{ currentOffer.advConversionRealPrice }}</el-descriptions-item>
+                <el-descriptions-item label="Platform">{{ currentOffer.platform }}</el-descriptions-item>
+                <el-descriptions-item label="Target Geo">{{ currentOffer.targetGeo }}</el-descriptions-item>
+                <el-descriptions-item label="Offer PM">{{ currentOffer.offerPm }}</el-descriptions-item>
+                <el-descriptions-item label="BD">{{ currentOffer.bd }}</el-descriptions-item>
+                <el-descriptions-item label="Third Party">{{ currentOffer.thirdParty }}</el-descriptions-item>
+                <el-descriptions-item label="Notes" :span="2">{{ currentOffer.notes }}</el-descriptions-item>
+                <el-descriptions-item label="更新时间" :span="2">{{ currentOffer.updateTime }}</el-descriptions-item>
+            </el-descriptions>
         </el-dialog>
     </div>
 
     <script>
-        const { createApp, ref, computed, onMounted } = Vue;
+        const { createApp, ref, computed, onMounted, watch } = Vue;
         const { ElMessage, ElMessageBox } = ElementPlus;
-
-        // Firebase 配置 (使用演示配置)
-        const firebaseConfig = {
-            apiKey: "demo-key",
-            authDomain: "demo.firebaseapp.com",
-            projectId: "demo-project",
-            storageBucket: "demo.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "demo-app-id"
-        };
 
         createApp({
             setup() {
                 // 响应式数据
-                const activeMenu = ref('adv-user');
+                const activeMenu = ref('offer-list');
                 const loading = ref(false);
                 const searchLoading = ref(false);
-                const showCreateDialog = ref(false);
-                const editingUser = ref(null);
+                const packageSearchLoading = ref(false);
+                const userSearchLoading = ref(false);
+                const showCreateDrawer = ref(false);
+                const showDetailDialog = ref(false);
+                const editingOffer = ref(null);
+                const currentOffer = ref(null);
+                
+                const selectedOffer = ref('');
+                const selectedPackage = ref('');
                 const selectedUser = ref('');
-                const searchResults = ref([]);
+                const selectedPricingModel = ref('');
+                
+                const offerSearchResults = ref([]);
+                const packageSearchResults = ref([]);
+                const userSearchResults = ref([]);
+                
                 const currentPage = ref(1);
                 const pageSize = ref(20);
                 const sortField = ref('updateTime');
                 const sortOrder = ref('desc');
 
                 // 表单数据
-                const userForm = ref({
-                    username: '',
-                    bd: '',
-                    advPm: ''
+                const offerForm = ref({
+                    advUser: '',
+                    packageName: '',
+                    offerUuid: '',
+                    optimizationGoal: '',
+                    notes: '',
+                    advPricingModel: '',
+                    advConversionPrice: '',
+                    advConversionRealPrice: '',
+                    advDailyCap: '',
+                    dailyControlCap: '',
+                    platform: '',
+                    targetGeo: '',
+                    network: '',
+                    offerPm: '',
+                    impressionTracking: '',
+                    clickTracking: '',
+                    thirdParty: '',
+                    bd: ''
                 });
 
-                // 用户数据
-                const users = ref([]);
-                
-                // 系统用户列表
-                const bdList = ref(['张三', '李四', '王五', '赵六', '钱七', '孙八', '周九', '吴十']);
-                const advPmList = ref(['刘一', '陈二', '杨三', '黄四', '朱五', '林六', '郭七', '何八']);
+                // 数据
+                const offers = ref([]);
+                const allUsers = ref([]);
+                const allPackages = ref([]);
+                const userPackages = ref([]);
+                const offerPmList = ref(['Alice Chen', 'Bob Wang', 'Carol Li', 'David Zhang', 'Eva Liu']);
 
                 // 表单验证规则
-                const userRules = {
-                    username: [
-                        { required: true, message: '请输入Username', trigger: 'blur' },
-                        { pattern: /^[a-zA-Z0-9_]+$/, message: '只支持英文字符、数字和下划线', trigger: 'blur' }
+                const offerRules = {
+                    advUser: [{ required: true, message: '请选择Adv User', trigger: 'change' }],
+                    packageName: [{ required: true, message: '请选择Package Name', trigger: 'change' }],
+                    offerUuid: [
+                        { required: true, message: '请输入Offer UUID', trigger: 'blur' },
+                        { pattern: /^[a-zA-Z0-9_-]+$/, message: '只支持英文字母、数字、下划线、横杠', trigger: 'blur' }
                     ],
-                    bd: [{ required: true, message: '请选择BD', trigger: 'change' }],
-                    advPm: [{ required: true, message: '请选择Adv PM', trigger: 'change' }]
+                    optimizationGoal: [{ required: true, message: '请选择推广目标', trigger: 'change' }],
+                    advPricingModel: [{ required: true, message: '请选择结算模式', trigger: 'change' }],
+                    advConversionPrice: [{ required: true, message: '请输入转化事件单价', trigger: 'blur' }],
+                    advConversionRealPrice: [{ required: true, message: '请输入真实转化事件单价', trigger: 'blur' }],
+                    offerPm: [{ required: true, message: '请选择Offer PM', trigger: 'change' }]
                 };
 
                 // 计算属性
-                const filteredUsers = computed(() => {
-                    let result = users.value;
+                const filteredOffers = computed(() => {
+                    let result = offers.value;
+                    
+                    if (selectedOffer.value) {
+                        result = result.filter(offer => offer.offerUuid.includes(selectedOffer.value));
+                    }
+                    if (selectedPackage.value) {
+                        result = result.filter(offer => offer.packageName.includes(selectedPackage.value));
+                    }
                     if (selectedUser.value) {
-                        result = result.filter(user => user.username.includes(selectedUser.value));
+                        result = result.filter(offer => offer.advUser === selectedUser.value);
+                    }
+                    if (selectedPricingModel.value) {
+                        result = result.filter(offer => offer.advPricingModel === selectedPricingModel.value);
                     }
                     
                     // 排序
@@ -266,32 +456,87 @@
                     return result;
                 });
 
-                const paginatedUsers = computed(() => {
+                const paginatedOffers = computed(() => {
                     const start = (currentPage.value - 1) * pageSize.value;
                     const end = start + pageSize.value;
-                    return filteredUsers.value.slice(start, end);
+                    return filteredOffers.value.slice(start, end);
+                });
+
+                // 监听Adv User变化，加载对应的Package
+                watch(() => offerForm.value.advUser, (newUser) => {
+                    if (newUser) {
+                        userPackages.value = allPackages.value.filter(pkg => pkg.username === newUser);
+                        // 自动设置BD
+                        const user = allUsers.value.find(u => u.username === newUser);
+                        if (user) {
+                            offerForm.value.bd = user.bd;
+                        }
+                    } else {
+                        userPackages.value = [];
+                        offerForm.value.bd = '';
+                    }
                 });
 
                 // 方法
                 const handleMenuSelect = (key) => {
                     activeMenu.value = key;
-                    if (key === 'package-list') {
+                    if (key === 'adv-user') {
+                        window.location.href = './adv-user.html';
+                    } else if (key === 'package-list') {
                         window.location.href = './package-list.html';
+                    }
+                };
+
+                const searchOffers = (query) => {
+                    if (query) {
+                        searchLoading.value = true;
+                        setTimeout(() => {
+                            offerSearchResults.value = offers.value.filter(offer => 
+                                offer.offerUuid.toLowerCase().includes(query.toLowerCase())
+                            ).slice(0, 10);
+                            searchLoading.value = false;
+                        }, 200);
+                    } else {
+                        offerSearchResults.value = [];
+                    }
+                };
+
+                const searchPackages = (query) => {
+                    if (query) {
+                        packageSearchLoading.value = true;
+                        setTimeout(() => {
+                            packageSearchResults.value = allPackages.value.filter(pkg => 
+                                pkg.packageName.toLowerCase().includes(query.toLowerCase())
+                            ).slice(0, 10);
+                            packageSearchLoading.value = false;
+                        }, 200);
+                    } else {
+                        packageSearchResults.value = [];
                     }
                 };
 
                 const searchUsers = (query) => {
                     if (query) {
-                        searchLoading.value = true;
+                        userSearchLoading.value = true;
                         setTimeout(() => {
-                            searchResults.value = users.value.filter(user => 
+                            userSearchResults.value = allUsers.value.filter(user => 
                                 user.username.toLowerCase().includes(query.toLowerCase())
-                            );
-                            searchLoading.value = false;
+                            ).slice(0, 10);
+                            userSearchLoading.value = false;
                         }, 200);
                     } else {
-                        searchResults.value = [];
+                        userSearchResults.value = [];
                     }
+                };
+
+                const handleOfferFilter = (value) => {
+                    selectedOffer.value = value;
+                    currentPage.value = 1;
+                };
+
+                const handlePackageFilter = (value) => {
+                    selectedPackage.value = value;
+                    currentPage.value = 1;
                 };
 
                 const handleUserFilter = (value) => {
@@ -299,8 +544,8 @@
                     currentPage.value = 1;
                 };
 
-                const clearUserFilter = () => {
-                    selectedUser.value = '';
+                const handlePricingModelFilter = (value) => {
+                    selectedPricingModel.value = value;
                     currentPage.value = 1;
                 };
 
@@ -318,28 +563,30 @@
                     currentPage.value = page;
                 };
 
-                const editUser = (user) => {
-                    editingUser.value = user;
-                    userForm.value = { ...user };
-                    showCreateDialog.value = true;
+                const viewDetails = (offer) => {
+                    currentOffer.value = offer;
+                    showDetailDialog.value = true;
                 };
 
-                const managePackages = (user) => {
-                    const url = `./package-list.html?username=${encodeURIComponent(user.username)}&action=add`;
-                    window.open(url, '_blank');
+                const editOffer = (offer) => {
+                    editingOffer.value = offer;
+                    offerForm.value = { ...offer };
+                    // 加载对应用户的Package
+                    userPackages.value = allPackages.value.filter(pkg => pkg.username === offer.advUser);
+                    showCreateDrawer.value = true;
                 };
 
-                const deleteUser = async (user) => {
+                const deleteOffer = async (offer) => {
                     try {
-                        await ElMessageBox.confirm('确定要删除这个用户吗？', '确认删除', {
+                        await ElMessageBox.confirm('确定要删除这个Offer吗？', '确认删除', {
                             confirmButtonText: '确定',
                             cancelButtonText: '取消',
                             type: 'warning'
                         });
                         
-                        const index = users.value.findIndex(u => u.username === user.username);
+                        const index = offers.value.findIndex(o => o.offerUuid === offer.offerUuid);
                         if (index > -1) {
-                            users.value.splice(index, 1);
+                            offers.value.splice(index, 1);
                             saveToStorage();
                             ElMessage.success('删除成功');
                         }
@@ -348,18 +595,17 @@
                     }
                 };
 
-                const saveUser = async () => {
-                    const formRef = document.querySelector('.el-form');
-                    if (!formRef) return;
-                    
-                    // 简单验证
-                    if (!userForm.value.username || !userForm.value.bd || !userForm.value.advPm) {
+                const loadAdvUsers = () => {
+                    // 已在watch中处理
+                };
+
+                const loadPackages = () => {
+                    // 已在watch中处理
+                };
+
+                const saveOffer = async () => {
+                    if (!offerForm.value.advUser || !offerForm.value.packageName || !offerForm.value.offerUuid) {
                         ElMessage.error('请填写完整信息');
-                        return;
-                    }
-                    
-                    if (!/^[a-zA-Z0-9_]+$/.test(userForm.value.username)) {
-                        ElMessage.error('Username只支持英文字符、数字和下划线');
                         return;
                     }
 
@@ -373,47 +619,78 @@
                         hour12: false
                     }).replace(/\//g, '-');
 
-                    if (editingUser.value) {
+                    if (editingOffer.value) {
                         // 编辑
-                        const index = users.value.findIndex(u => u.username === editingUser.value.username);
+                        const index = offers.value.findIndex(o => o.offerUuid === editingOffer.value.offerUuid);
                         if (index > -1) {
-                            users.value[index] = {
-                                ...userForm.value,
+                            offers.value[index] = {
+                                ...offerForm.value,
                                 updateTime: now
                             };
                         }
                         ElMessage.success('更新成功');
                     } else {
                         // 新建
-                        if (users.value.some(u => u.username === userForm.value.username)) {
-                            ElMessage.error('Username已存在');
+                        if (offers.value.some(o => o.offerUuid === offerForm.value.offerUuid)) {
+                            ElMessage.error('Offer UUID已存在');
                             return;
                         }
                         
-                        users.value.push({
-                            ...userForm.value,
+                        offers.value.push({
+                            ...offerForm.value,
                             updateTime: now
                         });
                         ElMessage.success('创建成功');
                     }
 
                     saveToStorage();
-                    showCreateDialog.value = false;
-                    editingUser.value = null;
-                    userForm.value = { username: '', bd: '', advPm: '' };
+                    showCreateDrawer.value = false;
+                    editingOffer.value = null;
+                    offerForm.value = {
+                        advUser: '',
+                        packageName: '',
+                        offerUuid: '',
+                        optimizationGoal: '',
+                        notes: '',
+                        advPricingModel: '',
+                        advConversionPrice: '',
+                        advConversionRealPrice: '',
+                        advDailyCap: '',
+                        dailyControlCap: '',
+                        platform: '',
+                        targetGeo: '',
+                        network: '',
+                        offerPm: '',
+                        impressionTracking: '',
+                        clickTracking: '',
+                        thirdParty: '',
+                        bd: ''
+                    };
                 };
 
                 const saveToStorage = () => {
-                    localStorage.setItem('advUsers', JSON.stringify(users.value));
+                    localStorage.setItem('offers', JSON.stringify(offers.value));
                 };
 
                 const loadFromStorage = () => {
                     try {
-                        const stored = localStorage.getItem('advUsers');
-                        if (stored) {
-                            users.value = JSON.parse(stored);
+                        // 加载用户数据
+                        const storedUsers = localStorage.getItem('advUsers');
+                        if (storedUsers) {
+                            allUsers.value = JSON.parse(storedUsers);
+                        }
+
+                        // 加载包数据
+                        const storedPackages = localStorage.getItem('packages');
+                        if (storedPackages) {
+                            allPackages.value = JSON.parse(storedPackages);
+                        }
+
+                        // 加载Offer数据
+                        const storedOffers = localStorage.getItem('offers');
+                        if (storedOffers) {
+                            offers.value = JSON.parse(storedOffers);
                         } else {
-                            // 初始化示例数据
                             initSampleData();
                         }
                     } catch (error) {
@@ -423,57 +700,169 @@
                 };
 
                 const initSampleData = () => {
-                    users.value = [
-                        { username: 'demo_user_1', bd: '张三', advPm: '刘一', updateTime: '2025-01-15 10:30:25' },
-                        { username: 'test_advertiser', bd: '李四', advPm: '陈二', updateTime: '2025-01-14 16:45:12' },
-                        { username: 'sample_client', bd: '王五', advPm: '杨三', updateTime: '2025-01-13 09:15:33' },
-                        { username: 'mobile_app_user', bd: '赵六', advPm: '黄四', updateTime: '2025-01-12 14:20:18' },
-                        { username: 'web_platform_client', bd: '钱七', advPm: '朱五', updateTime: '2025-01-11 09:45:30' }
+                    offers.value = [
+                        {
+                            offerUuid: 'offer_demo_001',
+                            advUser: 'demo_user_1',
+                            packageName: 'com.example.demo',
+                            optimizationGoal: 'UA',
+                            notes: 'Demo offer for testing',
+                            advPricingModel: 'CPI',
+                            advConversionPrice: '2.50',
+                            advConversionRealPrice: '3.00',
+                            advDailyCap: '1000',
+                            dailyControlCap: '800',
+                            platform: 'android',
+                            targetGeo: '美国 US',
+                            network: 'wifi',
+                            offerPm: 'Alice Chen',
+                            bd: '张三',
+                            impressionTracking: 'https://track.example.com/imp',
+                            clickTracking: 'https://track.example.com/click',
+                            thirdParty: 'Appsflyer',
+                            updateTime: '2025-01-15 10:30:25'
+                        },
+                        {
+                            offerUuid: 'offer_test_002',
+                            advUser: 'test_advertiser',
+                            packageName: 'id1580749519',
+                            optimizationGoal: 'RT',
+                            notes: 'iOS retargeting campaign',
+                            advPricingModel: 'CPE',
+                            advConversionPrice: '1.80',
+                            advConversionRealPrice: '2.20',
+                            advDailyCap: '500',
+                            dailyControlCap: '400',
+                            platform: 'ios',
+                            targetGeo: '英国 UK',
+                            network: '4G',
+                            offerPm: 'Bob Wang',
+                            bd: '李四',
+                            impressionTracking: 'https://track.example.com/imp2',
+                            clickTracking: 'https://track.example.com/click2',
+                            thirdParty: 'S2S',
+                            updateTime: '2025-01-14 16:45:12'
+                        },
+                        {
+                            offerUuid: 'offer_sample_003',
+                            advUser: 'sample_client',
+                            packageName: 'net.sample.app',
+                            optimizationGoal: 'UA',
+                            notes: 'Social app user acquisition',
+                            advPricingModel: 'CPS',
+                            advConversionPrice: '5.00',
+                            advConversionRealPrice: '6.50',
+                            advDailyCap: '2000',
+                            dailyControlCap: '1800',
+                            platform: 'all',
+                            targetGeo: '加拿大 CA',
+                            network: 'wifi',
+                            offerPm: 'Carol Li',
+                            bd: '王五',
+                            impressionTracking: 'https://track.example.com/imp3',
+                            clickTracking: 'https://track.example.com/click3',
+                            thirdParty: 'Adjust',
+                            updateTime: '2025-01-13 09:15:33'
+                        },
+                        {
+                            offerUuid: 'offer_mobile_004',
+                            advUser: 'mobile_app_user',
+                            packageName: 'id987654321',
+                            optimizationGoal: 'UA',
+                            notes: 'Utility app promotion',
+                            advPricingModel: 'CPI',
+                            advConversionPrice: '1.20',
+                            advConversionRealPrice: '1.50',
+                            advDailyCap: '300',
+                            dailyControlCap: '250',
+                            platform: 'ios',
+                            targetGeo: '澳大利亚 AU',
+                            network: '3G',
+                            offerPm: 'David Zhang',
+                            bd: '赵六',
+                            impressionTracking: 'https://track.example.com/imp4',
+                            clickTracking: 'https://track.example.com/click4',
+                            thirdParty: 'Singular',
+                            updateTime: '2025-01-12 14:20:18'
+                        },
+                        {
+                            offerUuid: 'offer_web_005',
+                            advUser: 'web_platform_client',
+                            packageName: 'com.webplatform.client',
+                            optimizationGoal: 'RT',
+                            notes: 'Business app retargeting',
+                            advPricingModel: 'CPE',
+                            advConversionPrice: '3.80',
+                            advConversionRealPrice: '4.20',
+                            advDailyCap: '800',
+                            dailyControlCap: '700',
+                            platform: 'android',
+                            targetGeo: '德国 DE',
+                            network: 'wifi',
+                            offerPm: 'Eva Liu',
+                            bd: '钱七',
+                            impressionTracking: 'https://track.example.com/imp5',
+                            clickTracking: 'https://track.example.com/click5',
+                            thirdParty: 'Appsflyer',
+                            updateTime: '2025-01-11 09:45:30'
+                        }
                     ];
                     saveToStorage();
                 };
 
                 // 生命周期
                 onMounted(() => {
-                    console.log('组件挂载，开始加载数据');
                     loadFromStorage();
-                    console.log('数据加载完成，用户数量:', users.value.length);
                 });
 
                 return {
                     activeMenu,
                     loading,
                     searchLoading,
-                    showCreateDialog,
-                    editingUser,
+                    packageSearchLoading,
+                    userSearchLoading,
+                    showCreateDrawer,
+                    showDetailDialog,
+                    editingOffer,
+                    currentOffer,
+                    selectedOffer,
+                    selectedPackage,
                     selectedUser,
-                    searchResults,
+                    selectedPricingModel,
+                    offerSearchResults,
+                    packageSearchResults,
+                    userSearchResults,
                     currentPage,
                     pageSize,
-                    userForm,
-                    users,
-                    bdList,
-                    advPmList,
-                    userRules,
-                    filteredUsers,
-                    paginatedUsers,
+                    offerForm,
+                    offers,
+                    allUsers,
+                    allPackages,
+                    userPackages,
+                    offerPmList,
+                    offerRules,
+                    filteredOffers,
+                    paginatedOffers,
                     handleMenuSelect,
+                    searchOffers,
+                    searchPackages,
                     searchUsers,
+                    handleOfferFilter,
+                    handlePackageFilter,
                     handleUserFilter,
-                    clearUserFilter,
+                    handlePricingModelFilter,
                     handleSortChange,
                     handleSizeChange,
                     handleCurrentChange,
-                    editUser,
-                    managePackages,
-                    deleteUser,
-                    saveUser,
-                    initSampleData
+                    viewDetails,
+                    editOffer,
+                    deleteOffer,
+                    loadAdvUsers,
+                    loadPackages,
+                    saveOffer
                 };
             }
-        }).use(ElementPlus, {
-            // Element Plus 配置
-        }).mount('#app');
+        }).use(ElementPlus).mount('#app');
     </script>
 </body>
 </html>
