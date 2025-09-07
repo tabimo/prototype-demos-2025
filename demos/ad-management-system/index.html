@@ -303,13 +303,13 @@
                     <div class="form-section">
                         <h3 class="section-title">🎯 定向设置</h3>
                         <el-form-item label="Platform" prop="platform">
-                            <el-select v-model="offerForm.platform" placeholder="选择平台" style="width: 100%">
-                                <el-option label="iOS" value="ios" />
-                                <el-option label="Android" value="android" />
-                                <el-option label="Windows" value="windows" />
-                                <el-option label="All" value="all" />
-                                <el-option label="Others" value="others" />
-                            </el-select>
+                            <el-checkbox-group v-model="offerForm.platform">
+                                <el-checkbox label="ios">iOS</el-checkbox>
+                                <el-checkbox label="android">Android</el-checkbox>
+                                <el-checkbox label="windows">Windows</el-checkbox>
+                                <el-checkbox label="all">All</el-checkbox>
+                                <el-checkbox label="others">Others</el-checkbox>
+                            </el-checkbox-group>
                         </el-form-item>
                         <el-form-item label="Target Geo" prop="targetGeo">
                             <el-input v-model="offerForm.targetGeo" placeholder="如：美国 US"></el-input>
@@ -372,7 +372,7 @@
                 <el-descriptions-item label="Adv Pricing Model">{{ currentOffer.advPricingModel }}</el-descriptions-item>
                 <el-descriptions-item label="Adv Conversion Price">{{ currentOffer.advConversionPrice }}</el-descriptions-item>
                 <el-descriptions-item label="Adv Conversion Real Price">{{ currentOffer.advConversionRealPrice }}</el-descriptions-item>
-                <el-descriptions-item label="Platform">{{ currentOffer.platform }}</el-descriptions-item>
+                <el-descriptions-item label="Platform">{{ Array.isArray(currentOffer.platform) ? currentOffer.platform.join(', ') : currentOffer.platform }}</el-descriptions-item>
                 <el-descriptions-item label="Target Geo">{{ currentOffer.targetGeo }}</el-descriptions-item>
                 <el-descriptions-item label="Offer PM">{{ currentOffer.offerPm }}</el-descriptions-item>
                 <el-descriptions-item label="BD">{{ currentOffer.bd }}</el-descriptions-item>
@@ -426,7 +426,7 @@
                     advConversionRealPrice: '',
                     advDailyCap: '',
                     dailyControlCap: '',
-                    platform: '',
+                    platform: [],
                     targetGeo: '',
                     network: '',
                     offerPm: '',
@@ -690,7 +690,7 @@
                         advConversionRealPrice: '',
                         advDailyCap: '',
                         dailyControlCap: '',
-                        platform: '',
+                        platform: [],
                         targetGeo: '',
                         network: '',
                         offerPm: '',
@@ -745,7 +745,7 @@
                             advConversionRealPrice: '3.00',
                             advDailyCap: '1000',
                             dailyControlCap: '800',
-                            platform: 'android',
+                            platform: ['android'],
                             targetGeo: '美国 US',
                             network: 'wifi',
                             offerPm: 'Alice Chen',
@@ -766,7 +766,7 @@
                             advConversionRealPrice: '2.20',
                             advDailyCap: '500',
                             dailyControlCap: '400',
-                            platform: 'ios',
+                            platform: ['ios'],
                             targetGeo: '英国 UK',
                             network: '4G',
                             offerPm: 'Bob Wang',
@@ -787,7 +787,7 @@
                             advConversionRealPrice: '6.50',
                             advDailyCap: '2000',
                             dailyControlCap: '1800',
-                            platform: 'all',
+                            platform: ['all'],
                             targetGeo: '加拿大 CA',
                             network: 'wifi',
                             offerPm: 'Carol Li',
@@ -808,7 +808,7 @@
                             advConversionRealPrice: '1.50',
                             advDailyCap: '300',
                             dailyControlCap: '250',
-                            platform: 'ios',
+                            platform: ['ios'],
                             targetGeo: '澳大利亚 AU',
                             network: '3G',
                             offerPm: 'David Zhang',
@@ -829,7 +829,7 @@
                             advConversionRealPrice: '4.20',
                             advDailyCap: '800',
                             dailyControlCap: '700',
-                            platform: 'android',
+                            platform: ['android'],
                             targetGeo: '德国 DE',
                             network: 'wifi',
                             offerPm: 'Eva Liu',
