@@ -315,12 +315,12 @@
                             <el-input v-model="offerForm.targetGeo" placeholder="如：美国 US"></el-input>
                         </el-form-item>
                         <el-form-item label="Network" prop="network">
-                            <el-select v-model="offerForm.network" placeholder="选择网络环境" style="width: 100%">
-                                <el-option label="WiFi" value="wifi" />
-                                <el-option label="2G" value="2G" />
-                                <el-option label="3G" value="3G" />
-                                <el-option label="4G" value="4G" />
-                            </el-select>
+                            <el-checkbox-group v-model="offerForm.network">
+                                <el-checkbox label="wifi">WiFi</el-checkbox>
+                                <el-checkbox label="2G">2G</el-checkbox>
+                                <el-checkbox label="3G">3G</el-checkbox>
+                                <el-checkbox label="4G">4G</el-checkbox>
+                            </el-checkbox-group>
                         </el-form-item>
                     </div>
 
@@ -428,7 +428,7 @@
                     dailyControlCap: '',
                     platform: [],
                     targetGeo: '',
-                    network: '',
+                    network: [],
                     offerPm: '',
                     impressionTracking: '',
                     clickTracking: '',
@@ -692,7 +692,7 @@
                         dailyControlCap: '',
                         platform: [],
                         targetGeo: '',
-                        network: '',
+                        network: [],
                         offerPm: '',
                         impressionTracking: '',
                         clickTracking: '',
@@ -747,7 +747,7 @@
                             dailyControlCap: '800',
                             platform: ['android'],
                             targetGeo: '美国 US',
-                            network: 'wifi',
+                            network: ['wifi'],
                             offerPm: 'Alice Chen',
                             bd: '张三',
                             impressionTracking: 'https://track.example.com/imp',
@@ -768,7 +768,7 @@
                             dailyControlCap: '400',
                             platform: ['ios'],
                             targetGeo: '英国 UK',
-                            network: '4G',
+                            network: ['4G'],
                             offerPm: 'Bob Wang',
                             bd: '李四',
                             impressionTracking: 'https://track.example.com/imp2',
@@ -789,7 +789,7 @@
                             dailyControlCap: '1800',
                             platform: ['all'],
                             targetGeo: '加拿大 CA',
-                            network: 'wifi',
+                            network: ['wifi'],
                             offerPm: 'Carol Li',
                             bd: '王五',
                             impressionTracking: 'https://track.example.com/imp3',
@@ -810,7 +810,7 @@
                             dailyControlCap: '250',
                             platform: ['ios'],
                             targetGeo: '澳大利亚 AU',
-                            network: '3G',
+                            network: ['3G'],
                             offerPm: 'David Zhang',
                             bd: '赵六',
                             impressionTracking: 'https://track.example.com/imp4',
@@ -831,7 +831,7 @@
                             dailyControlCap: '700',
                             platform: ['android'],
                             targetGeo: '德国 DE',
-                            network: 'wifi',
+                            network: ['wifi'],
                             offerPm: 'Eva Liu',
                             bd: '钱七',
                             impressionTracking: 'https://track.example.com/imp5',
