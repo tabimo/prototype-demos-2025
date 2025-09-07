@@ -161,9 +161,9 @@
                                     clearable
                                     @change="handlePricingModelFilter"
                                     style="width: 100%">
-                                    <el-option label="CPI" value="CPI" />
-                                    <el-option label="CPE" value="CPE" />
-                                    <el-option label="CPS" value="CPS" />
+                                    <el-option label="CPI" value="CPI"></el-option>
+                                    <el-option label="CPE" value="CPE"></el-option>
+                                    <el-option label="CPS" value="CPS"></el-option>
                                 </el-select>
                             </el-col>
                             <el-col :span="4">
@@ -261,8 +261,8 @@
                         </el-form-item>
                         <el-form-item label="Optimization Goal" prop="optimizationGoal">
                             <el-select v-model="offerForm.optimizationGoal" placeholder="选择推广目标" style="width: 100%">
-                                <el-option label="UA (拉新)" value="UA" />
-                                <el-option label="RT (重定向)" value="RT" />
+                                <el-option label="UA (拉新)" value="UA"></el-option>
+                                <el-option label="RT (重定向)" value="RT"></el-option>
                             </el-select>
                         </el-form-item>
                         <el-form-item label="Notes" prop="notes">
@@ -275,9 +275,9 @@
                         <h3 class="section-title">💰 结算信息</h3>
                         <el-form-item label="Adv Pricing Model" prop="advPricingModel">
                             <el-select v-model="offerForm.advPricingModel" :disabled="editingOffer" placeholder="选择结算模式" style="width: 100%">
-                                <el-option label="CPI" value="CPI" />
-                                <el-option label="CPE" value="CPE" />
-                                <el-option label="CPS" value="CPS" />
+                                <el-option label="CPI" value="CPI"></el-option>
+                                <el-option label="CPE" value="CPE"></el-option>
+                                <el-option label="CPS" value="CPS"></el-option>
                             </el-select>
                         </el-form-item>
                         <el-form-item label="Adv Conversion Price" prop="advConversionPrice">
