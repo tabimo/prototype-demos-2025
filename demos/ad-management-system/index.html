@@ -70,13 +70,22 @@
         .el-menu--horizontal {
             display: flex;
             align-items: center;
+            border: none !important;
         }
         .el-menu--horizontal .el-menu-item,
         .el-menu--horizontal .el-sub-menu {
             color: #fff !important;
+            border: none !important;
         }
         .el-menu--horizontal .el-sub-menu__title {
             color: #fff !important;
+            border: none !important;
+        }
+        .el-menu--horizontal .el-sub-menu__title:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        .el-menu--horizontal .el-menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
         }
     </style>
 </head>
@@ -88,14 +97,14 @@
                 <div style="display: flex; align-items: center; height: 100%;">
                     <el-menu mode="horizontal" :default-active="activeMenu" @select="handleMenuSelect" 
                              background-color="#409EFF" text-color="#fff" active-text-color="#fff"
-                             style="border: none;">
-                        <el-sub-menu index="offer">
+                             style="border: none; background-color: #409EFF;">
+                        <el-sub-menu index="1">
                             <template #title>Offer</template>
                             <el-menu-item index="adv-user">Adv User</el-menu-item>
                             <el-menu-item index="package-list">Package List</el-menu-item>
                             <el-menu-item index="offer-list">Offer List</el-menu-item>
                         </el-sub-menu>
-                        <el-sub-menu index="channel">
+                        <el-sub-menu index="2">
                             <template #title>Channel</template>
                             <el-menu-item index="channel-list">Channel List</el-menu-item>
                         </el-sub-menu>
