@@ -169,8 +169,7 @@
                             </el-col>
                             <el-col :span="4">
                                 <el-button type="primary" @click="showCreateDrawer = true">
-                                    <el-icon><Plus /></el-icon>
-                                    新建 Offer
+                                    + 新建 Offer
                                 </el-button>
                             </el-col>
                         </el-row>
@@ -365,8 +364,7 @@
                                 </div>
                                 
                                 <el-button @click="addEvent" type="primary" size="small" style="margin-top: 10px;">
-                                    <el-icon><Plus /></el-icon>
-                                    Add Event
+                                    + Add Event
                                 </el-button>
                             </el-form-item>
                         </template>
@@ -469,7 +467,9 @@
                                         :value="city.value">
                                     </el-option>
                                 </el-select>
-                                <el-button @click="addTargetGeo" :disabled="selectedCountries.length === 0" size="small">Add</el-button>
+                                <el-button @click="addTargetGeo" :disabled="selectedCountries.length === 0" size="small">
+                                    + Add
+                                </el-button>
                             </div>
                             <div style="margin-top: 10px;" v-if="offerForm.targetGeoList && offerForm.targetGeoList.length > 0">
                                 <div style="margin-bottom: 10px;">
@@ -1018,6 +1018,10 @@
                 };
 
                 const addTargetGeo = () => {
+                    if (!offerForm.value.targetGeoList) {
+                        offerForm.value.targetGeoList = [];
+                    }
+                    
                     selectedCountries.value.forEach(country => {
                         if (selectedRegions.value.length === 0) {
                             // 只选了国家，表示全选
@@ -1054,8 +1058,10 @@
                 };
 
                 const removeTargetGeo = (index) => {
-                    offerForm.value.targetGeoList.splice(index, 1);
-                    updateTargetGeoString();
+                    if (offerForm.value.targetGeoList && offerForm.value.targetGeoList.length > index) {
+                        offerForm.value.targetGeoList.splice(index, 1);
+                        updateTargetGeoString();
+                    }
                 };
 
                 const updateTargetGeoString = () => {
