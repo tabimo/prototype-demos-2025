@@ -82,7 +82,10 @@
                             <el-menu-item index="package-list">Package List</el-menu-item>
                             <el-menu-item index="offer-list">Offer List</el-menu-item>
                         </el-sub-menu>
-                        <el-menu-item index="channel">Channel</el-menu-item>
+                        <el-sub-menu index="channel">
+                            <template #title>Channel</template>
+                            <el-menu-item index="channel-list">Channel List</el-menu-item>
+                        </el-sub-menu>
                     </el-menu>
                 </div>
             </el-header>
@@ -829,6 +832,8 @@
                         window.location.href = './adv-user.html';
                     } else if (key === 'package-list') {
                         window.location.href = './package-list.html';
+                    } else if (key === 'channel-list') {
+                        window.location.href = './channel-list.html';
                     }
                 };
 
