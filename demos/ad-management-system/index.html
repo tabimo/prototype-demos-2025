@@ -355,12 +355,12 @@
                                     placeholder="Select Regions" 
                                     @change="handleRegionChange"
                                     :disabled="selectedCountries.length === 0"
-                                    style="width: 220px;">
+                                    style="width: 280px;">
                                     <el-option 
                                         v-for="region in regionList" 
-                                        :key="region" 
-                                        :label="region" 
-                                        :value="region">
+                                        :key="region.value" 
+                                        :label="region.label" 
+                                        :value="region.value">
                                     </el-option>
                                 </el-select>
                                 <el-select 
@@ -370,25 +370,36 @@
                                     placeholder="Select Cities" 
                                     @change="handleCityChange"
                                     :disabled="selectedRegions.length === 0"
-                                    style="width: 200px;">
+                                    style="width: 320px;">
                                     <el-option 
                                         v-for="city in cityList" 
-                                        :key="city" 
-                                        :label="city" 
-                                        :value="city">
+                                        :key="city.value" 
+                                        :label="city.label" 
+                                        :value="city.value">
                                     </el-option>
                                 </el-select>
                                 <el-button @click="addTargetGeo" :disabled="selectedCities.length === 0" size="small">Add</el-button>
                             </div>
                             <div style="margin-top: 10px;" v-if="offerForm.targetGeoList && offerForm.targetGeoList.length > 0">
-                                <el-tag 
-                                    v-for="(geo, index) in offerForm.targetGeoList" 
-                                    :key="index" 
-                                    closable 
-                                    @close="removeTargetGeo(index)"
-                                    style="margin-right: 8px; margin-bottom: 8px;">
-                                    {{ geo }}
-                                </el-tag>
+                                <div style="margin-bottom: 10px;">
+                                    <el-input 
+                                        v-model="geoSearchText" 
+                                        placeholder="Search selected regions..." 
+                                        prefix-icon="Search"
+                                        clearable
+                                        style="width: 300px;">
+                                    </el-input>
+                                </div>
+                                <div style="max-height: 200px; overflow-y: auto; border: 1px solid #dcdfe6; border-radius: 4px; padding: 8px;">
+                                    <el-tag 
+                                        v-for="(geo, index) in filteredTargetGeoList" 
+                                        :key="index" 
+                                        closable 
+                                        @close="removeTargetGeo(offerForm.targetGeoList.indexOf(geo))"
+                                        style="margin-right: 8px; margin-bottom: 8px; display: inline-block;">
+                                        {{ geo }}
+                                    </el-tag>
+                                </div>
                             </div>
                             <el-input 
                                 v-model="offerForm.targetGeo" 
@@ -559,8 +570,17 @@
                 const countryList = ref([]);
                 const regionList = ref([]);
                 const cityList = ref([]);
+                const geoSearchText = ref('');
 
                 // 计算属性
+                const filteredTargetGeoList = computed(() => {
+                    if (!geoSearchText.value) {
+                        return offerForm.value.targetGeoList;
+                    }
+                    return offerForm.value.targetGeoList.filter(geo => 
+                        geo.toLowerCase().includes(geoSearchText.value.toLowerCase())
+                    );
+                });
 
                 const filteredOffers = computed(() => {
                     let result = offers.value;
@@ -755,31 +775,41 @@
                 const handleCountryChange = (countries) => {
                     selectedRegions.value = [];
                     selectedCities.value = [];
-                    const regions = new Set();
+                    const regions = [];
                     countries.forEach(country => {
                         if (window.GEO_DATA[country]) {
                             Object.keys(window.GEO_DATA[country]).forEach(region => {
-                                regions.add(region);
+                                regions.push({
+                                    value: region,
+                                    label: `${region} (${country})`,
+                                    country: country
+                                });
                             });
                         }
                     });
-                    regionList.value = Array.from(regions);
+                    regionList.value = regions;
                     cityList.value = [];
                 };
 
                 const handleRegionChange = (regions) => {
                     selectedCities.value = [];
-                    const cities = new Set();
+                    const cities = [];
                     selectedCountries.value.forEach(country => {
-                        regions.forEach(region => {
+                        regions.forEach(regionValue => {
+                            const region = regionValue;
                             if (window.GEO_DATA[country] && window.GEO_DATA[country][region]) {
                                 window.GEO_DATA[country][region].forEach(city => {
-                                    cities.add(city);
+                                    cities.push({
+                                        value: city,
+                                        label: `${city} (${region}, ${country})`,
+                                        region: region,
+                                        country: country
+                                    });
                                 });
                             }
                         });
                     });
-                    cityList.value = Array.from(cities);
+                    cityList.value = cities;
                 };
 
                 const handleCityChange = (cities) => {
@@ -1109,7 +1139,9 @@
                     handleRegionChange,
                     handleCityChange,
                     addTargetGeo,
-                    removeTargetGeo
+                    removeTargetGeo,
+                    geoSearchText,
+                    filteredTargetGeoList
                 };
             }
         }).use(ElementPlus).mount('#app');
