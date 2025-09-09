@@ -95,7 +95,10 @@
                             <el-menu-item index="package-list">Package List</el-menu-item>
                             <el-menu-item index="offer-list">Offer List</el-menu-item>
                         </el-sub-menu>
-                        <el-menu-item index="channel-list">Channel</el-menu-item>
+                        <el-sub-menu index="channel">
+                            <template #title>Channel</template>
+                            <el-menu-item index="channel-list">Channel List</el-menu-item>
+                        </el-sub-menu>
                     </el-menu>
                 </div>
             </el-header>
