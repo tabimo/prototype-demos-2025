@@ -8,6 +8,7 @@
     <script src="https://unpkg.com/vue@3.4.15/dist/vue.global.js"></script>
     <script src="https://unpkg.com/element-plus@2.4.4/dist/index.full.js"></script>
     <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.js"></script>
+    <script src="./geo-data.js"></script>
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; }
@@ -332,7 +333,64 @@
                             </el-checkbox-group>
                         </el-form-item>
                         <el-form-item label="Target Geo" prop="targetGeo">
-                            <el-input v-model="offerForm.targetGeo" placeholder="如：美国 US"></el-input>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <el-select 
+                                    v-model="selectedCountry" 
+                                    filterable 
+                                    placeholder="选择国家" 
+                                    @change="handleCountryChange"
+                                    style="width: 150px;">
+                                    <el-option 
+                                        v-for="country in countryList" 
+                                        :key="country" 
+                                        :label="country" 
+                                        :value="country">
+                                    </el-option>
+                                </el-select>
+                                <el-select 
+                                    v-model="selectedRegion" 
+                                    filterable 
+                                    placeholder="选择地区" 
+                                    @change="handleRegionChange"
+                                    :disabled="!selectedCountry"
+                                    style="width: 180px;">
+                                    <el-option 
+                                        v-for="region in regionList" 
+                                        :key="region" 
+                                        :label="region" 
+                                        :value="region">
+                                    </el-option>
+                                </el-select>
+                                <el-select 
+                                    v-model="selectedCity" 
+                                    filterable 
+                                    placeholder="选择城市" 
+                                    @change="handleCityChange"
+                                    :disabled="!selectedRegion"
+                                    style="width: 150px;">
+                                    <el-option 
+                                        v-for="city in cityList" 
+                                        :key="city" 
+                                        :label="city" 
+                                        :value="city">
+                                    </el-option>
+                                </el-select>
+                                <el-button @click="addTargetGeo" :disabled="!selectedCity" size="small">添加</el-button>
+                            </div>
+                            <div style="margin-top: 10px;" v-if="offerForm.targetGeoList && offerForm.targetGeoList.length > 0">
+                                <el-tag 
+                                    v-for="(geo, index) in offerForm.targetGeoList" 
+                                    :key="index" 
+                                    closable 
+                                    @close="removeTargetGeo(index)"
+                                    style="margin-right: 8px; margin-bottom: 8px;">
+                                    {{ geo }}
+                                </el-tag>
+                            </div>
+                            <el-input 
+                                v-model="offerForm.targetGeo" 
+                                type="hidden">
+                            </el-input>
                         </el-form-item>
                         <el-form-item label="Network" prop="network">
                             <el-checkbox-group v-model="offerForm.network">
@@ -457,6 +515,7 @@
                     dailyControlCapOpen: false,
                     platform: [],
                     targetGeo: '',
+                    targetGeoList: [],
                     network: [],
                     offerPm: '',
                     impressionTracking: '',
@@ -489,6 +548,14 @@
 
                 // PM选项列表（与Adv User保持一致）
                 const advPmList = ref(['刘一', '陈二', '杨三', '黄四', '朱五', '林六', '郭七', '何八']);
+
+                // 地区选择相关数据
+                const selectedCountry = ref('');
+                const selectedRegion = ref('');
+                const selectedCity = ref('');
+                const countryList = ref([]);
+                const regionList = ref([]);
+                const cityList = ref([]);
 
                 // 计算属性
 
@@ -681,6 +748,63 @@
                     }
                 };
 
+                // 地区选择相关方法
+                const handleCountryChange = (country) => {
+                    selectedRegion.value = '';
+                    selectedCity.value = '';
+                    if (country && window.GEO_DATA[country]) {
+                        regionList.value = Object.keys(window.GEO_DATA[country]);
+                        cityList.value = [];
+                    } else {
+                        regionList.value = [];
+                        cityList.value = [];
+                    }
+                };
+
+                const handleRegionChange = (region) => {
+                    selectedCity.value = '';
+                    if (selectedCountry.value && region && window.GEO_DATA[selectedCountry.value][region]) {
+                        cityList.value = window.GEO_DATA[selectedCountry.value][region];
+                    } else {
+                        cityList.value = [];
+                    }
+                };
+
+                const handleCityChange = (city) => {
+                    // 城市选择后的处理
+                };
+
+                const addTargetGeo = () => {
+                    if (selectedCountry.value && selectedRegion.value && selectedCity.value) {
+                        const geoString = `${selectedCountry.value} > ${selectedRegion.value} > ${selectedCity.value}`;
+                        if (!offerForm.value.targetGeoList.includes(geoString)) {
+                            offerForm.value.targetGeoList.push(geoString);
+                            updateTargetGeoString();
+                        }
+                        // 清空选择
+                        selectedCountry.value = '';
+                        selectedRegion.value = '';
+                        selectedCity.value = '';
+                        regionList.value = [];
+                        cityList.value = [];
+                    }
+                };
+
+                const removeTargetGeo = (index) => {
+                    offerForm.value.targetGeoList.splice(index, 1);
+                    updateTargetGeoString();
+                };
+
+                const updateTargetGeoString = () => {
+                    offerForm.value.targetGeo = offerForm.value.targetGeoList.join('; ');
+                };
+
+                const initGeoData = () => {
+                    if (window.GEO_DATA) {
+                        countryList.value = Object.keys(window.GEO_DATA);
+                    }
+                };
+
                 const saveOffer = async () => {
                     if (!offerForm.value.advUser || !offerForm.value.packageName || !offerForm.value.offerUuid) {
                         ElMessage.error('请填写完整信息');
@@ -739,6 +863,7 @@
                         dailyControlCapOpen: false,
                         platform: [],
                         targetGeo: '',
+                        targetGeoList: [],
                         network: [],
                         offerPm: '',
                         impressionTracking: '',
@@ -795,7 +920,8 @@
                             dailyControlCap: '800',
                             dailyControlCapOpen: false,
                             platform: ['android'],
-                            targetGeo: '美国 US',
+                            targetGeo: '美国 > 加利福尼亚州 > 洛杉矶',
+                            targetGeoList: ['美国 > 加利福尼亚州 > 洛杉矶'],
                             network: ['wifi'],
                             offerPm: 'Alice Chen',
                             bd: '张三',
@@ -818,7 +944,8 @@
                             dailyControlCap: '400',
                             dailyControlCapOpen: false,
                             platform: ['ios'],
-                            targetGeo: '英国 UK',
+                            targetGeo: '英国 > 英格兰 > 伦敦',
+                            targetGeoList: ['英国 > 英格兰 > 伦敦'],
                             network: ['4G'],
                             offerPm: 'Bob Wang',
                             bd: '李四',
@@ -841,7 +968,8 @@
                             dailyControlCap: '1800',
                             dailyControlCapOpen: false,
                             platform: ['all'],
-                            targetGeo: '加拿大 CA',
+                            targetGeo: '加拿大 > 安大略省 > 多伦多',
+                            targetGeoList: ['加拿大 > 安大略省 > 多伦多'],
                             network: ['wifi'],
                             offerPm: 'Carol Li',
                             bd: '王五',
@@ -864,7 +992,8 @@
                             dailyControlCap: '250',
                             dailyControlCapOpen: false,
                             platform: ['ios'],
-                            targetGeo: '澳大利亚 AU',
+                            targetGeo: '澳大利亚 > 新南威尔士州 > 悉尼',
+                            targetGeoList: ['澳大利亚 > 新南威尔士州 > 悉尼'],
                             network: ['3G'],
                             offerPm: 'David Zhang',
                             bd: '赵六',
@@ -887,7 +1016,8 @@
                             dailyControlCap: '700',
                             dailyControlCapOpen: false,
                             platform: ['android'],
-                            targetGeo: '德国 DE',
+                            targetGeo: '德国 > 巴伐利亚州 > 慕尼黑',
+                            targetGeoList: ['德国 > 巴伐利亚州 > 慕尼黑'],
                             network: ['wifi'],
                             offerPm: 'Eva Liu',
                             bd: '钱七',
@@ -903,6 +1033,7 @@
                 // 生命周期
                 onMounted(() => {
                     loadFromStorage();
+                    initGeoData();
                 });
 
                 return {
@@ -951,7 +1082,18 @@
                     loadPackages,
                     saveOffer,
                     handleAdvDailyCapOpenChange,
-                    handleDailyControlCapOpenChange
+                    handleDailyControlCapOpenChange,
+                    selectedCountry,
+                    selectedRegion,
+                    selectedCity,
+                    countryList,
+                    regionList,
+                    cityList,
+                    handleCountryChange,
+                    handleRegionChange,
+                    handleCityChange,
+                    addTargetGeo,
+                    removeTargetGeo
                 };
             }
         }).use(ElementPlus).mount('#app');
