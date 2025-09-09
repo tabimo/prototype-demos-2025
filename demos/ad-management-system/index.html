@@ -1082,7 +1082,11 @@
                 // 方法
                 const handleMenuSelect = (key) => {
                     activeMenu.value = key;
-                    if (key === 'channel-list') {
+                    if (key === 'adv-user') {
+                        window.location.href = './adv-user.html';
+                    } else if (key === 'package-list') {
+                        window.location.href = './package-list.html';
+                    } else if (key === 'channel-list') {
                         window.location.href = './channel-list.html';
                     }
                 };
