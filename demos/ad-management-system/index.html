@@ -95,7 +95,10 @@
                             <el-menu-item index="package-list">Package List</el-menu-item>
                             <el-menu-item index="offer-list">Offer List</el-menu-item>
                         </el-sub-menu>
-                        <el-menu-item index="channel-list">Channel</el-menu-item>
+                        <el-sub-menu index="channel">
+                            <template #title>Channel</template>
+                            <el-menu-item index="channel-list">Channel List</el-menu-item>
+                        </el-sub-menu>
                     </el-menu>
                 </div>
             </el-header>
@@ -248,14 +251,28 @@
                     </div>
                 </div>
 
-                <!-- 其他页面占位 -->
+                <!-- Adv User 管理页面 -->
                 <div v-else-if="activeMenu === 'adv-user'">
-                    <h2>Adv User</h2>
-                    <p><a href="./adv-user.html">进入 Adv User 管理</a></p>
+                    <h2>Adv User 管理</h2>
+                    <div style="padding: 40px; text-align: center; color: #909399;">
+                        <p>Adv User 管理功能开发中...</p>
+                    </div>
                 </div>
+                
+                <!-- Package List 管理页面 -->
                 <div v-else-if="activeMenu === 'package-list'">
-                    <h2>Package List</h2>
-                    <p><a href="./package-list.html">进入 Package List 管理</a></p>
+                    <h2>Package List 管理</h2>
+                    <div style="padding: 40px; text-align: center; color: #909399;">
+                        <p>Package List 管理功能开发中...</p>
+                    </div>
+                </div>
+                
+                <!-- Channel List 管理页面 -->
+                <div v-else-if="activeMenu === 'channel-list'">
+                    <h2>Channel List 管理</h2>
+                    <div style="padding: 40px; text-align: center; color: #909399;">
+                        <p>Channel List 管理功能开发中...</p>
+                    </div>
                 </div>
 
             </el-main>
@@ -835,13 +852,6 @@
                 // 方法
                 const handleMenuSelect = (key) => {
                     activeMenu.value = key;
-                    if (key === 'adv-user') {
-                        window.location.href = './adv-user.html';
-                    } else if (key === 'package-list') {
-                        window.location.href = './package-list.html';
-                    } else if (key === 'channel-list') {
-                        window.location.href = './channel-list.html';
-                    }
                 };
 
                 const searchOffers = (query) => {
