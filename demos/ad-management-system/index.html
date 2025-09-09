@@ -1082,6 +1082,9 @@
                 // 方法
                 const handleMenuSelect = (key) => {
                     activeMenu.value = key;
+                    if (key === 'channel-list') {
+                        window.location.href = './channel-list.html';
+                    }
                 };
 
                 const searchOffers = (query) => {
