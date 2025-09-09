@@ -329,7 +329,7 @@
                         <h3 class="section-title">👥 运营设置</h3>
                         <el-form-item label="Offer PM" prop="offerPm">
                             <el-select v-model="offerForm.offerPm" placeholder="选择Offer PM" style="width: 100%">
-                                <el-option v-for="pm in offerPmList" :key="pm" :label="pm" :value="pm" />
+                                <el-option v-for="pm in uniquePmList" :key="pm" :label="pm" :value="pm"></el-option>
                             </el-select>
                         </el-form-item>
                     </div>
@@ -448,7 +448,7 @@
                 const allUsers = ref([]);
                 const allPackages = ref([]);
                 const userPackages = ref([]);
-                const offerPmList = ref(['Alice Chen', 'Bob Wang', 'Carol Li', 'David Zhang', 'Eva Liu']);
+
 
                 // 表单验证规则
                 const offerRules = {
@@ -466,6 +466,16 @@
                 };
 
                 // 计算属性
+                const uniquePmList = computed(() => {
+                    const pmSet = new Set();
+                    allUsers.value.forEach(user => {
+                        if (user.advPm) {
+                            pmSet.add(user.advPm);
+                        }
+                    });
+                    return Array.from(pmSet).sort();
+                });
+
                 const filteredOffers = computed(() => {
                     let result = offers.value;
                     
@@ -879,7 +889,7 @@
                     allUsers,
                     allPackages,
                     userPackages,
-                    offerPmList,
+                    uniquePmList,
                     offerRules,
                     filteredOffers,
                     paginatedOffers,
