@@ -53,10 +53,70 @@
 
             <!-- 主内容区 -->
             <el-main class="main-container">
-                <h2>Adv User 管理</h2>
-                <div style="padding: 40px; text-align: center; color: #909399;">
-                    <p>Adv User 管理功能开发中...</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Adv User 管理</h2>
+                    <el-button type="primary" @click="showAddDialog = true">添加 Adv User</el-button>
                 </div>
+
+                <!-- 筛选区域 -->
+                <el-card style="margin-bottom: 20px;">
+                    <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                        <el-input v-model="filters.name" placeholder="搜索用户名" style="width: 200px;" clearable />
+                        <el-select v-model="filters.status" placeholder="状态" style="width: 120px;" clearable>
+                            <el-option label="活跃" value="active" />
+                            <el-option label="暂停" value="paused" />
+                        </el-select>
+                        <el-button type="primary" @click="applyFilters">搜索</el-button>
+                        <el-button @click="resetFilters">重置</el-button>
+                    </div>
+                </el-card>
+
+                <!-- 数据表格 -->
+                <el-table :data="filteredUsers" style="width: 100%" border>
+                    <el-table-column prop="id" label="ID" width="80" />
+                    <el-table-column prop="name" label="用户名" width="150" />
+                    <el-table-column prop="email" label="邮箱" width="200" />
+                    <el-table-column prop="company" label="公司" width="150" />
+                    <el-table-column prop="status" label="状态" width="100">
+                        <template #default="scope">
+                            <el-tag :type="scope.row.status === 'active' ? 'success' : 'warning'">
+                                {{ scope.row.status === 'active' ? '活跃' : '暂停' }}
+                            </el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="createTime" label="创建时间" width="180" />
+                    <el-table-column label="操作" width="150">
+                        <template #default="scope">
+                            <el-button size="small" @click="editUser(scope.row)">编辑</el-button>
+                            <el-button size="small" type="danger" @click="deleteUser(scope.row.id)">删除</el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+
+                <!-- 添加/编辑对话框 -->
+                <el-drawer v-model="showAddDialog" :title="editingUser ? '编辑 Adv User' : '添加 Adv User'" size="400px">
+                    <el-form :model="userForm" label-width="80px">
+                        <el-form-item label="用户名">
+                            <el-input v-model="userForm.name" />
+                        </el-form-item>
+                        <el-form-item label="邮箱">
+                            <el-input v-model="userForm.email" />
+                        </el-form-item>
+                        <el-form-item label="公司">
+                            <el-input v-model="userForm.company" />
+                        </el-form-item>
+                        <el-form-item label="状态">
+                            <el-select v-model="userForm.status" style="width: 100%;">
+                                <el-option label="活跃" value="active" />
+                                <el-option label="暂停" value="paused" />
+                            </el-select>
+                        </el-form-item>
+                    </el-form>
+                    <template #footer>
+                        <el-button @click="showAddDialog = false">取消</el-button>
+                        <el-button type="primary" @click="saveUser">保存</el-button>
+                    </template>
+                </el-drawer>
             </el-main>
         </el-container>
     </div>
@@ -67,6 +127,74 @@
         createApp({
             setup() {
                 const activeMenu = ref('adv-user');
+                const showAddDialog = ref(false);
+                const editingUser = ref(null);
+                const users = ref([]);
+                const filteredUsers = ref([]);
+                const filters = ref({ name: '', status: '' });
+                const userForm = ref({ name: '', email: '', company: '', status: 'active' });
+
+                // 初始化数据
+                const initData = () => {
+                    const saved = localStorage.getItem('advUsers');
+                    if (saved) {
+                        users.value = JSON.parse(saved);
+                    } else {
+                        users.value = [
+                            { id: 1, name: 'John Doe', email: 'john@example.com', company: 'Tech Corp', status: 'active', createTime: '2024-01-15 10:30' },
+                            { id: 2, name: 'Jane Smith', email: 'jane@demo.com', company: 'Marketing Inc', status: 'paused', createTime: '2024-01-20 14:20' }
+                        ];
+                        saveData();
+                    }
+                    filteredUsers.value = [...users.value];
+                };
+
+                const saveData = () => {
+                    localStorage.setItem('advUsers', JSON.stringify(users.value));
+                };
+
+                const applyFilters = () => {
+                    filteredUsers.value = users.value.filter(user => {
+                        return (!filters.value.name || user.name.toLowerCase().includes(filters.value.name.toLowerCase())) &&
+                               (!filters.value.status || user.status === filters.value.status);
+                    });
+                };
+
+                const resetFilters = () => {
+                    filters.value = { name: '', status: '' };
+                    filteredUsers.value = [...users.value];
+                };
+
+                const editUser = (user) => {
+                    editingUser.value = user;
+                    userForm.value = { ...user };
+                    showAddDialog.value = true;
+                };
+
+                const saveUser = () => {
+                    if (editingUser.value) {
+                        const index = users.value.findIndex(u => u.id === editingUser.value.id);
+                        users.value[index] = { ...userForm.value };
+                    } else {
+                        const newId = Math.max(...users.value.map(u => u.id), 0) + 1;
+                        users.value.push({
+                            ...userForm.value,
+                            id: newId,
+                            createTime: new Date().toLocaleString('zh-CN')
+                        });
+                    }
+                    saveData();
+                    applyFilters();
+                    showAddDialog.value = false;
+                    editingUser.value = null;
+                    userForm.value = { name: '', email: '', company: '', status: 'active' };
+                };
+
+                const deleteUser = (id) => {
+                    users.value = users.value.filter(u => u.id !== id);
+                    saveData();
+                    applyFilters();
+                };
 
                 const handleMenuSelect = (key) => {
                     activeMenu.value = key;
@@ -79,9 +207,11 @@
                     }
                 };
 
+                initData();
+
                 return {
-                    activeMenu,
-                    handleMenuSelect
+                    activeMenu, showAddDialog, editingUser, users, filteredUsers, filters, userForm,
+                    handleMenuSelect, applyFilters, resetFilters, editUser, saveUser, deleteUser
                 };
             }
         }).use(ElementPlus).mount('#app');
