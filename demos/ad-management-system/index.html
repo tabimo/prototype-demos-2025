@@ -637,6 +637,26 @@
                 const userPackages = ref([]);
 
 
+                // 价格验证函数
+                const validatePrice = (rule, value, callback) => {
+                    if (!value) {
+                        callback();
+                        return;
+                    }
+                    const num = parseFloat(value);
+                    if (isNaN(num) || num < 0.001 || num > 50) {
+                        callback(new Error('价格范围必须在0.001~50之间'));
+                        return;
+                    }
+                    // 检查小数位数
+                    const decimalPlaces = (value.toString().split('.')[1] || '').length;
+                    if (decimalPlaces > 3) {
+                        callback(new Error('最多支持3位小数'));
+                        return;
+                    }
+                    callback();
+                };
+
                 // 表单验证规则
                 const offerRules = {
                     advUser: [{ required: true, message: '请选择Adv User', trigger: 'change' }],
@@ -647,8 +667,14 @@
                     ],
                     optimizationGoal: [{ required: true, message: '请选择推广目标', trigger: 'change' }],
                     advPricingModel: [{ required: true, message: '请选择结算模式', trigger: 'change' }],
-                    advConversionPrice: [{ required: true, message: '请输入转化事件单价', trigger: 'blur' }],
-                    advConversionRealPrice: [{ required: true, message: '请输入真实转化事件单价', trigger: 'blur' }],
+                    advConversionPrice: [
+                        { required: true, message: '请输入转化事件单价', trigger: 'blur' },
+                        { validator: validatePrice, trigger: 'blur' }
+                    ],
+                    advConversionRealPrice: [
+                        { required: true, message: '请输入真实转化事件单价', trigger: 'blur' },
+                        { validator: validatePrice, trigger: 'blur' }
+                    ],
                     offerPm: [{ required: true, message: '请选择Offer PM', trigger: 'change' }]
                 };
 
@@ -1008,7 +1034,47 @@
                     }
                 };
 
+                const validatePriceValue = (value) => {
+                    if (!value) return null;
+                    const num = parseFloat(value);
+                    if (isNaN(num) || num < 0.001 || num > 50) {
+                        return '价格范围必须在0.001~50之间';
+                    }
+                    const decimalPlaces = (value.toString().split('.')[1] || '').length;
+                    if (decimalPlaces > 3) {
+                        return '最多支持3位小数';
+                    }
+                    return null;
+                };
+
                 const saveOffer = async () => {
+                    // 表单验证
+                    try {
+                        const formRef = document.querySelector('.el-form');
+                        if (formRef) {
+                            // 验证价格字段
+                            if (offerForm.value.advPricingModel === 'CPI') {
+                                const priceError = validatePriceValue(offerForm.value.advConversionPrice);
+                                const realPriceError = validatePriceValue(offerForm.value.advConversionRealPrice);
+                                if (priceError || realPriceError) {
+                                    ElMessage.error(priceError || realPriceError);
+                                    return;
+                                }
+                            } else if (offerForm.value.advPricingModel === 'CPE') {
+                                for (const event of offerForm.value.settlementEvents || []) {
+                                    const priceError = validatePriceValue(event.eventPrice);
+                                    const realPriceError = validatePriceValue(event.eventRealPrice);
+                                    if (priceError || realPriceError) {
+                                        ElMessage.error(priceError || realPriceError);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.error('表单验证错误:', error);
+                    }
+
                     if (!offerForm.value.advUser || !offerForm.value.packageName || !offerForm.value.offerUuid) {
                         ElMessage.error('请填写完整信息');
                         return;
