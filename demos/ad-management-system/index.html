@@ -264,18 +264,18 @@
                         <h3 class="section-title">📝 基础信息</h3>
                         <el-form-item label="Adv User" prop="advUser">
                             <el-select v-model="offerForm.advUser" filterable remote :remote-method="loadAdvUsers" 
-                                       :disabled="editingOffer" placeholder="选择Adv User" style="width: 100%">
+                                       :disabled="!!editingOffer" placeholder="选择Adv User" style="width: 100%">
                                 <el-option v-for="user in allUsers" :key="user.username" :label="user.username" :value="user.username" />
                             </el-select>
                         </el-form-item>
                         <el-form-item label="Package Name" prop="packageName">
                             <el-select v-model="offerForm.packageName" filterable remote :remote-method="loadPackages" 
-                                       :disabled="editingOffer" placeholder="选择Package Name" style="width: 100%">
+                                       :disabled="!!editingOffer" placeholder="选择Package Name" style="width: 100%">
                                 <el-option v-for="pkg in userPackages" :key="pkg.packageName" :label="pkg.packageName" :value="pkg.packageName" />
                             </el-select>
                         </el-form-item>
                         <el-form-item label="Offer UUID" prop="offerUuid">
-                            <el-input v-model="offerForm.offerUuid" :disabled="editingOffer" placeholder="支持英文字母、数字、下划线、横杠"></el-input>
+                            <el-input v-model="offerForm.offerUuid" :disabled="!!editingOffer" placeholder="支持英文字母、数字、下划线、横杠"></el-input>
                         </el-form-item>
                         <el-form-item label="Optimization Goal" prop="optimizationGoal">
                             <el-select v-model="offerForm.optimizationGoal" placeholder="选择推广目标" style="width: 100%">
@@ -292,7 +292,7 @@
                     <div class="form-section">
                         <h3 class="section-title">💰 结算信息</h3>
                         <el-form-item label="Adv Pricing Model" prop="advPricingModel">
-                            <el-select v-model="offerForm.advPricingModel" :disabled="editingOffer" placeholder="选择结算模式" @change="handlePricingModelChange" style="width: 100%">
+                            <el-select v-model="offerForm.advPricingModel" :disabled="!!editingOffer" placeholder="选择结算模式" @change="handlePricingModelChange" style="width: 100%">
                                 <el-option label="CPI" value="CPI"></el-option>
                                 <el-option label="CPE" value="CPE"></el-option>
                                 <el-option label="CPS" value="CPS"></el-option>
