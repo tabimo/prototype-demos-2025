@@ -335,11 +335,12 @@
                         <el-form-item label="Target Geo" prop="targetGeo">
                             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                                 <el-select 
-                                    v-model="selectedCountry" 
+                                    v-model="selectedCountries" 
+                                    multiple
                                     filterable 
-                                    placeholder="选择国家" 
+                                    placeholder="Select Countries" 
                                     @change="handleCountryChange"
-                                    style="width: 150px;">
+                                    style="width: 200px;">
                                     <el-option 
                                         v-for="country in countryList" 
                                         :key="country" 
@@ -348,12 +349,13 @@
                                     </el-option>
                                 </el-select>
                                 <el-select 
-                                    v-model="selectedRegion" 
+                                    v-model="selectedRegions" 
+                                    multiple
                                     filterable 
-                                    placeholder="选择地区" 
+                                    placeholder="Select Regions" 
                                     @change="handleRegionChange"
-                                    :disabled="!selectedCountry"
-                                    style="width: 180px;">
+                                    :disabled="selectedCountries.length === 0"
+                                    style="width: 220px;">
                                     <el-option 
                                         v-for="region in regionList" 
                                         :key="region" 
@@ -362,12 +364,13 @@
                                     </el-option>
                                 </el-select>
                                 <el-select 
-                                    v-model="selectedCity" 
+                                    v-model="selectedCities" 
+                                    multiple
                                     filterable 
-                                    placeholder="选择城市" 
+                                    placeholder="Select Cities" 
                                     @change="handleCityChange"
-                                    :disabled="!selectedRegion"
-                                    style="width: 150px;">
+                                    :disabled="selectedRegions.length === 0"
+                                    style="width: 200px;">
                                     <el-option 
                                         v-for="city in cityList" 
                                         :key="city" 
@@ -375,7 +378,7 @@
                                         :value="city">
                                     </el-option>
                                 </el-select>
-                                <el-button @click="addTargetGeo" :disabled="!selectedCity" size="small">添加</el-button>
+                                <el-button @click="addTargetGeo" :disabled="selectedCities.length === 0" size="small">Add</el-button>
                             </div>
                             <div style="margin-top: 10px;" v-if="offerForm.targetGeoList && offerForm.targetGeoList.length > 0">
                                 <el-tag 
@@ -550,9 +553,9 @@
                 const advPmList = ref(['刘一', '陈二', '杨三', '黄四', '朱五', '林六', '郭七', '何八']);
 
                 // 地区选择相关数据
-                const selectedCountry = ref('');
-                const selectedRegion = ref('');
-                const selectedCity = ref('');
+                const selectedCountries = ref([]);
+                const selectedRegions = ref([]);
+                const selectedCities = ref([]);
                 const countryList = ref([]);
                 const regionList = ref([]);
                 const cityList = ref([]);
@@ -749,45 +752,58 @@
                 };
 
                 // 地区选择相关方法
-                const handleCountryChange = (country) => {
-                    selectedRegion.value = '';
-                    selectedCity.value = '';
-                    if (country && window.GEO_DATA[country]) {
-                        regionList.value = Object.keys(window.GEO_DATA[country]);
-                        cityList.value = [];
-                    } else {
-                        regionList.value = [];
-                        cityList.value = [];
-                    }
+                const handleCountryChange = (countries) => {
+                    selectedRegions.value = [];
+                    selectedCities.value = [];
+                    const regions = new Set();
+                    countries.forEach(country => {
+                        if (window.GEO_DATA[country]) {
+                            Object.keys(window.GEO_DATA[country]).forEach(region => {
+                                regions.add(region);
+                            });
+                        }
+                    });
+                    regionList.value = Array.from(regions);
+                    cityList.value = [];
                 };
 
-                const handleRegionChange = (region) => {
-                    selectedCity.value = '';
-                    if (selectedCountry.value && region && window.GEO_DATA[selectedCountry.value][region]) {
-                        cityList.value = window.GEO_DATA[selectedCountry.value][region];
-                    } else {
-                        cityList.value = [];
-                    }
+                const handleRegionChange = (regions) => {
+                    selectedCities.value = [];
+                    const cities = new Set();
+                    selectedCountries.value.forEach(country => {
+                        regions.forEach(region => {
+                            if (window.GEO_DATA[country] && window.GEO_DATA[country][region]) {
+                                window.GEO_DATA[country][region].forEach(city => {
+                                    cities.add(city);
+                                });
+                            }
+                        });
+                    });
+                    cityList.value = Array.from(cities);
                 };
 
-                const handleCityChange = (city) => {
+                const handleCityChange = (cities) => {
                     // 城市选择后的处理
                 };
 
                 const addTargetGeo = () => {
-                    if (selectedCountry.value && selectedRegion.value && selectedCity.value) {
-                        const geoString = `${selectedCountry.value} > ${selectedRegion.value} > ${selectedCity.value}`;
-                        if (!offerForm.value.targetGeoList.includes(geoString)) {
-                            offerForm.value.targetGeoList.push(geoString);
-                            updateTargetGeoString();
-                        }
-                        // 清空选择
-                        selectedCountry.value = '';
-                        selectedRegion.value = '';
-                        selectedCity.value = '';
-                        regionList.value = [];
-                        cityList.value = [];
-                    }
+                    selectedCountries.value.forEach(country => {
+                        selectedRegions.value.forEach(region => {
+                            selectedCities.value.forEach(city => {
+                                const geoString = `${country} > ${region} > ${city}`;
+                                if (!offerForm.value.targetGeoList.includes(geoString)) {
+                                    offerForm.value.targetGeoList.push(geoString);
+                                }
+                            });
+                        });
+                    });
+                    updateTargetGeoString();
+                    // 清空选择
+                    selectedCountries.value = [];
+                    selectedRegions.value = [];
+                    selectedCities.value = [];
+                    regionList.value = [];
+                    cityList.value = [];
                 };
 
                 const removeTargetGeo = (index) => {
@@ -920,8 +936,8 @@
                             dailyControlCap: '800',
                             dailyControlCapOpen: false,
                             platform: ['android'],
-                            targetGeo: '美国 > 加利福尼亚州 > 洛杉矶',
-                            targetGeoList: ['美国 > 加利福尼亚州 > 洛杉矶'],
+                            targetGeo: 'United States (US) > California (CA) > Los Angeles',
+                            targetGeoList: ['United States (US) > California (CA) > Los Angeles'],
                             network: ['wifi'],
                             offerPm: 'Alice Chen',
                             bd: '张三',
@@ -944,8 +960,8 @@
                             dailyControlCap: '400',
                             dailyControlCapOpen: false,
                             platform: ['ios'],
-                            targetGeo: '英国 > 英格兰 > 伦敦',
-                            targetGeoList: ['英国 > 英格兰 > 伦敦'],
+                            targetGeo: 'United Kingdom (UK) > England (ENG) > London',
+                            targetGeoList: ['United Kingdom (UK) > England (ENG) > London'],
                             network: ['4G'],
                             offerPm: 'Bob Wang',
                             bd: '李四',
@@ -968,8 +984,8 @@
                             dailyControlCap: '1800',
                             dailyControlCapOpen: false,
                             platform: ['all'],
-                            targetGeo: '加拿大 > 安大略省 > 多伦多',
-                            targetGeoList: ['加拿大 > 安大略省 > 多伦多'],
+                            targetGeo: 'Canada (CA) > Ontario (ON) > Toronto',
+                            targetGeoList: ['Canada (CA) > Ontario (ON) > Toronto'],
                             network: ['wifi'],
                             offerPm: 'Carol Li',
                             bd: '王五',
@@ -992,8 +1008,8 @@
                             dailyControlCap: '250',
                             dailyControlCapOpen: false,
                             platform: ['ios'],
-                            targetGeo: '澳大利亚 > 新南威尔士州 > 悉尼',
-                            targetGeoList: ['澳大利亚 > 新南威尔士州 > 悉尼'],
+                            targetGeo: 'Australia (AU) > New South Wales (NSW) > Sydney',
+                            targetGeoList: ['Australia (AU) > New South Wales (NSW) > Sydney'],
                             network: ['3G'],
                             offerPm: 'David Zhang',
                             bd: '赵六',
@@ -1016,8 +1032,8 @@
                             dailyControlCap: '700',
                             dailyControlCapOpen: false,
                             platform: ['android'],
-                            targetGeo: '德国 > 巴伐利亚州 > 慕尼黑',
-                            targetGeoList: ['德国 > 巴伐利亚州 > 慕尼黑'],
+                            targetGeo: 'Germany (DE) > Bavaria (BY) > Munich',
+                            targetGeoList: ['Germany (DE) > Bavaria (BY) > Munich'],
                             network: ['wifi'],
                             offerPm: 'Eva Liu',
                             bd: '钱七',
@@ -1083,9 +1099,9 @@
                     saveOffer,
                     handleAdvDailyCapOpenChange,
                     handleDailyControlCapOpenChange,
-                    selectedCountry,
-                    selectedRegion,
-                    selectedCity,
+                    selectedCountries,
+                    selectedRegions,
+                    selectedCities,
                     countryList,
                     regionList,
                     cityList,
