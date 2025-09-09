@@ -313,10 +313,10 @@
                         <!-- CPE/CPS 模式字段 -->
                         <template v-if="offerForm.advPricingModel === 'CPE' || offerForm.advPricingModel === 'CPS'">
                             <el-form-item label="Adv Settlement Event" prop="advSettlementEvent">
-                                <div v-for="(event, index) in offerForm.settlementEvents" :key="index" style="border: 1px solid #dcdfe6; border-radius: 4px; padding: 15px; margin-bottom: 10px;">
+                                <div v-for="(event, index) in (offerForm.settlementEvents || [])" :key="index" style="border: 1px solid #dcdfe6; border-radius: 4px; padding: 15px; margin-bottom: 10px;">
                                     <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 10px;">
                                         <span style="font-weight: 600;">Event {{ index + 1 }}</span>
-                                        <el-button size="small" type="danger" @click="removeEvent(index)" v-if="offerForm.settlementEvents.length > 1">Remove</el-button>
+                                        <el-button size="small" type="danger" @click="removeEvent(index)" v-if="(offerForm.settlementEvents || []).length > 1">Remove</el-button>
                                     </div>
                                     
                                     <el-form-item label="Event Name" style="margin-bottom: 15px;">
@@ -819,6 +819,18 @@
                 const editOffer = (offer) => {
                     editingOffer.value = offer;
                     offerForm.value = { ...offer };
+                    // 确保 settlementEvents 存在
+                    if (!offerForm.value.settlementEvents) {
+                        offerForm.value.settlementEvents = [{
+                            eventName: '',
+                            eventPrice: '',
+                            eventRealPrice: '',
+                            settlementRate: '',
+                            matchType: '',
+                            attributionType: 'Lifetime',
+                            attributionHours: ''
+                        }];
+                    }
                     // 加载对应用户的Package
                     userPackages.value = allPackages.value.filter(pkg => pkg.username === offer.advUser);
                     showCreateDrawer.value = true;
@@ -976,6 +988,9 @@
                 };
 
                 const addEvent = () => {
+                    if (!offerForm.value.settlementEvents) {
+                        offerForm.value.settlementEvents = [];
+                    }
                     offerForm.value.settlementEvents.push({
                         eventName: '',
                         eventPrice: '',
@@ -988,7 +1003,7 @@
                 };
 
                 const removeEvent = (index) => {
-                    if (offerForm.value.settlementEvents.length > 1) {
+                    if (offerForm.value.settlementEvents && offerForm.value.settlementEvents.length > 1) {
                         offerForm.value.settlementEvents.splice(index, 1);
                     }
                 };
