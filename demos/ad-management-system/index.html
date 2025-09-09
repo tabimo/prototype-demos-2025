@@ -332,6 +332,14 @@
                                 <el-checkbox label="others">Others</el-checkbox>
                             </el-checkbox-group>
                         </el-form-item>
+                        <el-form-item label="Network" prop="network">
+                            <el-checkbox-group v-model="offerForm.network">
+                                <el-checkbox label="wifi">WiFi</el-checkbox>
+                                <el-checkbox label="2G">2G</el-checkbox>
+                                <el-checkbox label="3G">3G</el-checkbox>
+                                <el-checkbox label="4G">4G</el-checkbox>
+                            </el-checkbox-group>
+                        </el-form-item>
                         <el-form-item label="Target Geo" prop="targetGeo">
                             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                                 <el-select 
@@ -405,14 +413,6 @@
                                 v-model="offerForm.targetGeo" 
                                 type="hidden">
                             </el-input>
-                        </el-form-item>
-                        <el-form-item label="Network" prop="network">
-                            <el-checkbox-group v-model="offerForm.network">
-                                <el-checkbox label="wifi">WiFi</el-checkbox>
-                                <el-checkbox label="2G">2G</el-checkbox>
-                                <el-checkbox label="3G">3G</el-checkbox>
-                                <el-checkbox label="4G">4G</el-checkbox>
-                            </el-checkbox-group>
                         </el-form-item>
                     </div>
 
