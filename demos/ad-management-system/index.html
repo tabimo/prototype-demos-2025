@@ -545,23 +545,94 @@
         </el-drawer>
 
         <!-- 详情查看弹窗 -->
-        <el-dialog v-model="showDetailDialog" title="Offer 详情" width="800px">
-            <el-descriptions :column="2" border v-if="currentOffer">
-                <el-descriptions-item label="Offer UUID" :span="2">{{ currentOffer.offerUuid }}</el-descriptions-item>
-                <el-descriptions-item label="Adv User">{{ currentOffer.advUser }}</el-descriptions-item>
-                <el-descriptions-item label="Package Name">{{ currentOffer.packageName }}</el-descriptions-item>
-                <el-descriptions-item label="Optimization Goal">{{ currentOffer.optimizationGoal }}</el-descriptions-item>
-                <el-descriptions-item label="Adv Pricing Model">{{ currentOffer.advPricingModel }}</el-descriptions-item>
-                <el-descriptions-item label="Adv Conversion Price">{{ currentOffer.advConversionPrice }}</el-descriptions-item>
-                <el-descriptions-item label="Adv Conversion Real Price">{{ currentOffer.advConversionRealPrice }}</el-descriptions-item>
-                <el-descriptions-item label="Platform">{{ Array.isArray(currentOffer.platform) ? currentOffer.platform.join(', ') : currentOffer.platform }}</el-descriptions-item>
-                <el-descriptions-item label="Target Geo">{{ currentOffer.targetGeo }}</el-descriptions-item>
-                <el-descriptions-item label="Offer PM">{{ currentOffer.offerPm }}</el-descriptions-item>
-                <el-descriptions-item label="BD">{{ currentOffer.bd }}</el-descriptions-item>
-                <el-descriptions-item label="Third Party">{{ currentOffer.thirdParty }}</el-descriptions-item>
-                <el-descriptions-item label="Notes" :span="2">{{ currentOffer.notes }}</el-descriptions-item>
-                <el-descriptions-item label="更新时间" :span="2">{{ currentOffer.updateTime }}</el-descriptions-item>
-            </el-descriptions>
+        <el-dialog v-model="showDetailDialog" title="Offer 详情" width="900px">
+            <div v-if="currentOffer" style="max-height: 600px; overflow-y: auto;">
+                <!-- 基本信息 -->
+                <el-descriptions title="📄 基本信息" :column="2" border style="margin-bottom: 20px;">
+                    <el-descriptions-item label="Offer UUID" :span="2">{{ currentOffer.offerUuid }}</el-descriptions-item>
+                    <el-descriptions-item label="Adv User">{{ currentOffer.advUser }}</el-descriptions-item>
+                    <el-descriptions-item label="Package Name">{{ currentOffer.packageName }}</el-descriptions-item>
+                    <el-descriptions-item label="Optimization Goal">{{ currentOffer.optimizationGoal }}</el-descriptions-item>
+                    <el-descriptions-item label="Offer PM">{{ currentOffer.offerPm }}</el-descriptions-item>
+                    <el-descriptions-item label="BD">{{ currentOffer.bd }}</el-descriptions-item>
+                    <el-descriptions-item label="Notes" :span="2">{{ currentOffer.notes || '-' }}</el-descriptions-item>
+                </el-descriptions>
+
+                <!-- 结算信息 -->
+                <el-descriptions title="💰 结算信息" :column="1" border style="margin-bottom: 20px;">
+                    <el-descriptions-item label="Pricing Model">{{ currentOffer.advPricingModel }}</el-descriptions-item>
+                    
+                    <!-- CPI 模式 -->
+                    <template v-if="currentOffer.advPricingModel === 'CPI'">
+                        <el-descriptions-item label="Conversion Price">{{ currentOffer.advConversionPrice }}</el-descriptions-item>
+                        <el-descriptions-item label="Conversion Real Price">{{ currentOffer.advConversionRealPrice }}</el-descriptions-item>
+                    </template>
+                    
+                    <!-- CPE/CPS 模式 -->
+                    <template v-else-if="currentOffer.advPricingModel === 'CPE' || currentOffer.advPricingModel === 'CPS'">
+                        <el-descriptions-item label="Settlement Events">
+                            <div v-for="(event, index) in (currentOffer.settlementEvents || [])" :key="index" style="margin-bottom: 10px; padding: 10px; border: 1px solid #e4e7ed; border-radius: 4px;">
+                                <div><strong>Event {{ index + 1 }}: {{ event.eventName || 'Unnamed Event' }}</strong></div>
+                                <template v-if="currentOffer.advPricingModel === 'CPE'">
+                                    <div>Event Price: {{ event.eventPrice || '-' }}</div>
+                                    <div>Event Real Price: {{ event.eventRealPrice || '-' }}</div>
+                                </template>
+                                <template v-else>
+                                    <div>Settlement Rate: {{ event.settlementRate || '-' }}%</div>
+                                </template>
+                                <div>Match Type: {{ event.matchType || '-' }}</div>
+                                <div>Attribution: {{ event.attributionType === 'Hours' ? `${event.attributionHours || 0} Hours` : 'Lifetime' }}</div>
+                            </div>
+                        </el-descriptions-item>
+                    </template>
+                </el-descriptions>
+
+                <!-- 预算信息 -->
+                <el-descriptions title="📈 预算信息" :column="2" border style="margin-bottom: 20px;">
+                    <el-descriptions-item label="Adv Daily Cap">
+                        {{ currentOffer.advDailyCapOpen ? 'Open (不限制)' : (currentOffer.advDailyCap || '-') }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="Daily Control Cap">
+                        {{ currentOffer.dailyControlCapOpen ? 'Open (不限制)' : (currentOffer.dailyControlCap || '-') }}
+                    </el-descriptions-item>
+                </el-descriptions>
+
+                <!-- 定向设置 -->
+                <el-descriptions title="🎯 定向设置" :column="1" border style="margin-bottom: 20px;">
+                    <el-descriptions-item label="Platform">
+                        {{ Array.isArray(currentOffer.platform) ? currentOffer.platform.join(', ') : (currentOffer.platform || '-') }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="Network">
+                        {{ Array.isArray(currentOffer.network) ? currentOffer.network.join(', ') : (currentOffer.network || '-') }}
+                    </el-descriptions-item>
+                    <el-descriptions-item label="Target Geo">
+                        <div v-if="Array.isArray(currentOffer.targetGeoList) && currentOffer.targetGeoList.length > 0">
+                            <el-tag v-for="(geo, index) in currentOffer.targetGeoList" :key="index" style="margin-right: 8px; margin-bottom: 4px;">
+                                {{ geo }}
+                            </el-tag>
+                        </div>
+                        <span v-else>{{ currentOffer.targetGeo || '-' }}</span>
+                    </el-descriptions-item>
+                </el-descriptions>
+
+                <!-- 监测信息 -->
+                <el-descriptions title="🔗 监测信息" :column="1" border style="margin-bottom: 20px;">
+                    <el-descriptions-item label="Impression Tracking">
+                        <span v-if="currentOffer.impressionTracking" style="word-break: break-all;">{{ currentOffer.impressionTracking }}</span>
+                        <span v-else>-</span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="Click Tracking">
+                        <span v-if="currentOffer.clickTracking" style="word-break: break-all;">{{ currentOffer.clickTracking }}</span>
+                        <span v-else>-</span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="Third Party">{{ currentOffer.thirdParty || '-' }}</el-descriptions-item>
+                </el-descriptions>
+
+                <!-- 更新信息 -->
+                <el-descriptions title="🕰️ 更新信息" :column="1" border>
+                    <el-descriptions-item label="更新时间">{{ currentOffer.updateTime }}</el-descriptions-item>
+                </el-descriptions>
+            </div>
         </el-dialog>
     </div>
 
