@@ -1087,7 +1087,8 @@
                     } else if (key === 'package-list') {
                         window.location.href = './package-list.html';
                     } else if (key === 'channel-list') {
-                        window.location.href = './channel-list.html';
+                        // 在当前页面内切换到Channel List
+                        activeMenu.value = 'channel-list';
                     }
                 };
 
