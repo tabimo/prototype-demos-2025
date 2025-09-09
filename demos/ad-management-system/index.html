@@ -275,18 +275,83 @@
                     <div class="form-section">
                         <h3 class="section-title">💰 结算信息</h3>
                         <el-form-item label="Adv Pricing Model" prop="advPricingModel">
-                            <el-select v-model="offerForm.advPricingModel" :disabled="editingOffer" placeholder="选择结算模式" style="width: 100%">
+                            <el-select v-model="offerForm.advPricingModel" :disabled="editingOffer" placeholder="选择结算模式" @change="handlePricingModelChange" style="width: 100%">
                                 <el-option label="CPI" value="CPI"></el-option>
                                 <el-option label="CPE" value="CPE"></el-option>
                                 <el-option label="CPS" value="CPS"></el-option>
                             </el-select>
                         </el-form-item>
-                        <el-form-item label="Adv Conversion Price" prop="advConversionPrice">
-                            <el-input v-model="offerForm.advConversionPrice" placeholder="记录用转化事件单价"></el-input>
-                        </el-form-item>
-                        <el-form-item label="Adv Conversion Real Price" prop="advConversionRealPrice">
-                            <el-input v-model="offerForm.advConversionRealPrice" placeholder="真实转化事件单价"></el-input>
-                        </el-form-item>
+                        
+                        <!-- CPI 模式字段 -->
+                        <template v-if="offerForm.advPricingModel === 'CPI'">
+                            <el-form-item label="Adv Conversion Price" prop="advConversionPrice">
+                                <el-input v-model="offerForm.advConversionPrice" type="number" :min="0.001" :max="50" :step="0.001" placeholder="0.001~50.000"></el-input>
+                            </el-form-item>
+                            <el-form-item label="Adv Conversion Real Price" prop="advConversionRealPrice">
+                                <el-input v-model="offerForm.advConversionRealPrice" type="number" :min="0.001" :max="50" :step="0.001" placeholder="0.001~50.000"></el-input>
+                            </el-form-item>
+                        </template>
+                        
+                        <!-- CPE/CPS 模式字段 -->
+                        <template v-if="offerForm.advPricingModel === 'CPE' || offerForm.advPricingModel === 'CPS'">
+                            <el-form-item label="Adv Settlement Event" prop="advSettlementEvent">
+                                <div v-for="(event, index) in offerForm.settlementEvents" :key="index" style="border: 1px solid #dcdfe6; border-radius: 4px; padding: 15px; margin-bottom: 10px;">
+                                    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 10px;">
+                                        <span style="font-weight: 600;">Event {{ index + 1 }}</span>
+                                        <el-button size="small" type="danger" @click="removeEvent(index)" v-if="offerForm.settlementEvents.length > 1">Remove</el-button>
+                                    </div>
+                                    
+                                    <el-form-item label="Event Name" style="margin-bottom: 15px;">
+                                        <el-input v-model="event.eventName" placeholder="Event Name"></el-input>
+                                    </el-form-item>
+                                    
+                                    <template v-if="offerForm.advPricingModel === 'CPE'">
+                                        <el-form-item label="Event Price" style="margin-bottom: 15px;">
+                                            <el-input v-model="event.eventPrice" type="number" :min="0.001" :max="50" :step="0.001" placeholder="0.001~50.000"></el-input>
+                                        </el-form-item>
+                                        <el-form-item label="Event Real Price" style="margin-bottom: 15px;">
+                                            <el-input v-model="event.eventRealPrice" type="number" :min="0.001" :max="50" :step="0.001" placeholder="0.001~50.000"></el-input>
+                                        </el-form-item>
+                                    </template>
+                                    
+                                    <template v-if="offerForm.advPricingModel === 'CPS'">
+                                        <el-form-item label="Settlement Rate (%)" style="margin-bottom: 15px;">
+                                            <el-input v-model="event.settlementRate" type="number" :min="-100" :max="100" :step="1" placeholder="-100~100"></el-input>
+                                        </el-form-item>
+                                    </template>
+                                    
+                                    <el-form-item label="Event Match Type" style="margin-bottom: 15px;">
+                                        <el-select v-model="event.matchType" placeholder="Select Match Type" style="width: 100%;">
+                                            <el-option label="Unique Match" value="Unique Match"></el-option>
+                                            <el-option label="Multiple Match" value="Multiple Match"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                    
+                                    <el-form-item label="Attribution Windows" style="margin-bottom: 15px;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <el-radio-group v-model="event.attributionType">
+                                                <el-radio label="Lifetime">Lifetime</el-radio>
+                                                <el-radio label="Hours">Hours</el-radio>
+                                            </el-radio-group>
+                                            <el-input 
+                                                v-if="event.attributionType === 'Hours'" 
+                                                v-model="event.attributionHours" 
+                                                type="number" 
+                                                :min="1" 
+                                                :max="720" 
+                                                placeholder="1-720" 
+                                                style="width: 100px;">
+                                            </el-input>
+                                        </div>
+                                    </el-form-item>
+                                </div>
+                                
+                                <el-button @click="addEvent" type="primary" size="small" style="margin-top: 10px;">
+                                    <el-icon><Plus /></el-icon>
+                                    Add Event
+                                </el-button>
+                            </el-form-item>
+                        </template>
                     </div>
 
                     <!-- 预算信息 -->
@@ -523,6 +588,15 @@
                     advPricingModel: '',
                     advConversionPrice: '',
                     advConversionRealPrice: '',
+                    settlementEvents: [{
+                        eventName: '',
+                        eventPrice: '',
+                        eventRealPrice: '',
+                        settlementRate: '',
+                        matchType: '',
+                        attributionType: 'Lifetime',
+                        attributionHours: ''
+                    }],
                     advDailyCap: '',
                     advDailyCapOpen: false,
                     dailyControlCap: '',
@@ -867,6 +941,40 @@
                     }
                 };
 
+                const handlePricingModelChange = (value) => {
+                    if (value === 'CPE' || value === 'CPS') {
+                        if (!offerForm.value.settlementEvents || offerForm.value.settlementEvents.length === 0) {
+                            offerForm.value.settlementEvents = [{
+                                eventName: '',
+                                eventPrice: '',
+                                eventRealPrice: '',
+                                settlementRate: '',
+                                matchType: '',
+                                attributionType: 'Lifetime',
+                                attributionHours: ''
+                            }];
+                        }
+                    }
+                };
+
+                const addEvent = () => {
+                    offerForm.value.settlementEvents.push({
+                        eventName: '',
+                        eventPrice: '',
+                        eventRealPrice: '',
+                        settlementRate: '',
+                        matchType: '',
+                        attributionType: 'Lifetime',
+                        attributionHours: ''
+                    });
+                };
+
+                const removeEvent = (index) => {
+                    if (offerForm.value.settlementEvents.length > 1) {
+                        offerForm.value.settlementEvents.splice(index, 1);
+                    }
+                };
+
                 const saveOffer = async () => {
                     if (!offerForm.value.advUser || !offerForm.value.packageName || !offerForm.value.offerUuid) {
                         ElMessage.error('请填写完整信息');
@@ -919,6 +1027,15 @@
                         advPricingModel: '',
                         advConversionPrice: '',
                         advConversionRealPrice: '',
+                        settlementEvents: [{
+                            eventName: '',
+                            eventPrice: '',
+                            eventRealPrice: '',
+                            settlementRate: '',
+                            matchType: '',
+                            attributionType: 'Lifetime',
+                            attributionHours: ''
+                        }],
                         advDailyCap: '',
                         advDailyCapOpen: false,
                         dailyControlCap: '',
@@ -977,6 +1094,15 @@
                             advPricingModel: 'CPI',
                             advConversionPrice: '2.50',
                             advConversionRealPrice: '3.00',
+                            settlementEvents: [{
+                                eventName: '',
+                                eventPrice: '',
+                                eventRealPrice: '',
+                                settlementRate: '',
+                                matchType: '',
+                                attributionType: 'Lifetime',
+                                attributionHours: ''
+                            }],
                             advDailyCap: '1000',
                             advDailyCapOpen: false,
                             dailyControlCap: '800',
@@ -1001,6 +1127,15 @@
                             advPricingModel: 'CPE',
                             advConversionPrice: '1.80',
                             advConversionRealPrice: '2.20',
+                            settlementEvents: [{
+                                eventName: 'Install',
+                                eventPrice: '1.80',
+                                eventRealPrice: '2.20',
+                                settlementRate: '',
+                                matchType: 'Unique Match',
+                                attributionType: 'Hours',
+                                attributionHours: '24'
+                            }],
                             advDailyCap: '500',
                             advDailyCapOpen: false,
                             dailyControlCap: '400',
@@ -1025,6 +1160,15 @@
                             advPricingModel: 'CPS',
                             advConversionPrice: '5.00',
                             advConversionRealPrice: '6.50',
+                            settlementEvents: [{
+                                eventName: 'Purchase',
+                                eventPrice: '',
+                                eventRealPrice: '',
+                                settlementRate: '15',
+                                matchType: 'Multiple Match',
+                                attributionType: 'Lifetime',
+                                attributionHours: ''
+                            }],
                             advDailyCap: '2000',
                             advDailyCapOpen: false,
                             dailyControlCap: '1800',
@@ -1157,7 +1301,10 @@
                     addTargetGeo,
                     removeTargetGeo,
                     geoSearchText,
-                    filteredTargetGeoList
+                    filteredTargetGeoList,
+                    handlePricingModelChange,
+                    addEvent,
+                    removeEvent
                 };
             }
         }).use(ElementPlus).mount('#app');
