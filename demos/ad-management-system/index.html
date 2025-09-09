@@ -67,8 +67,13 @@
         }
         
         /* 确保菜单正常显示 */
+        .el-menu--horizontal {
+            display: flex;
+            align-items: center;
+        }
+        .el-menu--horizontal .el-menu-item,
         .el-menu--horizontal .el-sub-menu {
-            float: left;
+            color: #fff !important;
         }
         .el-menu--horizontal .el-sub-menu__title {
             color: #fff !important;
