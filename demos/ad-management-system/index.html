@@ -187,9 +187,27 @@
                         <el-table-column prop="offerUuid" label="Offer UUID" sortable="custom" width="180" align="left"></el-table-column>
                         <el-table-column prop="packageName" label="Package Name" width="180" align="left"></el-table-column>
                         <el-table-column prop="advUser" label="Adv User" width="120" align="left"></el-table-column>
-                        <el-table-column prop="advPricingModel" label="Adv Pricing Model" width="140" align="left"></el-table-column>
-                        <el-table-column prop="advConversionPrice" label="Adv Conversion Price" width="160" align="left"></el-table-column>
-                        <el-table-column prop="advConversionRealPrice" label="Adv Conversion Real Price" width="180" align="left"></el-table-column>
+                        <el-table-column label="Pricing Info" width="300" align="left">
+                            <template #default="scope">
+                                <div v-if="scope.row.advPricingModel === 'CPI'">
+                                    <div>CPI</div>
+                                    <div>Price: {{ scope.row.advConversionPrice }}</div>
+                                    <div>Real Price: {{ scope.row.advConversionRealPrice }}</div>
+                                </div>
+                                <div v-else-if="scope.row.advPricingModel === 'CPE'">
+                                    <div>CPE</div>
+                                    <div v-for="(event, index) in scope.row.settlementEvents" :key="index" style="margin-bottom: 5px;">
+                                        {{ event.eventName }} Price: {{ event.eventPrice }}, Real Price: {{ event.eventRealPrice }}
+                                    </div>
+                                </div>
+                                <div v-else-if="scope.row.advPricingModel === 'CPS'">
+                                    <div>CPS</div>
+                                    <div v-for="(event, index) in scope.row.settlementEvents" :key="index" style="margin-bottom: 5px;">
+                                        {{ event.eventName }}, Settlement Rate: {{ event.settlementRate }}%
+                                    </div>
+                                </div>
+                            </template>
+                        </el-table-column>
                         <el-table-column prop="offerPm" label="Offer PM" width="120" align="left"></el-table-column>
                         <el-table-column prop="bd" label="BD" width="100" align="left"></el-table-column>
                         <el-table-column prop="updateTime" label="更新时间" sortable="custom" width="160" align="left"></el-table-column>
