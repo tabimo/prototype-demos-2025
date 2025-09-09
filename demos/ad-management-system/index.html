@@ -292,10 +292,30 @@
                     <div class="form-section">
                         <h3 class="section-title">📈 预算信息</h3>
                         <el-form-item label="Adv Daily Cap" prop="advDailyCap">
-                            <el-input v-model="offerForm.advDailyCap" placeholder="广告主约定预算值"></el-input>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <el-input 
+                                    v-model="offerForm.advDailyCap" 
+                                    placeholder="广告主约定预算值"
+                                    :disabled="offerForm.advDailyCapOpen"
+                                    type="number"
+                                    :min="1"
+                                    :max="5000"
+                                    style="flex: 1;"></el-input>
+                                <el-checkbox v-model="offerForm.advDailyCapOpen" @change="handleAdvDailyCapOpenChange">Open</el-checkbox>
+                            </div>
                         </el-form-item>
                         <el-form-item label="Daily Control Cap" prop="dailyControlCap">
-                            <el-input v-model="offerForm.dailyControlCap" placeholder="运营控制预算值"></el-input>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <el-input 
+                                    v-model="offerForm.dailyControlCap" 
+                                    placeholder="运营控制预算值"
+                                    :disabled="offerForm.dailyControlCapOpen"
+                                    type="number"
+                                    :min="1"
+                                    :max="5000"
+                                    style="flex: 1;"></el-input>
+                                <el-checkbox v-model="offerForm.dailyControlCapOpen" @change="handleDailyControlCapOpenChange">Open</el-checkbox>
+                            </div>
                         </el-form-item>
                     </div>
 
@@ -432,7 +452,9 @@
                     advConversionPrice: '',
                     advConversionRealPrice: '',
                     advDailyCap: '',
+                    advDailyCapOpen: false,
                     dailyControlCap: '',
+                    dailyControlCapOpen: false,
                     platform: [],
                     targetGeo: '',
                     network: [],
@@ -647,6 +669,18 @@
                     // 已在watch中处理
                 };
 
+                const handleAdvDailyCapOpenChange = (value) => {
+                    if (value) {
+                        offerForm.value.advDailyCap = '';
+                    }
+                };
+
+                const handleDailyControlCapOpenChange = (value) => {
+                    if (value) {
+                        offerForm.value.dailyControlCap = '';
+                    }
+                };
+
                 const saveOffer = async () => {
                     if (!offerForm.value.advUser || !offerForm.value.packageName || !offerForm.value.offerUuid) {
                         ElMessage.error('请填写完整信息');
@@ -700,7 +734,9 @@
                         advConversionPrice: '',
                         advConversionRealPrice: '',
                         advDailyCap: '',
+                        advDailyCapOpen: false,
                         dailyControlCap: '',
+                        dailyControlCapOpen: false,
                         platform: [],
                         targetGeo: '',
                         network: [],
@@ -755,7 +791,9 @@
                             advConversionPrice: '2.50',
                             advConversionRealPrice: '3.00',
                             advDailyCap: '1000',
+                            advDailyCapOpen: false,
                             dailyControlCap: '800',
+                            dailyControlCapOpen: false,
                             platform: ['android'],
                             targetGeo: '美国 US',
                             network: ['wifi'],
@@ -776,7 +814,9 @@
                             advConversionPrice: '1.80',
                             advConversionRealPrice: '2.20',
                             advDailyCap: '500',
+                            advDailyCapOpen: false,
                             dailyControlCap: '400',
+                            dailyControlCapOpen: false,
                             platform: ['ios'],
                             targetGeo: '英国 UK',
                             network: ['4G'],
@@ -797,7 +837,9 @@
                             advConversionPrice: '5.00',
                             advConversionRealPrice: '6.50',
                             advDailyCap: '2000',
+                            advDailyCapOpen: false,
                             dailyControlCap: '1800',
+                            dailyControlCapOpen: false,
                             platform: ['all'],
                             targetGeo: '加拿大 CA',
                             network: ['wifi'],
@@ -818,7 +860,9 @@
                             advConversionPrice: '1.20',
                             advConversionRealPrice: '1.50',
                             advDailyCap: '300',
+                            advDailyCapOpen: false,
                             dailyControlCap: '250',
+                            dailyControlCapOpen: false,
                             platform: ['ios'],
                             targetGeo: '澳大利亚 AU',
                             network: ['3G'],
@@ -839,7 +883,9 @@
                             advConversionPrice: '3.80',
                             advConversionRealPrice: '4.20',
                             advDailyCap: '800',
+                            advDailyCapOpen: false,
                             dailyControlCap: '700',
+                            dailyControlCapOpen: false,
                             platform: ['android'],
                             targetGeo: '德国 DE',
                             network: ['wifi'],
@@ -903,7 +949,9 @@
                     deleteOffer,
                     loadAdvUsers,
                     loadPackages,
-                    saveOffer
+                    saveOffer,
+                    handleAdvDailyCapOpenChange,
+                    handleDailyControlCapOpenChange
                 };
             }
         }).use(ElementPlus).mount('#app');
