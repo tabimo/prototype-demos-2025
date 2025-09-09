@@ -292,29 +292,29 @@
                     <div class="form-section">
                         <h3 class="section-title">📈 预算信息</h3>
                         <el-form-item label="Adv Daily Cap" prop="advDailyCap">
-                            <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 15px;">
                                 <el-input 
                                     v-model="offerForm.advDailyCap" 
-                                    placeholder="广告主约定预算值"
+                                    placeholder="广告主约定预算值（1-5000）"
                                     :disabled="offerForm.advDailyCapOpen"
                                     type="number"
                                     :min="1"
                                     :max="5000"
-                                    style="flex: 1;"></el-input>
-                                <el-checkbox v-model="offerForm.advDailyCapOpen" @change="handleAdvDailyCapOpenChange">Open</el-checkbox>
+                                    style="width: 280px;"></el-input>
+                                <el-checkbox v-model="offerForm.advDailyCapOpen" @change="handleAdvDailyCapOpenChange">Open（不限制）</el-checkbox>
                             </div>
                         </el-form-item>
                         <el-form-item label="Daily Control Cap" prop="dailyControlCap">
-                            <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 15px;">
                                 <el-input 
                                     v-model="offerForm.dailyControlCap" 
-                                    placeholder="运营控制预算值"
+                                    placeholder="运营控制预算值（1-5000）"
                                     :disabled="offerForm.dailyControlCapOpen"
                                     type="number"
                                     :min="1"
                                     :max="5000"
-                                    style="flex: 1;"></el-input>
-                                <el-checkbox v-model="offerForm.dailyControlCapOpen" @change="handleDailyControlCapOpenChange">Open</el-checkbox>
+                                    style="width: 280px;"></el-input>
+                                <el-checkbox v-model="offerForm.dailyControlCapOpen" @change="handleDailyControlCapOpenChange">Open（不限制）</el-checkbox>
                             </div>
                         </el-form-item>
                     </div>
