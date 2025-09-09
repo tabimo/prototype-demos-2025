@@ -168,7 +168,7 @@
                                 </el-select>
                             </el-col>
                             <el-col :span="4">
-                                <el-button type="primary" @click="showCreateDrawer = true">
+                                <el-button type="primary" @click="createNewOffer">
                                     + 新建 Offer
                                 </el-button>
                             </el-col>
@@ -195,14 +195,14 @@
                                 </div>
                                 <div v-else-if="scope.row.advPricingModel === 'CPE'">
                                     <div>CPE</div>
-                                    <div v-for="(event, index) in scope.row.settlementEvents" :key="index" style="margin-bottom: 5px;">
-                                        {{ event.eventName }} Price: {{ event.eventPrice }}, Real Price: {{ event.eventRealPrice }}
+                                    <div v-for="(event, index) in (scope.row.settlementEvents || [])" :key="index" style="margin-bottom: 5px;">
+                                        {{ event.eventName || 'Event' }} Price: {{ event.eventPrice || '-' }}, Real Price: {{ event.eventRealPrice || '-' }}
                                     </div>
                                 </div>
                                 <div v-else-if="scope.row.advPricingModel === 'CPS'">
                                     <div>CPS</div>
-                                    <div v-for="(event, index) in scope.row.settlementEvents" :key="index" style="margin-bottom: 5px;">
-                                        {{ event.eventName }}, Settlement Rate: {{ event.settlementRate }}%
+                                    <div v-for="(event, index) in (scope.row.settlementEvents || [])" :key="index" style="margin-bottom: 5px;">
+                                        {{ event.eventName || 'Event' }}, Settlement Rate: {{ event.settlementRate || '-' }}%
                                     </div>
                                 </div>
                             </template>
@@ -538,7 +538,7 @@
             </div>
             <template #footer>
                 <div style="text-align: right; padding: 20px 0;">
-                    <el-button @click="showCreateDrawer = false">取消</el-button>
+                    <el-button @click="cancelEdit">取消</el-button>
                     <el-button type="primary" @click="saveOffer">保存</el-button>
                 </div>
             </template>
@@ -915,19 +915,25 @@
 
                 const editOffer = (offer) => {
                     editingOffer.value = offer;
-                    offerForm.value = { ...offer };
-                    // 确保 settlementEvents 存在
-                    if (!offerForm.value.settlementEvents) {
-                        offerForm.value.settlementEvents = [{
-                            eventName: '',
-                            eventPrice: '',
-                            eventRealPrice: '',
-                            settlementRate: '',
-                            matchType: '',
-                            attributionType: 'Lifetime',
-                            attributionHours: ''
-                        }];
-                    }
+                    // 深拷贝对象，避免引用问题
+                    offerForm.value = {
+                        ...offer,
+                        platform: Array.isArray(offer.platform) ? [...offer.platform] : [],
+                        network: Array.isArray(offer.network) ? [...offer.network] : [],
+                        targetGeoList: Array.isArray(offer.targetGeoList) ? [...offer.targetGeoList] : [],
+                        settlementEvents: Array.isArray(offer.settlementEvents) ? 
+                            offer.settlementEvents.map(event => ({ ...event })) : 
+                            [{
+                                eventName: '',
+                                eventPrice: '',
+                                eventRealPrice: '',
+                                settlementRate: '',
+                                matchType: '',
+                                attributionType: 'Lifetime',
+                                attributionHours: ''
+                            }]
+                    };
+                    
                     // 加载对应用户的Package
                     userPackages.value = allPackages.value.filter(pkg => pkg.username === offer.advUser);
                     showCreateDrawer.value = true;
@@ -1124,6 +1130,61 @@
                     return null;
                 };
 
+                const cancelEdit = () => {
+                    showCreateDrawer.value = false;
+                    editingOffer.value = null;
+                    resetForm();
+                };
+
+                const createNewOffer = () => {
+                    editingOffer.value = null;
+                    resetForm();
+                    showCreateDrawer.value = true;
+                };
+
+                const resetForm = () => {
+                    offerForm.value = {
+                        advUser: '',
+                        packageName: '',
+                        offerUuid: '',
+                        optimizationGoal: '',
+                        notes: '',
+                        advPricingModel: '',
+                        advConversionPrice: '',
+                        advConversionRealPrice: '',
+                        settlementEvents: [{
+                            eventName: '',
+                            eventPrice: '',
+                            eventRealPrice: '',
+                            settlementRate: '',
+                            matchType: '',
+                            attributionType: 'Lifetime',
+                            attributionHours: ''
+                        }],
+                        advDailyCap: '',
+                        advDailyCapOpen: false,
+                        dailyControlCap: '',
+                        dailyControlCapOpen: false,
+                        platform: [],
+                        targetGeo: '',
+                        targetGeoList: [],
+                        network: [],
+                        offerPm: '',
+                        impressionTracking: '',
+                        clickTracking: '',
+                        thirdParty: '',
+                        bd: ''
+                    };
+                    // 清空地区选择
+                    selectedCountries.value = [];
+                    selectedRegions.value = [];
+                    selectedCities.value = [];
+                    regionList.value = [];
+                    cityList.value = [];
+                    geoSearchText.value = '';
+                    userPackages.value = [];
+                };
+
                 const saveOffer = async () => {
                     // 表单验证
                     try {
@@ -1194,38 +1255,7 @@
                     saveToStorage();
                     showCreateDrawer.value = false;
                     editingOffer.value = null;
-                    offerForm.value = {
-                        advUser: '',
-                        packageName: '',
-                        offerUuid: '',
-                        optimizationGoal: '',
-                        notes: '',
-                        advPricingModel: '',
-                        advConversionPrice: '',
-                        advConversionRealPrice: '',
-                        settlementEvents: [{
-                            eventName: '',
-                            eventPrice: '',
-                            eventRealPrice: '',
-                            settlementRate: '',
-                            matchType: '',
-                            attributionType: 'Lifetime',
-                            attributionHours: ''
-                        }],
-                        advDailyCap: '',
-                        advDailyCapOpen: false,
-                        dailyControlCap: '',
-                        dailyControlCapOpen: false,
-                        platform: [],
-                        targetGeo: '',
-                        targetGeoList: [],
-                        network: [],
-                        offerPm: '',
-                        impressionTracking: '',
-                        clickTracking: '',
-                        thirdParty: '',
-                        bd: ''
-                    };
+                    resetForm();
                 };
 
                 const saveToStorage = () => {
@@ -1369,6 +1399,15 @@
                             advPricingModel: 'CPI',
                             advConversionPrice: '1.20',
                             advConversionRealPrice: '1.50',
+                            settlementEvents: [{
+                                eventName: '',
+                                eventPrice: '',
+                                eventRealPrice: '',
+                                settlementRate: '',
+                                matchType: '',
+                                attributionType: 'Lifetime',
+                                attributionHours: ''
+                            }],
                             advDailyCap: '300',
                             advDailyCapOpen: false,
                             dailyControlCap: '250',
@@ -1393,6 +1432,15 @@
                             advPricingModel: 'CPE',
                             advConversionPrice: '3.80',
                             advConversionRealPrice: '4.20',
+                            settlementEvents: [{
+                                eventName: 'Registration',
+                                eventPrice: '3.80',
+                                eventRealPrice: '4.20',
+                                settlementRate: '',
+                                matchType: 'Unique Match',
+                                attributionType: 'Hours',
+                                attributionHours: '48'
+                            }],
                             advDailyCap: '800',
                             advDailyCapOpen: false,
                             dailyControlCap: '700',
@@ -1480,7 +1528,9 @@
                     filteredTargetGeoList,
                     handlePricingModelChange,
                     addEvent,
-                    removeEvent
+                    removeEvent,
+                    cancelEdit,
+                    createNewOffer
                 };
             }
         }).use(ElementPlus).mount('#app');
