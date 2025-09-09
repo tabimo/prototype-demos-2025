@@ -369,7 +369,7 @@
                                     filterable 
                                     placeholder="Select Cities" 
                                     @change="handleCityChange"
-                                    :disabled="selectedRegions.length === 0"
+                                    :disabled="selectedCountries.length === 0"
                                     style="width: 320px;">
                                     <el-option 
                                         v-for="city in cityList" 
@@ -378,7 +378,7 @@
                                         :value="city.value">
                                     </el-option>
                                 </el-select>
-                                <el-button @click="addTargetGeo" :disabled="selectedCities.length === 0" size="small">Add</el-button>
+                                <el-button @click="addTargetGeo" :disabled="selectedCountries.length === 0" size="small">Add</el-button>
                             </div>
                             <div style="margin-top: 10px;" v-if="offerForm.targetGeoList && offerForm.targetGeoList.length > 0">
                                 <div style="margin-bottom: 10px;">
@@ -818,14 +818,30 @@
 
                 const addTargetGeo = () => {
                     selectedCountries.value.forEach(country => {
-                        selectedRegions.value.forEach(region => {
-                            selectedCities.value.forEach(city => {
-                                const geoString = `${country} > ${region} > ${city}`;
-                                if (!offerForm.value.targetGeoList.includes(geoString)) {
-                                    offerForm.value.targetGeoList.push(geoString);
+                        if (selectedRegions.value.length === 0) {
+                            // 只选了国家，表示全选
+                            const geoString = `${country} (All Regions)`;
+                            if (!offerForm.value.targetGeoList.includes(geoString)) {
+                                offerForm.value.targetGeoList.push(geoString);
+                            }
+                        } else {
+                            selectedRegions.value.forEach(region => {
+                                if (selectedCities.value.length === 0) {
+                                    // 只选了国家和地区，表示该地区全选
+                                    const geoString = `${country} > ${region} (All Cities)`;
+                                    if (!offerForm.value.targetGeoList.includes(geoString)) {
+                                        offerForm.value.targetGeoList.push(geoString);
+                                    }
+                                } else {
+                                    selectedCities.value.forEach(city => {
+                                        const geoString = `${country} > ${region} > ${city}`;
+                                        if (!offerForm.value.targetGeoList.includes(geoString)) {
+                                            offerForm.value.targetGeoList.push(geoString);
+                                        }
+                                    });
                                 }
                             });
-                        });
+                        }
                     });
                     updateTargetGeoString();
                     // 清空选择
