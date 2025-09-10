@@ -191,9 +191,21 @@
                 <div style="overflow-x: auto;">
                     <el-table :data="filteredRecords" @selection-change="handleSelectionChange" stripe border style="width: 100%; min-width: 1400px;">
                     <el-table-column type="selection" width="55" align="center" />
-                    <el-table-column prop="offerUuid" label="Offer UUID" width="150" align="left" show-overflow-tooltip />
-                    <el-table-column prop="channelUuid" label="Channel UUID" width="150" align="left" show-overflow-tooltip />
-                    <el-table-column prop="pricingModel" label="Pricing Model" width="120" align="left" />
+                    <el-table-column label="Offer UUID" width="150" align="left">
+                        <template #default="scope">
+                            <span>{{ scope.row.offerUuid }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="Channel UUID" width="150" align="left">
+                        <template #default="scope">
+                            <span>{{ scope.row.channelUuid }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="Pricing Model" width="120" align="left">
+                        <template #default="scope">
+                            <span>{{ scope.row.pricingModel }}</span>
+                        </template>
+                    </el-table-column>
                     <el-table-column label="Deduction (%)" width="120" align="left">
                         <template #default="scope">
                             <el-input v-model="scope.row.deduction" type="number" :min="0" :max="100" :step="0.01" size="small" style="width: 100%;" />
