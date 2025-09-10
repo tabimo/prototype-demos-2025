@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Management - 广告管理系统</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus/dist/index.full.js"></script>
+    <script src="geo-data.js"></script>
+    <style>
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .el-sub-menu__hide-arrow { display: none !important; }
+        .el-menu--horizontal .el-sub-menu { display: inline-block !important; margin-right: 20px; }
+        .filter-section { background: #f5f7fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .batch-toolbar { background: #e3f2fd; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 导航栏 -->
+        <el-menu mode="horizontal" :default-active="activeIndex" class="el-menu-demo" @select="handleSelect">
+            <el-sub-menu index="1">
+                <template #title>Offer</template>
+                <el-menu-item index="1-1">Offer List</el-menu-item>
+                <el-menu-item index="1-2">Adv User</el-menu-item>
+                <el-menu-item index="1-3">Package List</el-menu-item>
+            </el-sub-menu>
+            <el-sub-menu index="2">
+                <template #title>Channel</template>
+                <el-menu-item index="2-1">Channel List</el-menu-item>
+            </el-sub-menu>
+            <el-sub-menu index="3">
+                <template #title>Tools</template>
+                <el-menu-item index="3-1">S2S Integration</el-menu-item>
+                <el-menu-item index="3-2">Traffic Management</el-menu-item>
+            </el-sub-menu>
+        </el-menu>
+
+        <div style="padding: 20px;">
+            <h2>Traffic Management</h2>
+
+            <!-- 筛选器区域 -->
+            <div class="filter-section">
+                <h4 style="margin-bottom: 16px;">数据筛选</h4>
+                <el-row :gutter="16">
+                    <el-col :span="6">
+                        <label>Offer UUID</label>
+                        <el-select 
+                            v-model="filters.offerUuid" 
+                            filterable 
+                            remote 
+                            :remote-method="searchOffers"
+                            :loading="offerLoading"
+                            placeholder="搜索Offer"
+                            clearable
+                        >
+                            <el-option 
+                                v-for="offer in offerOptions" 
+                                :key="offer.uuid" 
+                                :label="offer.uuid" 
+                                :value="offer.uuid"
+                            />
+                        </el-select>
+                    </el-col>
+                    <el-col :span="6">
+                        <label>Channel UUID</label>
+                        <el-select 
+                            v-model="filters.channelUuid" 
+                            filterable 
+                            remote 
+                            :remote-method="searchChannels"
+                            :loading="channelLoading"
+                            placeholder="搜索Channel"
+                            clearable
+                        >
+                            <el-option 
+                                v-for="channel in channelOptions" 
+                                :key="channel.uuid" 
+                                :label="channel.uuid" 
+                                :value="channel.uuid"
+                            />
+                        </el-select>
+                    </el-col>
+                    <el-col :span="6">
+                        <label>S2S Status</label>
+                        <el-select v-model="filters.s2sStatus" placeholder="选择状态" clearable>
+                            <el-option label="Open" value="true" />
+                            <el-option label="Close" value="false" />
+                        </el-select>
+                    </el-col>
+                    <el-col :span="6" style="display: flex; align-items: end;">
+                        <el-button type="primary" @click="applyFilters">筛选</el-button>
+                        <el-button @click="clearFilters">清空</el-button>
+                    </el-col>
+                </el-row>
+            </div>
+
+            <!-- 操作栏区域 -->
+            <div style="margin-bottom: 16px; display: flex; gap: 12px;">
+                <el-button type="primary" @click="goToS2SIntegration">S2S Integration</el-button>
+                <el-tooltip 
+                    :content="selectedRecords.length === 0 ? '请至少勾选一条对接记录' : ''"
+                    :disabled="selectedRecords.length > 0"
+                >
+                    <el-button 
+                        type="warning" 
+                        :disabled="selectedRecords.length === 0"
+                        @click="showBatchS2SDialog"
+                    >
+                        Batch S2S Setting
+                    </el-button>
+                </el-tooltip>
+            </div>
+
+            <!-- 数据表格 -->
+            <el-card>
+                <template #header>
+                    <div style="display: flex; justify-content: between; align-items: center;">
+                        <span>对接记录列表 (共{{totalRecords}}条，已选{{selectedRecords.length}}条)</span>
+                        <el-button size="small" @click="sortByUpdateTime">按更新时间排序</el-button>
+                    </div>
+                </template>
+                <el-table 
+                    :data="paginatedRecords" 
+                    @selection-change="handleSelectionChange" 
+                    stripe 
+                    border
+                    v-loading="tableLoading"
+                >
+                    <el-table-column type="selection" width="55" />
+                    <el-table-column prop="offerUuid" label="Offer UUID" width="150" />
+                    <el-table-column prop="channelUuid" label="Channel UUID" width="150" />
+                    <el-table-column prop="pricingModel" label="Pricing Model" width="120" />
+                    <el-table-column label="S2S Status" width="100">
+                        <template #default="scope">
+                            <el-tag :type="scope.row.s2sStatus ? 'success' : 'danger'">
+                                {{scope.row.s2sStatus ? 'Open' : 'Close'}}
+                            </el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="deduction" label="Deduction (%)" width="120" />
+                    <el-table-column prop="channelPayout" label="Channel Payout" width="140" />
+                    <el-table-column label="Daily Conversion Cap" width="160">
+                        <template #default="scope">
+                            {{scope.row.dailyConversionCapOpen ? 'Open' : scope.row.dailyConversionCap}}
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="overConversionCapAction" label="Over Conversion Cap Action" width="200" />
+                    <el-table-column label="Daily Click Cap" width="140">
+                        <template #default="scope">
+                            {{scope.row.dailyClickCapOpen ? 'Open' : scope.row.dailyClickCap}}
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="overClickCapAction" label="Over Click Cap Action" width="180" />
+                    <el-table-column prop="note" label="Note" width="150" show-overflow-tooltip />
+                    <el-table-column label="Event Reject" width="120">
+                        <template #default="scope">
+                            <el-tag v-if="scope.row.event" type="success" size="small">Event</el-tag>
+                            <el-tag v-if="scope.row.reject" type="warning" size="small" style="margin-left: 4px;">Reject</el-tag>
+                        </template>
+                    </el-table-column>
+                </el-table>
+
+                <!-- 分页组件 -->
+                <div style="margin-top: 20px; text-align: right;">
+                    <el-pagination
+                        v-model:current-page="currentPage"
+                        v-model:page-size="pageSize"
+                        :page-sizes="[10, 20, 50]"
+                        :total="totalRecords"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        @size-change="handleSizeChange"
+                        @current-change="handleCurrentChange"
+                    />
+                </div>
+            </el-card>
+        </div>
+
+        <!-- Batch S2S Setting 对话框 -->
+        <el-dialog v-model="batchS2SVisible" title="Batch S2S Setting" width="800px">
+            <div class="batch-toolbar">
+                <h4 style="margin-bottom: 16px;">批量S2S设置 (对{{selectedRecords.length}}条记录生效)</h4>
+                <el-row :gutter="16">
+                    <el-col :span="8">
+                        <label>Deduction (%)</label>
+                        <el-input v-model="batchS2SSettings.deduction" type="number" :min="0" :max="100" :step="0.01" placeholder="0-100" />
+                    </el-col>
+                    <el-col :span="8">
+                        <label>Channel Payout</label>
+                        <el-input v-model="batchS2SSettings.channelPayout" type="number" :min="0.001" :max="50" :step="0.001" placeholder="0.001-50" />
+                    </el-col>
+                    <el-col :span="8">
+                        <label>Daily Conversion Cap</label>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <el-checkbox v-model="batchS2SSettings.dailyConversionCapOpen">Open</el-checkbox>
+                            <el-input v-model="batchS2SSettings.dailyConversionCap" type="number" :min="1" :max="100000" :disabled="batchS2SSettings.dailyConversionCapOpen" />
+                        </div>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="16" style="margin-top: 16px;">
+                    <el-col :span="8">
+                        <label>Over Conversion Cap Action</label>
+                        <el-select v-model="batchS2SSettings.overConversionCapAction" placeholder="选择">
+                            <el-option label="Stop" value="Stop" />
+                            <el-option label="Keep going" value="Keep going" />
+                        </el-select>
+                    </el-col>
+                    <el-col :span="8">
+                        <label>Daily Click Cap</label>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <el-checkbox v-model="batchS2SSettings.dailyClickCapOpen">Open</el-checkbox>
+                            <el-input v-model="batchS2SSettings.dailyClickCap" type="number" :min="1" :max="10000000000" :disabled="batchS2SSettings.dailyClickCapOpen" />
+                        </div>
+                    </el-col>
+                    <el-col :span="8">
+                        <label>Over Click Cap Action</label>
+                        <el-select v-model="batchS2SSettings.overClickCapAction" placeholder="选择">
+                            <el-option label="Stop" value="Stop" />
+                            <el-option label="Keep going" value="Keep going" />
+                        </el-select>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="16" style="margin-top: 16px;">
+                    <el-col :span="8">
+                        <label>Note</label>
+                        <el-input v-model="batchS2SSettings.note" maxlength="1000" placeholder="最多1000字" />
+                    </el-col>
+                    <el-col :span="4">
+                        <label>S2S Status</label>
+                        <el-radio-group v-model="batchS2SSettings.s2sStatus">
+                            <el-radio value="on">开</el-radio>
+                            <el-radio value="off">关</el-radio>
+                        </el-radio-group>
+                    </el-col>
+                    <el-col :span="4">
+                        <label>Event PB</label>
+                        <el-radio-group v-model="batchS2SSettings.eventPB">
+                            <el-radio value="on">开</el-radio>
+                            <el-radio value="off">关</el-radio>
+                        </el-radio-group>
+                    </el-col>
+                    <el-col :span="4">
+                        <label>Reject PB</label>
+                        <el-radio-group v-model="batchS2SSettings.rejectPB">
+                            <el-radio value="on">开</el-radio>
+                            <el-radio value="off">关</el-radio>
+                        </el-radio-group>
+                    </el-col>
+                </el-row>
+            </div>
+            <template #footer>
+                <el-button @click="batchS2SVisible = false">取消</el-button>
+                <el-button type="primary" @click="applyBatchS2SSettings">应用到选中记录</el-button>
+            </template>
+        </el-dialog>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, watch } = Vue;
+        const { ElMessage } = ElementPlus;
+
+        createApp({
+            setup() {
+                const activeIndex = ref('3-2');
+                const tableLoading = ref(false);
+                const offerLoading = ref(false);
+                const channelLoading = ref(false);
+                const selectedRecords = ref([]);
+                const batchS2SVisible = ref(false);
+
+                // 分页
+                const currentPage = ref(1);
+                const pageSize = ref(20);
+
+                // 筛选器
+                const filters = ref({
+                    offerUuid: '',
+                    channelUuid: '',
+                    s2sStatus: ''
+                });
+
+                const offerOptions = ref([]);
+                const channelOptions = ref([]);
+
+                // 获取数据
+                const offers = JSON.parse(localStorage.getItem('offers') || '[]');
+                const channels = JSON.parse(localStorage.getItem('channels') || '[]');
+                const allRecords = ref(JSON.parse(localStorage.getItem('s2sRecords') || '[]'));
+
+                // 批量S2S设置
+                const batchS2SSettings = ref({
+                    deduction: '',
+                    channelPayout: '',
+                    dailyConversionCap: '',
+                    dailyConversionCapOpen: false,
+                    overConversionCapAction: '',
+                    dailyClickCap: '',
+                    dailyClickCapOpen: false,
+                    overClickCapAction: '',
+                    note: '',
+                    s2sStatus: '',
+                    eventPB: '',
+                    rejectPB: ''
+                });
+
+                // 计算属性
+                const filteredRecords = computed(() => {
+                    let records = [...allRecords.value];
+
+                    if (filters.value.offerUuid) {
+                        records = records.filter(record => record.offerUuid === filters.value.offerUuid);
+                    }
+
+                    if (filters.value.channelUuid) {
+                        records = records.filter(record => record.channelUuid === filters.value.channelUuid);
+                    }
+
+                    if (filters.value.s2sStatus !== '') {
+                        const status = filters.value.s2sStatus === 'true';
+                        records = records.filter(record => record.s2sStatus === status);
+                    }
+
+                    return records.sort((a, b) => new Date(b.updateTime || 0) - new Date(a.updateTime || 0));
+                });
+
+                const totalRecords = computed(() => filteredRecords.value.length);
+
+                const paginatedRecords = computed(() => {
+                    const start = (currentPage.value - 1) * pageSize.value;
+                    const end = start + pageSize.value;
+                    return filteredRecords.value.slice(start, end);
+                });
+
+                // 监听筛选器变化
+                watch(filters, () => {
+                    currentPage.value = 1;
+                }, { deep: true });
+
+                // 方法
+                const handleSelect = (key) => {
+                    const routes = {
+                        '1-1': 'index.html',
+                        '1-2': 'adv-user.html',
+                        '1-3': 'package-list.html',
+                        '2-1': 'channel-list.html',
+                        '3-1': 's2s-integration.html',
+                        '3-2': 'traffic-management.html'
+                    };
+                    if (routes[key]) {
+                        window.location.href = routes[key];
+                    }
+                };
+
+                const searchOffers = (query) => {
+                    if (query) {
+                        offerLoading.value = true;
+                        setTimeout(() => {
+                            offerOptions.value = offers
+                                .filter(offer => offer.uuid.toLowerCase().includes(query.toLowerCase()))
+                                .slice(0, 10);
+                            offerLoading.value = false;
+                        }, 200);
+                    } else {
+                        offerOptions.value = [];
+                    }
+                };
+
+                const searchChannels = (query) => {
+                    if (query) {
+                        channelLoading.value = true;
+                        setTimeout(() => {
+                            channelOptions.value = channels
+                                .filter(channel => channel.uuid.toLowerCase().includes(query.toLowerCase()))
+                                .slice(0, 10);
+                            channelLoading.value = false;
+                        }, 200);
+                    } else {
+                        channelOptions.value = [];
+                    }
+                };
+
+                const applyFilters = () => {
+                    // 筛选逻辑已在computed中处理
+                    ElMessage.success('筛选已应用');
+                };
+
+                const clearFilters = () => {
+                    filters.value = {
+                        offerUuid: '',
+                        channelUuid: '',
+                        s2sStatus: ''
+                    };
+                    offerOptions.value = [];
+                    channelOptions.value = [];
+                    ElMessage.success('筛选条件已清空');
+                };
+
+                const handleSelectionChange = (selection) => {
+                    selectedRecords.value = selection;
+                };
+
+                const sortByUpdateTime = () => {
+                    // 排序逻辑已在computed中处理
+                    ElMessage.success('已按更新时间排序');
+                };
+
+                const handleSizeChange = (size) => {
+                    pageSize.value = size;
+                    currentPage.value = 1;
+                };
+
+                const handleCurrentChange = (page) => {
+                    currentPage.value = page;
+                };
+
+                const goToS2SIntegration = () => {
+                    if (selectedRecords.value.length === 0) {
+                        window.location.href = 's2s-integration.html';
+                    } else {
+                        // 将选中记录传递给S2S Integration页面
+                        const selectedIds = selectedRecords.value.map(record => record.id);
+                        localStorage.setItem('selectedS2SRecords', JSON.stringify(selectedIds));
+                        window.location.href = 's2s-integration.html';
+                    }
+                };
+
+                const showBatchS2SDialog = () => {
+                    if (selectedRecords.value.length === 0) {
+                        ElMessage.warning('请至少勾选一条对接记录');
+                        return;
+                    }
+                    
+                    // 重置批量设置
+                    batchS2SSettings.value = {
+                        deduction: '',
+                        channelPayout: '',
+                        dailyConversionCap: '',
+                        dailyConversionCapOpen: false,
+                        overConversionCapAction: '',
+                        dailyClickCap: '',
+                        dailyClickCapOpen: false,
+                        overClickCapAction: '',
+                        note: '',
+                        s2sStatus: '',
+                        eventPB: '',
+                        rejectPB: ''
+                    };
+                    
+                    batchS2SVisible.value = true;
+                };
+
+                const applyBatchS2SSettings = () => {
+                    const updatedRecords = [...allRecords.value];
+                    
+                    selectedRecords.value.forEach(selectedRecord => {
+                        const recordIndex = updatedRecords.findIndex(r => r.id === selectedRecord.id);
+                        if (recordIndex !== -1) {
+                            const record = updatedRecords[recordIndex];
+                            
+                            // 应用批量设置
+                            Object.keys(batchS2SSettings.value).forEach(key => {
+                                const value = batchS2SSettings.value[key];
+                                if (value !== '' && value !== false) {
+                                    if (key === 's2sStatus' || key === 'eventPB' || key === 'rejectPB') {
+                                        const fieldMap = { s2sStatus: 's2sStatus', eventPB: 'event', rejectPB: 'reject' };
+                                        record[fieldMap[key]] = value === 'on';
+                                    } else if (key === 'dailyConversionCapOpen' || key === 'dailyClickCapOpen') {
+                                        record[key] = value;
+                                        if (value) {
+                                            const capField = key.replace('Open', '');
+                                            record[capField] = '';
+                                        }
+                                    } else {
+                                        record[key] = value;
+                                    }
+                                }
+                            });
+                            
+                            record.updateTime = new Date().toISOString();
+                        }
+                    });
+
+                    allRecords.value = updatedRecords;
+                    localStorage.setItem('s2sRecords', JSON.stringify(allRecords.value));
+                    
+                    batchS2SVisible.value = false;
+                    ElMessage.success(`已对 ${selectedRecords.value.length} 条记录应用批量设置`);
+                };
+
+                return {
+                    activeIndex,
+                    tableLoading,
+                    offerLoading,
+                    channelLoading,
+                    selectedRecords,
+                    batchS2SVisible,
+                    currentPage,
+                    pageSize,
+                    filters,
+                    offerOptions,
+                    channelOptions,
+                    batchS2SSettings,
+                    totalRecords,
+                    paginatedRecords,
+                    handleSelect,
+                    searchOffers,
+                    searchChannels,
+                    applyFilters,
+                    clearFilters,
+                    handleSelectionChange,
+                    sortByUpdateTime,
+                    handleSizeChange,
+                    handleCurrentChange,
+                    goToS2SIntegration,
+                    showBatchS2SDialog,
+                    applyBatchS2SSettings
+                };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

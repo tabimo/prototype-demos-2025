@@ -91,6 +91,12 @@
                             <el-menu-item index="channel-list">Channel List</el-menu-item>
                         </el-sub-menu>
                         
+                        <el-sub-menu index="3">
+                            <template #title>Tools</template>
+                            <el-menu-item index="s2s-integration">S2S Integration</el-menu-item>
+                            <el-menu-item index="traffic-management">Traffic Management</el-menu-item>
+                        </el-sub-menu>
+                        
                     </el-menu>
                 </div>
             </el-header>
@@ -287,6 +293,10 @@
                         window.location.href = './index.html';
                     } else if (key === 'channel-list') {
                         window.location.href = './channel-list.html';
+                    } else if (key === 's2s-integration') {
+                        window.location.href = './s2s-integration.html';
+                    } else if (key === 'traffic-management') {
+                        window.location.href = './traffic-management.html';
                     }
                 };
 

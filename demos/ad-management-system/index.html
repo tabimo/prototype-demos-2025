@@ -106,6 +106,12 @@
                             <el-menu-item index="channel-list">Channel List</el-menu-item>
                         </el-sub-menu>
                         
+                        <el-sub-menu index="3">
+                            <template #title>Tools</template>
+                            <el-menu-item index="s2s-integration">S2S Integration</el-menu-item>
+                            <el-menu-item index="traffic-management">Traffic Management</el-menu-item>
+                        </el-sub-menu>
+                        
                     </el-menu>
                 </div>
             </el-header>
@@ -1096,6 +1102,10 @@
                     } else if (key === 'channel-list') {
                         // 在当前页面内切换到Channel List
                         activeMenu.value = 'channel-list';
+                    } else if (key === 's2s-integration') {
+                        window.location.href = './s2s-integration.html';
+                    } else if (key === 'traffic-management') {
+                        window.location.href = './traffic-management.html';
                     }
                 };
 
