@@ -163,22 +163,14 @@
                 </el-row>
             </div>
 
-            <!-- Add S2S Integration 按钮 -->
-            <div style="margin-bottom: 16px;">
-                <el-button type="primary" @click="showAddDrawer">Add S2S Integration</el-button>
-            </div>
-
-            <!-- 搜索框 -->
-            <div style="margin-bottom: 16px;">
-                <el-input v-model="searchKeyword" placeholder="搜索 Offer UUID 或 Channel UUID" style="width: 300px;" clearable />
-            </div>
-
             <!-- S2S配置列表 -->
             <el-card>
                 <template #header>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span>S2S配置列表 ({{filteredRecords.length}}条记录)</span>
-                        <div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <el-input v-model="searchKeyword" placeholder="搜索 Offer UUID 或 Channel UUID" style="width: 250px;" clearable size="small" />
+                            <el-button type="primary" @click="showAddDrawer" size="small">Add S2S Integration</el-button>
                             <el-button size="small" @click="sortBy('offer')">按Offer排序</el-button>
                             <el-button size="small" @click="sortBy('channel')">按Channel排序</el-button>
                         </div>
