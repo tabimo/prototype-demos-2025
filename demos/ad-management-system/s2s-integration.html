@@ -82,85 +82,81 @@
             <h2>S2S Integration</h2>
 
             <!-- 对接方式设置 -->
-            <el-card class="mb-4">
-                <template #header>
-                    <span>对接方式设置</span>
-                </template>
-                <el-radio-group v-model="connectMode">
+            <div style="background: #f5f7fa; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px;">
+                <span style="font-weight: 600; margin-right: 16px;">对接方式设置:</span>
+                <el-radio-group v-model="connectMode" size="small">
                     <el-radio value="connect">只对接</el-radio>
                     <el-radio value="connectEmail">对接并发邮件</el-radio>
                 </el-radio-group>
-            </el-card>
+            </div>
 
             <!-- 批量操作工具 -->
             <div class="batch-toolbar">
-                <h4 style="margin-bottom: 16px;">批量操作工具</h4>
-                <el-row :gutter="16">
-                    <el-col :span="4">
-                        <label>Deduction (%)</label>
-                        <el-input v-model="batchSettings.deduction" type="number" :min="0" :max="100" :step="0.01" placeholder="0-100" />
+                <h4 style="margin-bottom: 12px; font-size: 14px;">批量操作工具</h4>
+                <el-row :gutter="12">
+                    <el-col :span="2">
+                        <label style="font-size: 12px;">Deduction (%)</label>
+                        <el-input v-model="batchSettings.deduction" type="number" :min="0" :max="100" :step="0.01" placeholder="0-100" size="small" />
                     </el-col>
-                    <el-col :span="4">
-                        <label>Channel Payout</label>
-                        <el-input v-model="batchSettings.channelPayout" type="number" :min="0.001" :max="50" :step="0.001" placeholder="0.001-50" />
+                    <el-col :span="2">
+                        <label style="font-size: 12px;">Channel Payout</label>
+                        <el-input v-model="batchSettings.channelPayout" type="number" :min="0.001" :max="50" :step="0.001" placeholder="0.001-50" size="small" />
                     </el-col>
-                    <el-col :span="4">
-                        <label>Daily Conversion Cap</label>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <el-checkbox v-model="batchSettings.dailyConversionCapOpen">Open</el-checkbox>
-                            <el-input v-model="batchSettings.dailyConversionCap" type="number" :min="1" :max="100000" :disabled="batchSettings.dailyConversionCapOpen" />
+                    <el-col :span="3">
+                        <label style="font-size: 12px;">Daily Conversion Cap</label>
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <el-checkbox v-model="batchSettings.dailyConversionCapOpen" size="small">Open</el-checkbox>
+                            <el-input v-model="batchSettings.dailyConversionCap" type="number" :min="1" :max="100000" :disabled="batchSettings.dailyConversionCapOpen" size="small" style="width: 80px;" />
                         </div>
                     </el-col>
-                    <el-col :span="4">
-                        <label>Over Conversion Cap Action</label>
-                        <el-select v-model="batchSettings.overConversionCapAction" placeholder="选择">
+                    <el-col :span="3">
+                        <label style="font-size: 12px;">Over Conv Cap Action</label>
+                        <el-select v-model="batchSettings.overConversionCapAction" placeholder="选择" size="small">
                             <el-option label="Stop" value="Stop" />
                             <el-option label="Keep going" value="Keep going" />
                         </el-select>
                     </el-col>
-                    <el-col :span="4">
-                        <label>Daily Click Cap</label>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <el-checkbox v-model="batchSettings.dailyClickCapOpen">Open</el-checkbox>
-                            <el-input v-model="batchSettings.dailyClickCap" type="number" :min="1" :max="10000000000" :disabled="batchSettings.dailyClickCapOpen" />
+                    <el-col :span="3">
+                        <label style="font-size: 12px;">Daily Click Cap</label>
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <el-checkbox v-model="batchSettings.dailyClickCapOpen" size="small">Open</el-checkbox>
+                            <el-input v-model="batchSettings.dailyClickCap" type="number" :min="1" :max="10000000000" :disabled="batchSettings.dailyClickCapOpen" size="small" style="width: 80px;" />
                         </div>
                     </el-col>
-                    <el-col :span="4">
-                        <label>Over Click Cap Action</label>
-                        <el-select v-model="batchSettings.overClickCapAction" placeholder="选择">
+                    <el-col :span="3">
+                        <label style="font-size: 12px;">Over Click Cap Action</label>
+                        <el-select v-model="batchSettings.overClickCapAction" placeholder="选择" size="small">
                             <el-option label="Stop" value="Stop" />
                             <el-option label="Keep going" value="Keep going" />
                         </el-select>
                     </el-col>
-                </el-row>
-                <el-row :gutter="16" style="margin-top: 16px;">
-                    <el-col :span="6">
-                        <label>Note</label>
-                        <el-input v-model="batchSettings.note" maxlength="1000" placeholder="最多1000字" />
+                    <el-col :span="2">
+                        <label style="font-size: 12px;">Note</label>
+                        <el-input v-model="batchSettings.note" maxlength="1000" placeholder="备注" size="small" />
                     </el-col>
-                    <el-col :span="4">
-                        <label>S2S Status</label>
-                        <el-radio-group v-model="batchSettings.s2sStatus">
+                    <el-col :span="2">
+                        <label style="font-size: 12px;">S2S Status</label>
+                        <el-radio-group v-model="batchSettings.s2sStatus" size="small">
                             <el-radio value="on">开</el-radio>
                             <el-radio value="off">关</el-radio>
                         </el-radio-group>
                     </el-col>
-                    <el-col :span="4">
-                        <label>Event PB</label>
-                        <el-radio-group v-model="batchSettings.eventPB">
+                    <el-col :span="2">
+                        <label style="font-size: 12px;">Event PB</label>
+                        <el-radio-group v-model="batchSettings.eventPB" size="small">
                             <el-radio value="on">开</el-radio>
                             <el-radio value="off">关</el-radio>
                         </el-radio-group>
                     </el-col>
-                    <el-col :span="4">
-                        <label>Reject PB</label>
-                        <el-radio-group v-model="batchSettings.rejectPB">
+                    <el-col :span="2">
+                        <label style="font-size: 12px;">Reject PB</label>
+                        <el-radio-group v-model="batchSettings.rejectPB" size="small">
                             <el-radio value="on">开</el-radio>
                             <el-radio value="off">关</el-radio>
                         </el-radio-group>
                     </el-col>
-                    <el-col :span="6" style="display: flex; align-items: end;">
-                        <el-button type="primary" @click="showBatchConfirm" :disabled="selectedRecords.length === 0">
+                    <el-col :span="2" style="display: flex; align-items: end;">
+                        <el-button type="primary" @click="showBatchConfirm" :disabled="selectedRecords.length === 0" size="small">
                             应用到选中记录
                         </el-button>
                     </el-col>
