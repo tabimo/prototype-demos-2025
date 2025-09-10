@@ -86,12 +86,14 @@
         .el-menu--horizontal {
             border: none !important;
         }
-        .el-sub-menu__hide-arrow .el-sub-menu__icon-more {
+        .el-sub-menu__hide-arrow {
             display: none !important;
         }
-        .el-sub-menu__hide-arrow .el-sub-menu__title {
-            display: flex !important;
-            align-items: center !important;
+        .el-menu--horizontal {
+            flex-wrap: nowrap !important;
+        }
+        .el-menu--horizontal .el-sub-menu {
+            flex-shrink: 0 !important;
         }
     </style>
 </head>
