@@ -32,27 +32,6 @@
             text-align: left !important;
             padding: 12px 8px !important;
         }
-        
-        /* 固定底部提交按钮 */
-        .fixed-submit-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            border-top: 1px solid #e4e7ed;
-            padding: 16px 20px;
-            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        /* 为固定按钮留出空间 */
-        body {
-            padding-bottom: 80px;
-        }
     </style>
 </head>
 <body>
@@ -77,7 +56,7 @@
         </el-menu>
 
         <div style="padding: 20px;">
-
+            <div style="position: fixed; top: 10px; right: 10px; background: #409eff; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; z-index: 9999;">20250911-13.09.44</div>
             <h2>S2S Integration</h2>
 
             <!-- 对接方式设置 -->
@@ -165,7 +144,6 @@
             <!-- Add S2S Integration 按钮 -->
             <div style="margin-bottom: 16px;">
                 <el-button type="primary" @click="showAddDrawer">Add S2S Integration</el-button>
-                <el-button type="danger" @click="clearAllData" style="margin-left: 12px;">清空所有数据</el-button>
             </div>
 
             <!-- 搜索框 -->
@@ -314,38 +292,7 @@
                         >
                         </el-option>
                     </el-select>
-                    <div style="margin-top: 8px; display: flex; gap: 8px;">
-                        <el-button size="small" @click="copyChannelUuids">复制Channel UUID</el-button>
-                        <el-button size="small" type="primary" @click="showOfferChannelSelector">添加Offer的Channel</el-button>
-                    </div>
-                    
-                    <!-- Offer Channel选择器 -->
-                    <div v-if="offerChannelSelectorVisible" style="margin-top: 12px; padding: 12px; border: 1px solid #e4e7ed; border-radius: 4px; background: #f9f9f9;">
-                        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
-                            <el-select
-                                v-model="selectedOfferForChannel"
-                                filterable
-                                remote
-                                reserve-keyword
-                                placeholder="输入关键词搜索Offer"
-                                :remote-method="handleOfferForChannelSearch"
-                                :loading="offerForChannelLoading"
-                                style="flex: 1"
-                                clearable
-                            >
-                                <el-option
-                                    v-for="offer in offerForChannelSuggestions"
-                                    :key="offer"
-                                    :label="offer"
-                                    :value="offer"
-                                >
-                                </el-option>
-                            </el-select>
-                            <el-button type="primary" size="small" @click="selectOfferChannels" :disabled="!selectedOfferForChannel">选定渠道</el-button>
-                            <el-button size="small" @click="offerChannelSelectorVisible = false">取消</el-button>
-                        </div>
-                        <div style="font-size: 12px; color: #909399;">选择Offer后，将自动添加该Offer对应的S2S Status=open的Channel UUID</div>
-                    </div>
+                    <el-button size="small" style="margin-top: 8px;" @click="copyChannelUuids">复制Channel UUID</el-button>
                 </div>
 
                 <!-- S2S Default Setting -->
@@ -423,17 +370,6 @@
                 <el-button type="primary" @click="applyBatchSettings">确认应用</el-button>
             </template>
         </el-dialog>
-
-        <!-- 固定底部提交按钮 -->
-        <div style="position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; background: #f5f7fa !important; border-top: 1px solid #e4e7ed !important; padding: 12px 20px !important; box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1) !important; z-index: 9999 !important; display: flex !important; justify-content: space-between !important; align-items: center !important;">
-            <div>
-                <span style="color: #606266; font-size: 14px;">当前有 {{s2sRecords.length}} 条S2S配置记录（临时数据，需提交后才会保存到Traffic Management）</span>
-            </div>
-            <div>
-                <el-button @click="s2sRecords = []; selectedRecords = []" :disabled="s2sRecords.length === 0">清空所有记录</el-button>
-                <el-button type="primary" @click="submitS2SRecords" :disabled="s2sRecords.length === 0">提交S2S配置</el-button>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -453,32 +389,49 @@
                 // 获取现有数据
                 const offers = JSON.parse(localStorage.getItem('offers') || '[]');
                 const channels = JSON.parse(localStorage.getItem('channels') || '[]');
-                // 临时数据，不从localStorage读取
-                const s2sRecords = ref([]);
+                const s2sRecords = ref(JSON.parse(localStorage.getItem('s2sRecords') || '[]'));
                 
-                // 检查是否有从Traffic Management传递过来的选中记录
-                const selectedS2SRecords = JSON.parse(localStorage.getItem('selectedS2SRecords') || '[]');
-                if (selectedS2SRecords.length > 0) {
-                    // 从trafficRecords中获取对应的记录
-                    const trafficRecords = JSON.parse(localStorage.getItem('trafficRecords') || '[]');
-                    const selectedRecords = trafficRecords.filter(record => 
-                        selectedS2SRecords.includes(record.id)
-                    );
-                    s2sRecords.value = selectedRecords;
-                    // 清除传递的数据
-                    localStorage.removeItem('selectedS2SRecords');
-                }
-                
-                // 检查是否有从新建 Offer 传递过来的 Offer UUID
-                const preSelectedOffer = localStorage.getItem('preSelectedOffer');
-                if (preSelectedOffer) {
-                    // 自动打开抽屉并预选 Offer
-                    setTimeout(() => {
-                        selectedOffers.value = [preSelectedOffer];
-                        addDrawerVisible.value = true;
-                    }, 500);
-                    // 清除传递的数据
-                    localStorage.removeItem('preSelectedOffer');
+                // 初始化示例数据（如果没有数据）
+                if (s2sRecords.value.length === 0) {
+                    s2sRecords.value = [
+                        {
+                            id: 'offer_demo_001_channel_001',
+                            offerUuid: 'offer_demo_001',
+                            channelUuid: 'channel_001',
+                            pricingModel: 'CPI',
+                            deduction: 5,
+                            channelPayout: 0.05,
+                            dailyConversionCap: 1000,
+                            dailyConversionCapOpen: false,
+                            overConversionCapAction: 'Stop',
+                            dailyClickCap: 10000,
+                            dailyClickCapOpen: false,
+                            overClickCapAction: 'Stop',
+                            note: '',
+                            s2sStatus: true,
+                            event: false,
+                            reject: true
+                        },
+                        {
+                            id: 'offer_test_002_channel_002',
+                            offerUuid: 'offer_test_002',
+                            channelUuid: 'channel_002',
+                            pricingModel: 'CPE',
+                            deduction: 8,
+                            channelPayout: 0.08,
+                            dailyConversionCap: 500,
+                            dailyConversionCapOpen: false,
+                            overConversionCapAction: 'Keep going',
+                            dailyClickCap: 5000,
+                            dailyClickCapOpen: false,
+                            overClickCapAction: 'Stop',
+                            note: 'Test record',
+                            s2sStatus: false,
+                            event: true,
+                            reject: false
+                        }
+                    ];
+                    localStorage.setItem('s2sRecords', JSON.stringify(s2sRecords.value));
                 }
 
                 // 批量设置
@@ -504,12 +457,6 @@
                 const channelSuggestions = ref([]);
                 const offerLoading = ref(false);
                 const channelLoading = ref(false);
-                
-                // Offer Channel选择器相关
-                const offerChannelSelectorVisible = ref(false);
-                const selectedOfferForChannel = ref('');
-                const offerForChannelSuggestions = ref([]);
-                const offerForChannelLoading = ref(false);
 
                 const defaultSettings = ref({
                     deduction: '',
@@ -692,69 +639,6 @@
                     navigator.clipboard.writeText(selectedChannels.value.join(', '));
                     ElMessage.success('Channel UUID已复制');
                 };
-                
-                // Offer Channel选择器方法
-                const showOfferChannelSelector = () => {
-                    offerChannelSelectorVisible.value = true;
-                    selectedOfferForChannel.value = '';
-                    offerForChannelSuggestions.value = [];
-                };
-                
-                const handleOfferForChannelSearch = (keyword) => {
-                    offerForChannelLoading.value = true;
-                    setTimeout(() => {
-                        if (!keyword || keyword.length < 1) {
-                            offerForChannelSuggestions.value = [];
-                            offerForChannelLoading.value = false;
-                            return;
-                        }
-                        
-                        // 获取所有已添加的S2S对接记录中的Offer UUID去重
-                        const trafficRecords = JSON.parse(localStorage.getItem('trafficRecords') || '[]');
-                        const allS2SOffers = [...new Set([
-                            ...trafficRecords.map(record => record.offerUuid),
-                            ...s2sRecords.value.map(record => record.offerUuid)
-                        ])];
-                        
-                        const filtered = allS2SOffers.filter(offerUuid => 
-                            offerUuid.toLowerCase().includes(keyword.toLowerCase())
-                        ).slice(0, 5);
-                        
-                        offerForChannelSuggestions.value = filtered;
-                        offerForChannelLoading.value = false;
-                    }, 200);
-                };
-                
-                const selectOfferChannels = () => {
-                    if (!selectedOfferForChannel.value) {
-                        ElMessage.warning('请选择Offer UUID');
-                        return;
-                    }
-                    
-                    // 获取所有S2S对接记录
-                    const trafficRecords = JSON.parse(localStorage.getItem('trafficRecords') || '[]');
-                    const allS2SRecords = [...trafficRecords, ...s2sRecords.value];
-                    
-                    // 找到该Offer对应的S2S Status=open的Channel UUID
-                    const openChannels = allS2SRecords
-                        .filter(record => 
-                            record.offerUuid === selectedOfferForChannel.value && 
-                            record.s2sStatus === true
-                        )
-                        .map(record => record.channelUuid);
-                    
-                    if (openChannels.length === 0) {
-                        ElMessage.warning('该Offer没有S2S Status=open的Channel');
-                        return;
-                    }
-                    
-                    // 去重并添加到已选中Channel中
-                    const uniqueChannels = [...new Set([...selectedChannels.value, ...openChannels])];
-                    selectedChannels.value = uniqueChannels;
-                    
-                    offerChannelSelectorVisible.value = false;
-                    ElMessage.success(`已添加 ${openChannels.length} 个Channel UUID（去重后共 ${uniqueChannels.length} 个）`);
-                };
 
                 const confirmAddS2S = () => {
                     if (selectedOffers.value.length === 0 || selectedChannels.value.length === 0) {
@@ -762,19 +646,12 @@
                         return;
                     }
 
-                    let addedCount = 0;
-                    let updatedCount = 0;
-                    
+                    const newRecords = [];
                     selectedOffers.value.forEach(offerUuid => {
                         selectedChannels.value.forEach(channelUuid => {
                             const offer = offers.find(o => o.offerUuid === offerUuid);
-                            const recordId = `${offerUuid}_${channelUuid}`;
-                            
-                            // 检查是否已存在相同的Offer+Channel组合
-                            const existingIndex = s2sRecords.value.findIndex(record => record.id === recordId);
-                            
-                            const recordData = {
-                                id: recordId,
+                            const record = {
+                                id: `${offerUuid}_${channelUuid}`,
                                 offerUuid,
                                 channelUuid,
                                 pricingModel: offer?.advPricingModel || 'CPI',
@@ -791,28 +668,15 @@
                                 event: defaultSettings.value.event === 'on',
                                 reject: defaultSettings.value.reject === 'on'
                             };
-                            
-                            if (existingIndex !== -1) {
-                                // 覆盖现有记录
-                                s2sRecords.value[existingIndex] = recordData;
-                                updatedCount++;
-                            } else {
-                                // 添加新记录
-                                s2sRecords.value.unshift(recordData);
-                                addedCount++;
-                            }
+                            newRecords.push(record);
                         });
                     });
+
+                    s2sRecords.value.unshift(...newRecords);
+                    localStorage.setItem('s2sRecords', JSON.stringify(s2sRecords.value));
                     
                     addDrawerVisible.value = false;
-                    
-                    if (updatedCount > 0 && addedCount > 0) {
-                        ElMessage.success(`成功添加 ${addedCount} 条，更新 ${updatedCount} 条S2S配置记录（临时）`);
-                    } else if (updatedCount > 0) {
-                        ElMessage.success(`成功更新 ${updatedCount} 条S2S配置记录（临时）`);
-                    } else {
-                        ElMessage.success(`成功添加 ${addedCount} 条S2S配置记录（临时）`);
-                    }
+                    ElMessage.success(`成功添加 ${newRecords.length} 条S2S配置记录`);
                 };
 
                 const showBatchConfirm = () => {
@@ -832,69 +696,6 @@
                         }
                     });
                     return summary;
-                };
-
-                const submitS2SRecords = () => {
-                    if (s2sRecords.value.length === 0) {
-                        ElMessage.warning('没有S2S配置记录可提交');
-                        return;
-                    }
-
-                    // 获取现有的Traffic Management记录
-                    let existingTrafficRecords = JSON.parse(localStorage.getItem('trafficRecords') || '[]');
-                    
-                    let addedCount = 0;
-                    let updatedCount = 0;
-                    
-                    s2sRecords.value.forEach(record => {
-                        const trafficRecord = {
-                            id: record.id,
-                            offerUuid: record.offerUuid,
-                            channelUuid: record.channelUuid,
-                            pricingModel: record.pricingModel,
-                            deduction: record.deduction,
-                            channelPayout: record.channelPayout,
-                            dailyConversionCap: record.dailyConversionCap,
-                            dailyConversionCapOpen: record.dailyConversionCapOpen,
-                            overConversionCapAction: record.overConversionCapAction,
-                            dailyClickCap: record.dailyClickCap,
-                            dailyClickCapOpen: record.dailyClickCapOpen,
-                            overClickCapAction: record.overClickCapAction,
-                            note: record.note,
-                            s2sStatus: record.s2sStatus,
-                            event: record.event,
-                            reject: record.reject,
-                            createTime: new Date().toISOString().slice(0, 19).replace('T', ' '),
-                            status: 'Active'
-                        };
-                        
-                        // 检查是否已存在相同的Offer+Channel组合
-                        const existingIndex = existingTrafficRecords.findIndex(existing => existing.id === record.id);
-                        
-                        if (existingIndex !== -1) {
-                            // 覆盖现有记录
-                            existingTrafficRecords[existingIndex] = trafficRecord;
-                            updatedCount++;
-                        } else {
-                            // 添加新记录
-                            existingTrafficRecords.push(trafficRecord);
-                            addedCount++;
-                        }
-                    });
-
-                    localStorage.setItem('trafficRecords', JSON.stringify(existingTrafficRecords));
-                    
-                    // 清空当前页面的临时数据
-                    s2sRecords.value = [];
-                    selectedRecords.value = [];
-                    
-                    if (updatedCount > 0 && addedCount > 0) {
-                        ElMessage.success(`成功提交 ${addedCount} 条新记录，更新 ${updatedCount} 条现有记录到Traffic Management`);
-                    } else if (updatedCount > 0) {
-                        ElMessage.success(`成功更新 ${updatedCount} 条记录到Traffic Management`);
-                    } else {
-                        ElMessage.success(`成功提交 ${addedCount} 条新记录到Traffic Management`);
-                    }
                 };
 
                 const applyBatchSettings = () => {
@@ -923,9 +724,9 @@
                         batchSettings.value[key] = key.includes('Open') ? false : '';
                     });
 
-                    // 不保存到localStorage，只是临时修改
+                    localStorage.setItem('s2sRecords', JSON.stringify(s2sRecords.value));
                     batchConfirmVisible.value = false;
-                    ElMessage.success(`已对 ${selectedRecords.value.length} 条记录应用批量设置（临时）`);
+                    ElMessage.success(`已对 ${selectedRecords.value.length} 条记录应用批量设置`);
                 };
 
                 return {
@@ -942,13 +743,8 @@
                     channelSuggestions,
                     offerLoading,
                     channelLoading,
-                    offerChannelSelectorVisible,
-                    selectedOfferForChannel,
-                    offerForChannelSuggestions,
-                    offerForChannelLoading,
                     defaultSettings,
                     filteredRecords,
-                    s2sRecords,
                     handleSelect,
                     sortBy,
                     handleSelectionChange,
@@ -962,21 +758,10 @@
                     handleChannelVisibleChange,
                     copyOfferUuids,
                     copyChannelUuids,
-                    showOfferChannelSelector,
-                    handleOfferForChannelSearch,
-                    selectOfferChannels,
                     confirmAddS2S,
                     showBatchConfirm,
                     getBatchSummary,
-                    applyBatchSettings,
-                    submitS2SRecords,
-                    clearAllData: () => {
-                        localStorage.removeItem('trafficRecords');
-                        localStorage.removeItem('s2sRecords');
-                        s2sRecords.value = [];
-                        selectedRecords.value = [];
-                        ElMessage.success('已清空所有S2S数据');
-                    }
+                    applyBatchSettings
                 };
             }
         }).use(ElementPlus).mount('#app');

@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S2S配置 - S2S渠道对接系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <style>
+        .config-table {
+            font-size: 13px;
+        }
+        .config-table th {
+            background: #f8f9fa;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .batch-toolbar {
+            background: #e3f2fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .theory-margin {
+            font-weight: bold;
+        }
+        .theory-margin.positive {
+            color: #28a745;
+        }
+        .theory-margin.negative {
+            color: #dc3545;
+        }
+        .cap-mode-switch {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .success-alert {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1050;
+            min-width: 400px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-arrow-left"></i> S2S系统
+            </a>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="index.html" class="text-white-50">首页</a></li>
+                    <li class="breadcrumb-item"><a href="s2s-selection.html" class="text-white-50">S2S对接选择</a></li>
+                    <li class="breadcrumb-item active text-white">S2S配置</li>
+                </ol>
+            </nav>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- 成功提示（隐藏状态） -->
+        <div id="successAlert" class="alert alert-success success-alert" style="display: none;">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-check-circle fa-2x text-success me-3"></i>
+                <div>
+                    <h5 class="mb-1">S2S对接配置成功！</h5>
+                    <p class="mb-0">已成功配置 <span id="successCount">0</span> 条S2S对接记录</p>
+                </div>
+                <button type="button" class="btn-close ms-auto" onclick="hideSuccessAlert()"></button>
+            </div>
+        </div>
+
+        <!-- 页面标题和统计 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3>
+                            <i class="fas fa-sliders-h text-primary"></i>
+                            S2S配置
+                        </h3>
+                        <p class="text-muted mb-0">
+                            配置 <span id="totalOffers" class="fw-bold">0</span> 个Offer × 
+                            <span id="totalChannels" class="fw-bold">0</span> 个Channel = 
+                            <span id="totalRecords" class="fw-bold text-primary">0</span> 条记录
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- 对接方式选择 -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="fas fa-cog text-warning"></i>
+                    对接方式设置
+                </h6>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="connectMode" id="connectOnly" value="connect" checked>
+                    <label class="form-check-label" for="connectOnly">只对接</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="connectMode" id="connectAndEmail" value="connectEmail">
+                    <label class="form-check-label" for="connectAndEmail">对接并发邮件</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 批量操作工具栏 -->
+        <div class="batch-toolbar">
+            <h5 class="mb-3">
+                <i class="fas fa-magic text-info"></i>
+                批量操作工具
+            </h5>
+            <div class="row">
+                <div class="col-md-2">
+                    <label class="form-label">Channel Payout</label>
+                    <input type="number" class="form-control form-control-sm" id="batchPayout" 
+                           step="0.001" min="-100" max="1000" placeholder="">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Deduction (%)</label>
+                    <input type="number" class="form-control form-control-sm" id="batchDeduction" 
+                           step="0.1" min="0" max="100" placeholder="">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Daily Cap</label>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="batchDailyCapOpen">
+                            <label class="form-check-label" for="batchDailyCapOpen">Open</label>
+                        </div>
+                        <input type="number" class="form-control form-control-sm" id="batchDailyCap" 
+                               min="0" max="1000000" placeholder="" style="width: 80px;">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Daily Click Cap</label>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="batchDailyClickCapOpen">
+                            <label class="form-check-label" for="batchDailyClickCapOpen">Open</label>
+                        </div>
+                        <input type="number" class="form-control form-control-sm" id="batchDailyClickCap" 
+                               min="0" max="1000000000" placeholder="" style="width: 80px;">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Note</label>
+                    <input type="text" class="form-control form-control-sm" id="batchNote" placeholder="">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Event/Reject</label>
+                    <div class="d-flex gap-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="batchEvent">
+                            <label class="form-check-label" for="batchEvent">Event</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="batchReject">
+                            <label class="form-check-label" for="batchReject">Reject</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12 text-end">
+                    <button class="btn btn-info btn-sm" onclick="showBatchConfirm()">
+                        <i class="fas fa-magic"></i> 应用到选中记录
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- S2S配置表格 -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">S2S配置列表</h6>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary" onclick="sortBy('offer')">
+                        <i class="fas fa-sort-alpha-down"></i> 按Offer排序
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="sortBy('channel')">
+                        <i class="fas fa-sort-alpha-down"></i> 按Channel排序
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: 600px;">
+                    <table class="table table-hover config-table mb-0">
+                        <thead>
+                            <tr>
+                                <th width="40">
+                                    <input type="checkbox" class="form-check-input" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                                </th>
+                                <th>Offer UUID</th>
+                                <th>Channel UUID</th>
+                                <th>Offer Adv Price</th>
+                                <th>Theory Margin</th>
+                                <th>Deduction (%)</th>
+                                <th>Channel Payout</th>
+                                <th>Daily Cap</th>
+                                <th>Daily Click Cap</th>
+                                <th>Note</th>
+                                <th>Event</th>
+                                <th>Reject</th>
+                            </tr>
+                        </thead>
+                        <tbody id="configTableBody">
+                            <!-- 配置记录将在这里动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 提交按钮 -->
+        <div class="text-center mt-4 mb-5">
+            <button class="btn btn-secondary btn-lg me-3" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i> 返回上一步
+            </button>
+            <button class="btn btn-success btn-lg" onclick="submitConfig()">
+                <i class="fas fa-check"></i> 提交S2S配置
+            </button>
+        </div>
+    </div>
+
+    <!-- 批量操作确认模态框 -->
+    <div class="modal fade" id="batchConfirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                        确认批量操作
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>确认要对选中的 <span id="selectedCount">0</span> 条记录应用批量设置吗？</p>
+                    <div id="batchSummary" class="alert alert-info">
+                        <!-- 批量操作摘要将在这里显示 -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-warning" onclick="applyBatchSettings()">
+                        <i class="fas fa-check"></i> 确认应用
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script>
+        // 模拟数据
+        const mockOfferData = {
+            'zhitian_test_001': { advPrice: 0.125, packageName: 'com.example.game1', note: '测试游戏应用' },
+            'zhitian_test_002': { advPrice: 0.089, packageName: 'com.example.shopping', note: '购物类应用' },
+            'zhitian_test_003': { advPrice: 0.256, packageName: 'com.example.finance', note: '金融理财应用' },
+            'zhitian_test_004': { advPrice: 0.178, packageName: 'com.example.social', note: '社交应用' },
+            'zhitian_test_005': { advPrice: 0.203, packageName: 'com.example.utility', note: '工具类应用' }
+        };
+
+        // 自动对接渠道（Deduction固定为0且不可编辑）
+        const autoConnectChannels = ['abc', 'facebook_ads', 'google_ads', 'alphamobi'];
+
+        // 默认配置（基于Package Name匹配）
+        const defaultConfigs = {
+            'com.example.game1': { 'abc': 0.080, 'facebook_ads': 0.095, 'google_ads': 0.110 },
+            'com.example.shopping': { 'abc': 0.065, 'tiktok_ads': 0.075, 'snapchat_ads': 0.070 },
+            'com.example.finance': { 'abc': 0.180, 'alphamobi': 0.200, 'ntd_dsp': 0.190 }
+        };
+
+        let configRecords = [];
+        let selectedRecords = [];
+        let currentSort = 'offer';
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            parseUrlParams();
+            generateConfigRecords();
+            renderConfigTable();
+            updateStatistics();
+        });
+
+        // 解析URL参数
+        function parseUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const offers = urlParams.get('offers')?.split(',') || [];
+            const channels = urlParams.get('channels')?.split(',') || [];
+            const whiteList = urlParams.get('whiteList') === 'true';
+
+            if (offers.length === 0 || channels.length === 0) {
+                Utils.showToast('参数错误，请重新选择', 'danger');
+                setTimeout(() => {
+                    window.location.href = 's2s-selection.html';
+                }, 2000);
+                return;
+            }
+
+            // 生成配置记录
+            offers.forEach(offer => {
+                channels.forEach(channel => {
+                    const offerData = mockOfferData[offer] || { advPrice: 0.100, packageName: 'com.unknown.app', note: '' };
+                    const isAutoConnect = autoConnectChannels.includes(channel);
+                    
+                    // 计算默认Channel Payout
+                    let defaultPayout = 0.050; // 默认值
+                    const packageConfigs = defaultConfigs[offerData.packageName];
+                    if (packageConfigs && packageConfigs[channel]) {
+                        defaultPayout = packageConfigs[channel];
+                    }
+
+                    const record = {
+                        id: `${offer}_${channel}`,
+                        offerUuid: offer,
+                        channelUuid: channel,
+                        offerAdvPrice: offerData.advPrice,
+                        theoryMargin: 0,
+                        deduction: isAutoConnect ? 0 : 5, // 自动对接渠道固定为0
+                        channelPayout: defaultPayout,
+                        dailyCapMode: 'open',
+                        dailyCapValue: 1000,
+                        dailyClickCapMode: 'open',
+                        dailyClickCapValue: 10000,
+                        note: offerData.note,
+                        event: false,
+                        reject: true,
+                        isAutoConnect: isAutoConnect,
+                        selected: false
+                    };
+
+                    // 计算Theory Margin
+                    record.theoryMargin = calculateTheoryMargin(record);
+                    configRecords.push(record);
+                });
+            });
+        }
+
+        // 计算Theory Margin
+        function calculateTheoryMargin(record) {
+            const { offerAdvPrice, channelPayout, deduction } = record;
+            const effectivePayout = channelPayout * (1 - deduction / 100);
+            const margin = (offerAdvPrice - effectivePayout) / offerAdvPrice;
+            return Math.round(margin * 10000) / 100; // 保留两位小数的百分比
+        }
+
+        // 生成配置记录
+        function generateConfigRecords() {
+            // 已在parseUrlParams中处理
+        }
+
+        // 渲染配置表格
+        function renderConfigTable() {
+            const tbody = document.getElementById('configTableBody');
+            const sortedRecords = [...configRecords].sort((a, b) => {
+                if (currentSort === 'offer') {
+                    return a.offerUuid.localeCompare(b.offerUuid) || a.channelUuid.localeCompare(b.channelUuid);
+                } else {
+                    return a.channelUuid.localeCompare(b.channelUuid) || a.offerUuid.localeCompare(b.offerUuid);
+                }
+            });
+
+            tbody.innerHTML = sortedRecords.map(record => `
+                <tr>
+                    <td>
+                        <input type="checkbox" class="form-check-input record-checkbox" 
+                               value="${record.id}" ${record.selected ? 'checked' : ''} 
+                               onchange="toggleRecordSelection('${record.id}')">
+                    </td>
+                    <td><code>${record.offerUuid}</code></td>
+                    <td><code>${record.channelUuid}</code></td>
+                    <td>$${record.offerAdvPrice.toFixed(3)}</td>
+                    <td>
+                        <span class="theory-margin ${record.theoryMargin >= 0 ? 'positive' : 'negative'}">
+                            ${record.theoryMargin.toFixed(1)}%
+                        </span>
+                    </td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm" 
+                               value="${record.deduction}" step="0.1" min="0" max="100"
+                               ${record.isAutoConnect ? 'disabled' : ''}
+                               onchange="updateDeduction('${record.id}', this.value)">
+                    </td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm" 
+                               value="${record.channelPayout.toFixed(3)}" step="0.001" min="-100" max="1000"
+                               onchange="updateChannelPayout('${record.id}', this.value)">
+                    </td>
+                    <td>
+                        <div class="cap-mode-switch">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="dailyCap_${record.id}" 
+                                       value="open" ${record.dailyCapMode === 'open' ? 'checked' : ''}
+                                       onchange="updateCapMode('${record.id}', 'daily', 'open')">
+                                <label class="form-check-label">Open</label>
+                            </div>
+                            <input type="number" class="form-control form-control-sm" style="width: 80px;"
+                                   value="${record.dailyCapValue}" min="0" max="1000000"
+                                   ${record.dailyCapMode === 'open' ? 'disabled' : ''}
+                                   onchange="updateCapValue('${record.id}', 'daily', this.value)">
+                        </div>
+                    </td>
+                    <td>
+                        <div class="cap-mode-switch">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="dailyClickCap_${record.id}" 
+                                       value="open" ${record.dailyClickCapMode === 'open' ? 'checked' : ''}
+                                       onchange="updateCapMode('${record.id}', 'click', 'open')">
+                                <label class="form-check-label">Open</label>
+                            </div>
+                            <input type="number" class="form-control form-control-sm" style="width: 80px;"
+                                   value="${record.dailyClickCapValue}" min="0" max="1000000000"
+                                   ${record.dailyClickCapMode === 'open' ? 'disabled' : ''}
+                                   onchange="updateCapValue('${record.id}', 'click', this.value)">
+                        </div>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control form-control-sm" 
+                               value="${record.note || ''}" placeholder="备注..."
+                               title="${record.note || ''}"
+                               onchange="updateNote('${record.id}', this.value)">
+                    </td>
+                    <td>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" 
+                                   ${record.event ? 'checked' : ''}
+                                   onchange="updateSwitch('${record.id}', 'event', this.checked)">
+                        </div>
+                    </td>
+                    <td>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" 
+                                   ${record.reject ? 'checked' : ''}
+                                   onchange="updateSwitch('${record.id}', 'reject', this.checked)">
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            updateSelectAllState();
+        }
+
+        // 更新统计信息
+        function updateStatistics() {
+            const offers = [...new Set(configRecords.map(r => r.offerUuid))];
+            const channels = [...new Set(configRecords.map(r => r.channelUuid))];
+            
+            document.getElementById('totalOffers').textContent = offers.length;
+            document.getElementById('totalChannels').textContent = channels.length;
+            document.getElementById('totalRecords').textContent = configRecords.length;
+        }
+
+        // 排序
+        function sortBy(type) {
+            currentSort = type;
+            renderConfigTable();
+        }
+
+        // 切换记录选择
+        function toggleRecordSelection(recordId) {
+            const record = configRecords.find(r => r.id === recordId);
+            if (record) {
+                record.selected = !record.selected;
+                updateSelectAllState();
+            }
+        }
+
+        // 全选/取消全选
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAllCheckbox').checked;
+            configRecords.forEach(record => {
+                record.selected = selectAll;
+            });
+            renderConfigTable();
+        }
+
+        // 更新全选状态
+        function updateSelectAllState() {
+            const selectedCount = configRecords.filter(r => r.selected).length;
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            
+            if (selectedCount === 0) {
+                selectAllCheckbox.indeterminate = false;
+                selectAllCheckbox.checked = false;
+            } else if (selectedCount === configRecords.length) {
+                selectAllCheckbox.indeterminate = false;
+                selectAllCheckbox.checked = true;
+            } else {
+                selectAllCheckbox.indeterminate = true;
+                selectAllCheckbox.checked = false;
+            }
+        }
+
+        // 全选
+        function selectAll() {
+            configRecords.forEach(record => {
+                record.selected = true;
+            });
+            renderConfigTable();
+        }
+
+        // 清除选择
+        function clearSelection() {
+            configRecords.forEach(record => {
+                record.selected = false;
+            });
+            renderConfigTable();
+        }
+
+        // 更新扣量比例
+        function updateDeduction(recordId, value) {
+            const record = configRecords.find(r => r.id === recordId);
+            if (record) {
+                record.deduction = parseFloat(value) || 0;
+                record.theoryMargin = calculateTheoryMargin(record);
+                renderConfigTable();
+            }
+        }
+
+        // 更新Channel Payout
+        function updateChannelPayout(recordId, value) {
+            const record = configRecords.find(r => r.id === recordId);
+            if (record) {
+                record.channelPayout = parseFloat(value) || 0;
+                record.theoryMargin = calculateTheoryMargin(record);
+                renderConfigTable();
+            }
+        }
+
+        // 更新Cap模式
+        function updateCapMode(recordId, type, mode) {
+            const record = configRecords.find(r => r.id === recordId);
+            if (record) {
+                if (type === 'daily') {
+                    record.dailyCapMode = mode;
+                } else {
+                    record.dailyClickCapMode = mode;
+                }
+                renderConfigTable();
+            }
+        }
+
+        // 更新Cap值
+        function updateCapValue(recordId, type, value) {
+            const record = configRecords.find(r => r.id === recordId);
+            if (record) {
+                if (type === 'daily') {
+                    record.dailyCapValue = parseInt(value) || 0;
+                } else {
+                    record.dailyClickCapValue = parseInt(value) || 0;
+                }
+            }
+        }
+
+        // 更新备注
+        function updateNote(recordId, value) {
+            const record = configRecords.find(r => r.id === recordId);
+            if (record) {
+                record.note = value;
+                // 更新title属性
+                event.target.title = value;
+            }
+        }
+
+        // 更新开关
+        function updateSwitch(recordId, type, checked) {
+            const record = configRecords.find(r => r.id === recordId);
+            if (record) {
+                record[type] = checked;
+            }
+        }
+
+        // 显示批量操作确认
+        function showBatchConfirm() {
+            const selectedRecords = configRecords.filter(r => r.selected);
+            if (selectedRecords.length === 0) {
+                Utils.showToast('请先选择要操作的记录', 'warning');
+                return;
+            }
+
+            document.getElementById('selectedCount').textContent = selectedRecords.length;
+            
+            // 生成批量操作摘要
+            const summary = [];
+            const payout = document.getElementById('batchPayout').value;
+            const deduction = document.getElementById('batchDeduction').value;
+            const dailyCap = document.getElementById('batchDailyCap').value;
+            const dailyClickCap = document.getElementById('batchDailyClickCap').value;
+            const dailyCapOpen = document.getElementById('batchDailyCapOpen').checked;
+            const dailyClickCapOpen = document.getElementById('batchDailyClickCapOpen').checked;
+            const note = document.getElementById('batchNote').value;
+            const event = document.getElementById('batchEvent').checked;
+            const reject = document.getElementById('batchReject').checked;
+
+            if (payout) summary.push(`Channel Payout: $${payout}`);
+            if (deduction) summary.push(`Deduction: ${deduction}%`);
+            if (dailyCapOpen) summary.push(`Daily Cap: Open`);
+            else if (dailyCap) summary.push(`Daily Cap: ${dailyCap}`);
+            if (dailyClickCapOpen) summary.push(`Daily Click Cap: Open`);
+            else if (dailyClickCap) summary.push(`Daily Click Cap: ${dailyClickCap}`);
+            if (note) summary.push(`Note: ${note}`);
+            if (event) summary.push(`Event: 启用`);
+            if (reject) summary.push(`Reject: 启用`);
+
+            document.getElementById('batchSummary').innerHTML = summary.length > 0 ? 
+                summary.map(s => `<li>${s}</li>`).join('') : '未设置批量值';
+
+            new bootstrap.Modal(document.getElementById('batchConfirmModal')).show();
+        }
+
+        // 应用批量设置
+        function applyBatchSettings() {
+            const selectedRecords = configRecords.filter(r => r.selected);
+            const payout = parseFloat(document.getElementById('batchPayout').value);
+            const deduction = parseFloat(document.getElementById('batchDeduction').value);
+            const dailyCap = parseInt(document.getElementById('batchDailyCap').value);
+            const dailyClickCap = parseInt(document.getElementById('batchDailyClickCap').value);
+            const dailyCapOpen = document.getElementById('batchDailyCapOpen').checked;
+            const dailyClickCapOpen = document.getElementById('batchDailyClickCapOpen').checked;
+            const note = document.getElementById('batchNote').value;
+            const event = document.getElementById('batchEvent').checked;
+            const reject = document.getElementById('batchReject').checked;
+
+            selectedRecords.forEach(record => {
+                if (payout && !isNaN(payout)) {
+                    record.channelPayout = payout;
+                }
+                if (deduction && !isNaN(deduction) && !record.isAutoConnect) {
+                    record.deduction = deduction;
+                }
+                if (dailyCapOpen) {
+                    record.dailyCapMode = 'open';
+                } else if (dailyCap && !isNaN(dailyCap)) {
+                    record.dailyCapMode = 'value';
+                    record.dailyCapValue = dailyCap;
+                }
+                if (dailyClickCapOpen) {
+                    record.dailyClickCapMode = 'open';
+                } else if (dailyClickCap && !isNaN(dailyClickCap)) {
+                    record.dailyClickCapMode = 'value';
+                    record.dailyClickCapValue = dailyClickCap;
+                }
+                if (note !== undefined && note !== '') {
+                    record.note = note;
+                }
+                record.event = event;
+                record.reject = reject;
+
+                // 重新计算Theory Margin
+                record.theoryMargin = calculateTheoryMargin(record);
+            });
+
+            // 清空批量输入框
+            document.getElementById('batchPayout').value = '';
+            document.getElementById('batchDeduction').value = '';
+            document.getElementById('batchDailyCap').value = '';
+            document.getElementById('batchDailyClickCap').value = '';
+            document.getElementById('batchDailyCapOpen').checked = false;
+            document.getElementById('batchDailyClickCapOpen').checked = false;
+            document.getElementById('batchNote').value = '';
+            document.getElementById('batchEvent').checked = false;
+            document.getElementById('batchReject').checked = false;
+
+            renderConfigTable();
+            bootstrap.Modal.getInstance(document.getElementById('batchConfirmModal')).hide();
+            Utils.showToast(`已对${selectedRecords.length}条记录应用批量设置`, 'success');
+        }
+
+        // 提交配置
+        function submitConfig() {
+            const connectMode = document.querySelector('input[name="connectMode"]:checked').value;
+            
+            // 模拟提交过程
+            const submitBtn = event.target;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+
+            setTimeout(() => {
+                // 显示成功提示
+                document.getElementById('successCount').textContent = configRecords.length;
+                document.getElementById('successAlert').style.display = 'block';
+                
+                // 滚动到顶部
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                // 恢复按钮状态
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-check"></i> 提交S2S配置';
+                
+                Utils.showToast('S2S配置提交成功！', 'success');
+            }, 2000);
+        }
+
+        // 隐藏成功提示
+        function hideSuccessAlert() {
+            document.getElementById('successAlert').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

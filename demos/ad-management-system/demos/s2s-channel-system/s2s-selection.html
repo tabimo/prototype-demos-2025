@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S2S对接选择 - S2S渠道对接系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <style>
+
+        .template-tag {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .template-tag:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .selection-summary {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .tag-input-container {
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            padding: 8px;
+            min-height: 38px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px;
+            cursor: text;
+            background: white;
+        }
+        .tag-input-container:focus-within {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .tag-item {
+            background: white;
+            color: #333;
+            border: 1px solid #ddd;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .tag-remove {
+            cursor: pointer;
+            font-weight: bold;
+            opacity: 0.7;
+        }
+        .tag-remove:hover {
+            opacity: 1;
+        }
+        .tag-input {
+            border: none;
+            outline: none;
+            flex: 1;
+            min-width: 200px;
+            padding: 2px;
+            font-size: 14px;
+        }
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ced4da;
+            border-top: none;
+            border-radius: 0 0 0.375rem 0.375rem;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        .autocomplete-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        .autocomplete-item:hover, .autocomplete-item.active {
+            background-color: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-arrow-left"></i> S2S系统
+            </a>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="index.html" class="text-white-50">首页</a></li>
+                    <li class="breadcrumb-item active text-white">S2S对接选择</li>
+                </ol>
+            </nav>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- 左侧：选择区域 -->
+            <div class="col-lg-8">
+                <!-- Offer选择 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-bullhorn text-success"></i>
+                            选择Offer
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <label class="form-label">Offer UUID</label>
+                        <div class="position-relative">
+                            <div class="tag-input-container" id="offerTagContainer" onclick="focusOfferInput()">
+                                <div class="tag-list" id="offerTagList">
+                                    <!-- 已选择的Offer标签将在这里显示 -->
+                                </div>
+                                <input type="text" class="tag-input" id="offerInput" 
+                                       placeholder="输入关键词搜索或粘贴多个Offer UUID"
+                                       onkeyup="handleOfferInput(event)" 
+                                       onpaste="handleOfferPaste(event)">
+                            </div>
+                            <div class="autocomplete-dropdown" id="offerDropdown">
+                                <!-- 搜索建议将在这里显示 -->
+                            </div>
+                        </div>
+                        <small class="text-muted">支持输入关键词搜索选择，或直接粘贴多个UUID（逗号或换行符分隔）</small>
+                    </div>
+                </div>
+
+                <!-- Channel选择 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-broadcast-tower text-info"></i>
+                            选择Channel
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <label class="form-label">Channel UUID</label>
+                        <div class="position-relative mb-3">
+                            <div class="tag-input-container" id="channelTagContainer" onclick="focusChannelInput()">
+                                <div class="tag-list" id="channelTagList">
+                                    <!-- 已选择的Channel标签将在这里显示 -->
+                                </div>
+                                <input type="text" class="tag-input" id="channelInput" 
+                                       placeholder="输入关键词搜索或粘贴多个Channel UUID"
+                                       onkeyup="handleChannelInput(event)" 
+                                       onpaste="handleChannelPaste(event)">
+                            </div>
+                            <div class="autocomplete-dropdown" id="channelDropdown">
+                                <!-- 搜索建议将在这里显示 -->
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">支持输入关键词搜索选择，或直接粘贴多个UUID（逗号或换行符分隔）</small>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="copyChannelUuids()">
+                                <i class="fas fa-copy"></i> 复制
+                            </button>
+                        </div>
+
+                        <!-- 快速选择 -->
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <label class="form-label">快速选择</label>
+                                <button class="btn btn-outline-warning w-100" onclick="showOfferChannelModal()">
+                                    <i class="fas fa-magic"></i> + Offer的Channel
+                                </button>
+                                <small class="text-muted">选择Offer当前Running状态的渠道</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">快捷模板</label>
+                                <div id="templateTags">
+                                    <!-- 模板标签将在这里显示 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 其他功能 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-tools text-warning"></i>
+                            其他功能
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="addToWhiteList">
+                                    <label class="form-check-label" for="addToWhiteList">
+                                        <strong>加入Channel White List</strong>
+                                        <br><small class="text-muted">将选中的渠道加入Offer白名单</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：选择摘要 -->
+            <div class="col-lg-4">
+                <div class="card sticky-top">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list-check text-primary"></i>
+                            选择摘要
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="selection-summary">
+                            <div class="mb-3">
+                                <h6 class="text-primary">
+                                    <i class="fas fa-bullhorn"></i> 
+                                    Offer (<span id="offerCount">0</span>)
+                                </h6>
+                                <div id="offerSummary" class="text-muted">
+                                    暂未选择
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6 class="text-info">
+                                    <i class="fas fa-broadcast-tower"></i> 
+                                    Channel (<span id="channelCount">0</span>)
+                                </h6>
+                                <div id="channelSummary" class="text-muted">
+                                    暂未选择
+                                </div>
+                            </div>
+                            
+                            <hr>
+                            
+                            <div class="mb-3">
+                                <h6 class="text-success">
+                                    <i class="fas fa-calculator"></i> 
+                                    预计生成记录
+                                </h6>
+                                <div class="fs-4 text-success fw-bold" id="totalRecords">0</div>
+                                <small class="text-muted">Offer × Channel = S2S配置记录数</small>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button class="btn btn-success btn-lg" onclick="proceedToConfig()" disabled id="proceedBtn">
+                                <i class="fas fa-arrow-right"></i> 进入S2S配置
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="clearAllSelections()">
+                                <i class="fas fa-trash"></i> 清空选择
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Offer Channel选择模态框 -->
+    <div class="modal fade" id="offerChannelModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">选择Offer获取Running渠道</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label">输入Offer UUID</label>
+                    <input type="text" class="form-control" id="offerChannelInput" 
+                           placeholder="输入关键词搜索Offer" onkeyup="searchOffersForChannel(this.value)">
+                    <div id="offerChannelSuggestions" class="mt-2">
+                        <!-- 搜索建议将在这里显示 -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="addOfferChannels()" disabled id="addOfferChannelsBtn">
+                        <i class="fas fa-plus"></i> 添加渠道
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+    <script>
+        // 模拟数据
+        const mockOffers = [
+            'zhitian_test_001', 'zhitian_test_002', 'zhitian_test_003', 'zhitian_test_004', 'zhitian_test_005',
+            'zhitian_test_006', 'zhitian_test_007', 'zhitian_test_008', 'zhitian_test_009', 'zhitian_test_010',
+            'zhitian_test_011', 'zhitian_test_012', 'zhitian_test_013', 'zhitian_test_014', 'zhitian_test_015',
+            'zhitian_test_016', 'zhitian_test_017', 'zhitian_test_018', 'zhitian_test_019', 'zhitian_test_020'
+        ];
+
+        const mockChannels = [
+            'abc', 'abcd', 'alphamobi', 'ntd_dsp', 'nx_dsp', 'facebook_ads', 'google_ads', 
+            'tiktok_ads', 'snapchat_ads', 'twitter_ads', 'linkedin_ads', 'pinterest_ads',
+            'unity_ads', 'ironsource', 'vungle', 'chartboost', 'admob', 'mopub'
+        ];
+
+        const mockTemplates = [
+            {id: 1, name: '主流社媒', channels: ['facebook_ads', 'tiktok_ads', 'snapchat_ads', 'twitter_ads']},
+            {id: 2, name: '搜索引擎', channels: ['google_ads']},
+            {id: 3, name: 'DSP平台', channels: ['ntd_dsp', 'nx_dsp']},
+            {id: 4, name: '测试渠道', channels: ['abc', 'abcd']},
+            {id: 5, name: '高质量渠道', channels: ['alphamobi', 'facebook_ads', 'google_ads']}
+        ];
+
+        // 模拟Offer的Running渠道数据
+        const mockOfferChannels = {
+            'zhitian_test_001': ['abc', 'facebook_ads', 'google_ads'],
+            'zhitian_test_002': ['abc', 'tiktok_ads', 'snapchat_ads'],
+            'zhitian_test_003': ['abc', 'alphamobi', 'ntd_dsp'],
+            'zhitian_test_004': ['abc', 'unity_ads', 'ironsource'],
+            'zhitian_test_005': ['abc', 'google_ads', 'twitter_ads']
+        };
+
+        let selectedOffers = [];
+        let selectedChannels = [];
+        let selectedOfferForChannel = null;
+
+        // 聚焦Offer输入框
+        function focusOfferInput() {
+            document.getElementById('offerInput').focus();
+        }
+
+        // 处理Offer输入
+        function handleOfferInput(event) {
+            const input = event.target;
+            const keyword = input.value.trim();
+            
+            if (event.key === 'Enter' && keyword) {
+                event.preventDefault();
+                addOfferFromInput(keyword);
+                return;
+            }
+
+            setTimeout(() => {
+                const currentKeyword = input.value.trim();
+                if (currentKeyword) {
+                    showOfferSuggestions(currentKeyword);
+                } else {
+                    hideOfferSuggestions();
+                }
+            }, 10);
+        }
+
+        // 处理Offer粘贴
+        function handleOfferPaste(event) {
+            event.preventDefault();
+            const pastedText = (event.clipboardData || window.clipboardData).getData('text');
+            const text = pastedText.trim();
+            
+            if (text.includes(',') || text.includes('\n') || text.includes('\t')) {
+                processBatchOffers(text);
+            } else {
+                event.target.value = text;
+            }
+        }
+
+        // 聚焦Channel输入框
+        function focusChannelInput() {
+            document.getElementById('channelInput').focus();
+        }
+
+        // 处理Channel输入
+        function handleChannelInput(event) {
+            const input = event.target;
+            const keyword = input.value.trim();
+            
+            if (event.key === 'Enter' && keyword) {
+                event.preventDefault();
+                addChannelFromInput(keyword);
+                return;
+            }
+
+            setTimeout(() => {
+                const currentKeyword = input.value.trim();
+                if (currentKeyword) {
+                    showChannelSuggestions(currentKeyword);
+                } else {
+                    hideChannelSuggestions();
+                }
+            }, 10);
+        }
+
+        // 处理Channel粘贴
+        function handleChannelPaste(event) {
+            event.preventDefault();
+            const pastedText = (event.clipboardData || window.clipboardData).getData('text');
+            const text = pastedText.trim();
+            
+            if (text.includes(',') || text.includes('\n') || text.includes('\t')) {
+                processBatchChannels(text);
+            } else {
+                event.target.value = text;
+            }
+        }
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            renderTemplates();
+            updateSummary();
+            
+            // 检查URL参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const offerParam = urlParams.get('offer');
+            if (offerParam) {
+                selectedOffers = [offerParam];
+                updateOfferTags();
+                updateSummary();
+            }
+        });
+
+
+
+        // 显示Offer建议
+        function showOfferSuggestions(keyword) {
+            const dropdown = document.getElementById('offerDropdown');
+            const matches = mockOffers.filter(offer => 
+                offer.toLowerCase().includes(keyword.toLowerCase()) &&
+                !selectedOffers.includes(offer)
+            );
+
+            if (matches.length === 0) {
+                hideOfferSuggestions();
+                return;
+            }
+
+            dropdown.innerHTML = matches.slice(0, 8).map(offer => `
+                <div class="autocomplete-item" onclick="selectOffer('${offer}')">
+                    <code>${offer}</code>
+                </div>
+            `).join('');
+            dropdown.style.display = 'block';
+        }
+
+        // 隐藏Offer建议
+        function hideOfferSuggestions() {
+            document.getElementById('offerDropdown').style.display = 'none';
+        }
+
+        // 选择Offer
+        function selectOffer(offer) {
+            if (!selectedOffers.includes(offer)) {
+                selectedOffers.push(offer);
+                updateOfferTags();
+                updateSummary();
+            }
+            document.getElementById('offerInput').value = '';
+            hideOfferSuggestions();
+        }
+
+        // 从输入框添加Offer
+        function addOfferFromInput(offer) {
+            if (mockOffers.includes(offer)) {
+                selectOffer(offer);
+            } else {
+                Utils.showToast('Offer不存在', 'warning');
+            }
+        }
+
+        // 批量处理Offer
+        function processBatchOffers(text) {
+            const offers = text.split(/[,\n\t]/).map(o => o.trim()).filter(o => o);
+            let addedCount = 0;
+            let duplicateCount = 0;
+            let invalidCount = 0;
+
+            console.log('Processing offers:', offers); // 调试用
+
+            offers.forEach(offer => {
+                if (mockOffers.includes(offer)) {
+                    if (!selectedOffers.includes(offer)) {
+                        selectedOffers.push(offer);
+                        addedCount++;
+                    } else {
+                        duplicateCount++;
+                    }
+                } else {
+                    invalidCount++;
+                }
+            });
+
+            updateOfferTags();
+            updateSummary();
+
+            let message = '';
+            if (addedCount > 0) {
+                message += `成功添加${addedCount}个Offer`;
+            }
+            if (duplicateCount > 0) {
+                message += (message ? '，' : '') + `${duplicateCount}个已存在`;
+            }
+            if (invalidCount > 0) {
+                message += (message ? '，' : '') + `${invalidCount}个无效已忽略`;
+            }
+
+            if (message) {
+                Utils.showToast(message, addedCount > 0 ? 'success' : 'warning');
+            } else {
+                Utils.showToast('未识别到有效的Offer', 'warning');
+            }
+        }
+
+        // 更新Offer标签
+        function updateOfferTags() {
+            const container = document.getElementById('offerTagList');
+            container.innerHTML = selectedOffers.map(offer => `
+                <span class="tag-item">
+                    <code>${offer}</code>
+                    <span class="tag-remove" onclick="removeOffer('${offer}')">&times;</span>
+                </span>
+            `).join('');
+        }
+
+
+
+        // 显示Channel建议
+        function showChannelSuggestions(keyword) {
+            const dropdown = document.getElementById('channelDropdown');
+            const matches = mockChannels.filter(channel => 
+                channel.toLowerCase().includes(keyword.toLowerCase()) &&
+                !selectedChannels.includes(channel)
+            );
+
+            if (matches.length === 0) {
+                hideChannelSuggestions();
+                return;
+            }
+
+            dropdown.innerHTML = matches.slice(0, 8).map(channel => `
+                <div class="autocomplete-item" onclick="selectChannel('${channel}')">
+                    <code>${channel}</code>
+                </div>
+            `).join('');
+            dropdown.style.display = 'block';
+        }
+
+        // 隐藏Channel建议
+        function hideChannelSuggestions() {
+            document.getElementById('channelDropdown').style.display = 'none';
+        }
+
+        // 选择Channel
+        function selectChannel(channel) {
+            if (!selectedChannels.includes(channel)) {
+                selectedChannels.push(channel);
+                updateChannelTags();
+                updateSummary();
+            }
+            document.getElementById('channelInput').value = '';
+            hideChannelSuggestions();
+        }
+
+        // 从输入框添加Channel
+        function addChannelFromInput(channel) {
+            if (!selectedChannels.includes(channel)) {
+                selectedChannels.push(channel);
+                updateChannelTags();
+                updateSummary();
+                Utils.showToast(`已添加Channel: ${channel}`, 'success');
+            } else {
+                Utils.showToast('Channel已存在', 'warning');
+            }
+        }
+
+        // 批量处理Channel
+        function processBatchChannels(text) {
+            const channels = text.split(/[,\n\t]/).map(c => c.trim()).filter(c => c);
+            let addedCount = 0;
+            let duplicateCount = 0;
+
+            console.log('Processing channels:', channels); // 调试用
+
+            channels.forEach(channel => {
+                if (!selectedChannels.includes(channel)) {
+                    selectedChannels.push(channel);
+                    addedCount++;
+                } else {
+                    duplicateCount++;
+                }
+            });
+
+            updateChannelTags();
+            updateSummary();
+
+            let message = '';
+            if (addedCount > 0) {
+                message += `成功添加${addedCount}个Channel`;
+            }
+            if (duplicateCount > 0) {
+                message += (message ? '，' : '') + `${duplicateCount}个已存在`;
+            }
+
+            if (message) {
+                Utils.showToast(message, addedCount > 0 ? 'success' : 'info');
+            } else {
+                Utils.showToast('未识别到有效的Channel', 'warning');
+            }
+        }
+
+        // 更新Channel标签
+        function updateChannelTags() {
+            const container = document.getElementById('channelTagList');
+            container.innerHTML = selectedChannels.map(channel => `
+                <span class="tag-item">
+                    <code>${channel}</code>
+                    <span class="tag-remove" onclick="removeChannel('${channel}')">&times;</span>
+                </span>
+            `).join('');
+        }
+
+        // 渲染模板标签
+        function renderTemplates() {
+            const container = document.getElementById('templateTags');
+            container.innerHTML = mockTemplates.map(template => `
+                <span class="badge bg-secondary template-tag me-1 mb-1" onclick="selectTemplate(${template.id})">
+                    ${template.name} (${template.channels.length})
+                </span>
+            `).join('');
+        }
+
+
+
+        // 选择模板
+        function selectTemplate(templateId) {
+            const template = mockTemplates.find(t => t.id === templateId);
+            if (!template) return;
+
+            let addedCount = 0;
+            template.channels.forEach(channel => {
+                if (!selectedChannels.includes(channel)) {
+                    selectedChannels.push(channel);
+                    addedCount++;
+                }
+            });
+
+            updateChannelTags();
+            updateSummary();
+
+            if (addedCount > 0) {
+                Utils.showToast(`从模板"${template.name}"添加了${addedCount}个Channel`, 'success');
+            } else {
+                Utils.showToast(`模板"${template.name}"中的Channel已全部选中`, 'info');
+            }
+        }
+
+        // 显示Offer Channel模态框
+        function showOfferChannelModal() {
+            selectedOfferForChannel = null;
+            document.getElementById('offerChannelInput').value = '';
+            document.getElementById('offerChannelSuggestions').innerHTML = '';
+            document.getElementById('addOfferChannelsBtn').disabled = true;
+            new bootstrap.Modal(document.getElementById('offerChannelModal')).show();
+        }
+
+        // 搜索Offer用于获取Channel
+        function searchOffersForChannel(keyword) {
+            const suggestions = document.getElementById('offerChannelSuggestions');
+            if (!keyword.trim()) {
+                suggestions.innerHTML = '';
+                selectedOfferForChannel = null;
+                document.getElementById('addOfferChannelsBtn').disabled = true;
+                return;
+            }
+
+            const matches = mockOffers.filter(offer => 
+                offer.toLowerCase().includes(keyword.toLowerCase())
+            );
+
+            suggestions.innerHTML = matches.slice(0, 5).map(offer => `
+                <div class="suggestion-item p-2 border rounded mb-1 cursor-pointer" onclick="selectOfferForChannel('${offer}')">
+                    <div><code>${offer}</code></div>
+                    <small class="text-muted">
+                        Running渠道: ${mockOfferChannels[offer] ? mockOfferChannels[offer].join(', ') : '暂无'}
+                    </small>
+                </div>
+            `).join('');
+        }
+
+        // 选择Offer用于获取Channel
+        function selectOfferForChannel(offer) {
+            selectedOfferForChannel = offer;
+            document.getElementById('offerChannelInput').value = offer;
+            document.getElementById('addOfferChannelsBtn').disabled = false;
+        }
+
+        // 添加Offer的Channel
+        function addOfferChannels() {
+            if (!selectedOfferForChannel) return;
+
+            const channels = mockOfferChannels[selectedOfferForChannel] || [];
+            let addedCount = 0;
+
+            channels.forEach(channel => {
+                if (!selectedChannels.includes(channel)) {
+                    selectedChannels.push(channel);
+                    addedCount++;
+                }
+            });
+
+            updateChannelTags();
+            updateSummary();
+            bootstrap.Modal.getInstance(document.getElementById('offerChannelModal')).hide();
+
+            if (addedCount > 0) {
+                Utils.showToast(`从Offer "${selectedOfferForChannel}" 添加了${addedCount}个Running渠道`, 'success');
+            } else {
+                Utils.showToast('该Offer的Running渠道已全部选中', 'info');
+            }
+        }
+
+        // 复制Channel UUID
+        function copyChannelUuids() {
+            if (selectedChannels.length === 0) {
+                Utils.showToast('暂无选中的Channel', 'warning');
+                return;
+            }
+
+            const text = selectedChannels.join(', ');
+            navigator.clipboard.writeText(text).then(() => {
+                Utils.showToast('Channel UUID已复制到剪贴板', 'success');
+            }).catch(() => {
+                Utils.showToast('复制失败，请手动复制', 'danger');
+            });
+        }
+
+
+
+        // 移除Offer
+        function removeOffer(offer) {
+            selectedOffers = selectedOffers.filter(o => o !== offer);
+            updateOfferTags();
+            updateSummary();
+        }
+
+        // 移除Channel
+        function removeChannel(channel) {
+            selectedChannels = selectedChannels.filter(c => c !== channel);
+            updateChannelTags();
+            updateSummary();
+        }
+
+        // 更新摘要
+        function updateSummary() {
+            document.getElementById('offerCount').textContent = selectedOffers.length;
+            document.getElementById('channelCount').textContent = selectedChannels.length;
+            
+            const totalRecords = selectedOffers.length * selectedChannels.length;
+            document.getElementById('totalRecords').textContent = totalRecords;
+
+            // 更新摘要显示
+            const offerSummary = document.getElementById('offerSummary');
+            const channelSummary = document.getElementById('channelSummary');
+
+            if (selectedOffers.length === 0) {
+                offerSummary.innerHTML = '<span class="text-muted">暂未选择</span>';
+            } else {
+                offerSummary.innerHTML = selectedOffers.slice(0, 3).map(o => `<code class="me-1">${o}</code>`).join('') +
+                    (selectedOffers.length > 3 ? `<span class="text-muted">等${selectedOffers.length}个</span>` : '');
+            }
+
+            if (selectedChannels.length === 0) {
+                channelSummary.innerHTML = '<span class="text-muted">暂未选择</span>';
+            } else {
+                channelSummary.innerHTML = selectedChannels.slice(0, 3).map(c => `<code class="me-1">${c}</code>`).join('') +
+                    (selectedChannels.length > 3 ? `<span class="text-muted">等${selectedChannels.length}个</span>` : '');
+            }
+
+            // 更新按钮状态
+            const proceedBtn = document.getElementById('proceedBtn');
+            proceedBtn.disabled = selectedOffers.length === 0 || selectedChannels.length === 0;
+        }
+
+        // 清空所有选择
+        function clearAllSelections() {
+            if (confirm('确认清空所有选择？')) {
+                selectedOffers = [];
+                selectedChannels = [];
+                updateOfferTags();
+                updateChannelTags();
+                updateSummary();
+                Utils.showToast('已清空所有选择', 'info');
+            }
+        }
+
+        // 进入S2S配置
+        function proceedToConfig() {
+            if (selectedOffers.length === 0 || selectedChannels.length === 0) {
+                Utils.showToast('请先选择Offer和Channel', 'warning');
+                return;
+            }
+
+            const addToWhiteList = document.getElementById('addToWhiteList').checked;
+            
+            // 构建参数
+            const params = new URLSearchParams({
+                offers: selectedOffers.join(','),
+                channels: selectedChannels.join(','),
+                whiteList: addToWhiteList
+            });
+
+            window.location.href = `s2s-config.html?${params.toString()}`;
+        }
+
+        // 点击其他地方关闭建议
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#offerTagContainer') && !e.target.closest('#offerDropdown')) {
+                hideOfferSuggestions();
+            }
+            if (!e.target.closest('#channelTagContainer') && !e.target.closest('#channelDropdown')) {
+                hideChannelSuggestions();
+            }
+        });
+
+        // 键盘导航支持
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideOfferSuggestions();
+                hideChannelSuggestions();
+            }
+        });
+    </script>
+</body>
+</html>

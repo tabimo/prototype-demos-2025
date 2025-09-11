@@ -118,7 +118,7 @@
 
             <!-- 主内容区 -->
             <el-main class="main-container">
-    
+                <div style="position: fixed; top: 10px; right: 10px; background: #409eff; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; z-index: 9999;">20250911-13.09.44</div>
                 <div v-if="activeMenu === 'offer-list'">
                     <h2>Offer List 管理</h2>
                     
@@ -456,12 +456,6 @@
                         </el-form-item>
                         <el-form-item label="Notes" prop="notes">
                             <el-input v-model="offerForm.notes" type="textarea" :rows="2" placeholder="KPI要求附言"></el-input>
-                        </el-form-item>
-                        <el-form-item label="是否接入自动对接渠道" prop="autoChannelIntegration">
-                            <el-radio-group v-model="offerForm.autoChannelIntegration">
-                                <el-radio label="yes">接入</el-radio>
-                                <el-radio label="no">不接入</el-radio>
-                            </el-radio-group>
                         </el-form-item>
                     </div>
 
@@ -1469,12 +1463,6 @@
                     userPackages.value = [];
                 };
 
-                const goToS2SIntegration = (offerUuid) => {
-                    // 将新建的Offer UUID传递给S2S Integration页面
-                    localStorage.setItem('preSelectedOffer', offerUuid);
-                    window.location.href = './s2s-integration.html';
-                };
-
                 const saveOffer = async () => {
                     // 表单验证
                     try {
@@ -1535,36 +1523,11 @@
                             return;
                         }
                         
-                        const newOffer = {
+                        offers.value.push({
                             ...offerForm.value,
                             updateTime: now
-                        };
-                        offers.value.push(newOffer);
-                        
-                        saveToStorage();
-                        showCreateDrawer.value = false;
-                        const createdOfferUuid = newOffer.offerUuid;
-                        editingOffer.value = null;
-                        resetForm();
-                        
+                        });
                         ElMessage.success('创建成功');
-                        
-                        // 如果选择了接入自动对接渠道，则询问是否马上对接
-                        if (newOffer.autoChannelIntegration === 'yes') {
-                            setTimeout(async () => {
-                                try {
-                                    await ElMessageBox.confirm('是否需要马上对接渠道？', '对接渠道', {
-                                        confirmButtonText: '是',
-                                        cancelButtonText: '否',
-                                        type: 'info'
-                                    });
-                                    goToS2SIntegration(createdOfferUuid);
-                                } catch {
-                                    // 用户选择不对接
-                                }
-                            }, 500);
-                        }
-                        return;
                     }
 
                     saveToStorage();
