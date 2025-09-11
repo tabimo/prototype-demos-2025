@@ -163,7 +163,7 @@
                     </div>
                 </template>
                 <div style="overflow-x: auto;">
-                    <el-table :data="filteredRecords" @selection-change="handleSelectionChange" stripe border style="width: 100%; min-width: 1400px;">
+                    <el-table :data="filteredRecords" @selection-change="handleSelectionChange" stripe border row-key="id" style="width: 100%; min-width: 1400px;">
                         <el-table-column type="selection" width="55" align="center" />
                         <el-table-column label="Offer UUID" width="150" align="left">
                             <template #default="scope">
