@@ -162,88 +162,32 @@
                         </div>
                     </div>
                 </template>
-                <div style="overflow-x: auto;">
-                    <el-table :data="filteredRecords" @selection-change="handleSelectionChange" stripe border row-key="id" style="width: 100%; min-width: 1400px;">
-                        <el-table-column type="selection" width="55" align="center" />
-                        <el-table-column label="Offer UUID" width="150" align="left">
-                            <template #default="scope">
-                                <span>{{ scope.row.offerUuid }}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Channel UUID" width="150" align="left">
-                            <template #default="scope">
-                                <span>{{ scope.row.channelUuid }}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Pricing Model" width="120" align="left">
-                            <template #default="scope">
-                                <span>{{ scope.row.pricingModel }}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Deduction (%)" width="120" align="left">
-                            <template #default="scope">
-                                <el-input v-model="scope.row.deduction" type="number" :min="0" :max="100" :step="0.01" size="small" style="width: 100%;" />
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Channel Payout" width="140" align="left">
-                            <template #default="scope">
-                                <el-input v-model="scope.row.channelPayout" type="number" :min="0.001" :max="50" :step="0.001" size="small" style="width: 100%;" />
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Daily Conversion Cap" width="180" align="left">
-                            <template #default="scope">
-                                <div style="display: flex; align-items: center; gap: 4px;">
-                                    <el-checkbox v-model="scope.row.dailyConversionCapOpen" @change="handleCapOpenChange(scope.row, 'dailyConversion')" size="small">Open</el-checkbox>
-                                    <el-input v-model="scope.row.dailyConversionCap" type="number" :min="1" :max="100000" :disabled="scope.row.dailyConversionCapOpen" size="small" style="width: 70px;" />
-                                </div>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Over Conversion Cap Action" width="180" align="left">
-                            <template #default="scope">
-                                <el-select v-model="scope.row.overConversionCapAction" size="small" style="width: 100%;">
-                                    <el-option label="Stop" value="Stop" />
-                                    <el-option label="Keep going" value="Keep going" />
-                                </el-select>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Daily Click Cap" width="160" align="left">
-                            <template #default="scope">
-                                <div style="display: flex; align-items: center; gap: 4px;">
-                                    <el-checkbox v-model="scope.row.dailyClickCapOpen" @change="handleCapOpenChange(scope.row, 'dailyClick')" size="small">Open</el-checkbox>
-                                    <el-input v-model="scope.row.dailyClickCap" type="number" :min="1" :max="10000000000" :disabled="scope.row.dailyClickCapOpen" size="small" style="width: 70px;" />
-                                </div>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Over Click Cap Action" width="160" align="left">
-                            <template #default="scope">
-                                <el-select v-model="scope.row.overClickCapAction" size="small" style="width: 100%;">
-                                    <el-option label="Stop" value="Stop" />
-                                    <el-option label="Keep going" value="Keep going" />
-                                </el-select>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Note" width="120" align="left">
-                            <template #default="scope">
-                                <el-input v-model="scope.row.note" maxlength="1000" size="small" :title="scope.row.note" style="width: 100%;" show-overflow-tooltip />
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="S2S Status" width="100" align="center">
-                            <template #default="scope">
-                                <el-switch v-model="scope.row.s2sStatus" size="small" />
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Event" width="80" align="center">
-                            <template #default="scope">
-                                <el-switch v-model="scope.row.event" size="small" />
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Reject" width="80" align="center">
-                            <template #default="scope">
-                                <el-switch v-model="scope.row.reject" size="small" />
-                            </template>
-                        </el-table-column>
-                    </el-table>
-                </div>
+                <el-table 
+                    :data="filteredRecords" 
+                    @selection-change="handleSelectionChange" 
+                    row-key="id"
+                    style="width: 100%"
+                >
+                    <el-table-column type="selection" width="55"></el-table-column>
+                    <el-table-column prop="offerUuid" label="Offer UUID" width="150"></el-table-column>
+                    <el-table-column prop="channelUuid" label="Channel UUID" width="150"></el-table-column>
+                    <el-table-column prop="pricingModel" label="Pricing Model" width="120"></el-table-column>
+                    <el-table-column label="Deduction (%)" width="120">
+                        <template #default="scope">
+                            <el-input v-model="scope.row.deduction" type="number" :min="0" :max="100" :step="0.01" size="small" />
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="Channel Payout" width="140">
+                        <template #default="scope">
+                            <el-input v-model="scope.row.channelPayout" type="number" :min="0.001" :max="50" :step="0.001" size="small" />
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="S2S Status" width="100">
+                        <template #default="scope">
+                            <el-switch v-model="scope.row.s2sStatus" size="small" />
+                        </template>
+                    </el-table-column>
+                </el-table>
             </el-card>
         </div>
 
