@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation Demo</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.4.4/dist/index.css">
+    <script src="https://unpkg.com/vue@3.4.15/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus@2.4.4/dist/index.full.js"></script>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; }
+        .header { background: #409EFF; height: 60px; }
+        .content { padding: 20px; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <el-menu 
+                mode="horizontal" 
+                :default-active="activeIndex" 
+                @select="handleSelect"
+                background-color="#409EFF"
+                text-color="#fff"
+                active-text-color="#fff">
+                
+                <el-sub-menu index="1">
+                    <template #title>Offer</template>
+                    <el-menu-item index="1-1">Adv User</el-menu-item>
+                    <el-menu-item index="1-2">Package List</el-menu-item>
+                    <el-menu-item index="1-3">Offer List</el-menu-item>
+                </el-sub-menu>
+                
+                <el-sub-menu index="2">
+                    <template #title>Channel</template>
+                    <el-menu-item index="2-1">Channel List</el-menu-item>
+                </el-sub-menu>
+                
+            </el-menu>
+        </div>
+        
+        <div class="content">
+            <h2>Navigation Demo</h2>
+            <p>当前选中: {{ activeIndex }}</p>
+            <p>点击上方菜单项查看效果</p>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+        
+        createApp({
+            setup() {
+                const activeIndex = ref('1-3');
+                
+                const handleSelect = (key, keyPath) => {
+                    activeIndex.value = key;
+                    console.log('Selected:', key, keyPath);
+                };
+                
+                return {
+                    activeIndex,
+                    handleSelect
+                };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

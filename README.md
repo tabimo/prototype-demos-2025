@@ -1,52 +1,91 @@
-# 需求原型演示项目
+# 广告产品管理系统 Demo
 
-用于快速制作和展示产品需求原型的HTML页面集合。
+## 功能特性
 
-## 项目结构
+### 系统架构
+- **前端技术栈**: Vue 3 + Element Plus
+- **数据存储**: localStorage (本地优先) + Firebase (云端备份)
+- **响应式设计**: 支持桌面端和移动端
 
+### 页面结构
+- **顶部导航**: Offer菜单(Adv User, Package List, Offer List) + Channel菜单
+- **主要功能**: Adv User管理页面
+
+### Adv User 管理功能
+
+#### 数据结构
+```javascript
+{
+  username: "demo_user_1",     // 用户名(唯一标识)
+  bd: "张三",                  // BD负责人
+  advPm: "刘一",              // Adv PM负责人  
+  updateTime: "2025-01-15 10:30:25"  // 更新时间
+}
 ```
-prototype_demos/
-├── README.md           # 项目说明
-├── index.html          # 项目首页（原型列表）
-├── assets/             # 公共资源
-│   ├── css/           # 样式文件
-│   ├── js/            # 脚本文件
-│   └── images/        # 图片资源
-├── templates/          # 页面模板
-└── demos/             # 具体原型页面
-    └── demo1/         # 示例原型
-```
 
-## 技术栈
+#### 核心功能
+1. **智能搜索筛选**
+   - 支持关键词联想搜索
+   - 实时下拉选项显示
+   - 选中项标签化显示(白底红字)
 
-- HTML5 + CSS3 + JavaScript
-- Bootstrap 5 (响应式布局)
-- Font Awesome (图标)
-- Vue 3 CDN (可选，用于复杂交互)
+2. **数据表格管理**
+   - 支持按字段排序(Username, 更新日期)
+   - 分页显示(默认20条/页)
+   - 默认按更新时间倒序排列
 
-## 在线访问
+3. **用户操作**
+   - 新建用户(弹窗表单)
+   - 编辑用户信息
+   - 删除用户(确认提示)
 
-🌐 **GitHub Pages地址**: `https://YOUR_USERNAME.github.io/prototype-demos/`
+4. **表单验证**
+   - Username: 只允许英文字符和下划线
+   - Username唯一性检查
+   - 必填字段验证
 
-### 快速链接
-- [项目首页](https://YOUR_USERNAME.github.io/prototype-demos/) - 查看所有原型
-- [Offer管理系统](https://YOUR_USERNAME.github.io/prototype-demos/demos/offer-management/) - 广告产品原型
-- [基础模板](https://YOUR_USERNAME.github.io/prototype-demos/templates/basic.html) - 开发模板
+#### 系统用户数据
+- **BD团队**: 张三、李四、王五、赵六、钱七、孙八、周九、吴十
+- **Adv PM团队**: 刘一、陈二、杨三、黄四、朱五、林六、郭七、何八
 
-## 本地使用
+## 技术实现
 
-1. 直接用浏览器打开 `index.html` 查看原型列表
-2. 在 `demos/` 目录下创建新的原型文件夹
-3. 复制 `templates/` 中的模板开始快速开发
+### 数据持久化
+- 使用localStorage实现本地数据存储
+- 页面刷新后数据自动恢复
+- 预置示例数据便于测试
 
-## 部署到GitHub Pages
+### 用户体验优化
+- 搜索防抖处理(200ms延迟)
+- 加载状态提示
+- 操作成功/失败消息提示
+- 删除操作二次确认
 
-查看 [deploy-guide.md](deploy-guide.md) 获取详细部署步骤。
+### 响应式设计
+- Element Plus组件自适应
+- 移动端友好的交互设计
 
-## 特点
+## 使用说明
 
-- 零配置，开箱即用
-- 快速迭代，即时预览
-- 轻量级，易于分享
-- 跨平台兼容
-- 支持在线访问，团队协作友好
+1. **访问页面**: 直接打开index.html即可使用
+2. **搜索用户**: 在搜索框输入关键词，选择匹配的用户进行筛选
+3. **新建用户**: 点击"新建 Adv User"按钮，填写表单信息
+4. **编辑用户**: 点击表格中的"编辑"按钮修改用户信息
+5. **删除用户**: 点击"删除"按钮，确认后删除用户
+6. **排序分页**: 点击表头排序，使用底部分页器翻页
+
+## 演示数据
+
+系统预置了3个示例用户：
+- demo_user_1 (BD: 张三, Adv PM: 刘一)
+- test_advertiser (BD: 李四, Adv PM: 陈二)  
+- sample_client (BD: 王五, Adv PM: 杨三)
+
+## 扩展计划
+
+- Package List 页面开发
+- Offer List 页面开发  
+- Channel 管理功能
+- Firebase云端同步功能
+- 用户权限管理
+- 数据导入导出功能
