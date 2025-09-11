@@ -393,9 +393,9 @@
         </el-dialog>
 
         <!-- 固定底部提交按钮 -->
-        <div class="fixed-submit-bar">
+        <div style="position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important; background: white !important; border-top: 1px solid #e4e7ed !important; padding: 16px 20px !important; box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1) !important; z-index: 9999 !important; display: flex !important; justify-content: space-between !important; align-items: center !important;">
             <div>
-                <span style="color: #909399; font-size: 14px;">当前有 {{filteredRecords.length}} 条S2S配置记录（临时数据，需提交后才会保存到Traffic Management）</span>
+                <span style="color: #909399; font-size: 14px;">当前有 {{s2sRecords.length}} 条S2S配置记录（临时数据，需提交后才会保存到Traffic Management）</span>
             </div>
             <div>
                 <el-button @click="s2sRecords = []; selectedRecords = []" :disabled="s2sRecords.length === 0">清空所有记录</el-button>
