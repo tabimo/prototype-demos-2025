@@ -275,44 +275,54 @@
                 <!-- Offer选择 -->
                 <div style="margin-bottom: 24px;">
                     <label style="display: block; margin-bottom: 8px; font-weight: bold;">Offer UUID</label>
-                    <div class="position-relative">
-                        <div class="tag-input-container" @click="focusOfferInput">
-                            <div class="tag-list">
-                                <span v-for="offer in selectedOffers" :key="offer" class="tag-item">
-                                    <code>{{offer}}</code>
-                                    <span class="tag-remove" @click="removeOffer(offer)">&times;</span>
-                                </span>
-                            </div>
-                            <input ref="offerInput" class="tag-input" v-model="offerInputValue" @input="handleOfferInput" @keyup.enter="addOfferFromInput" @paste="handleOfferPaste" placeholder="输入关键词搜索或粘贴多个Offer UUID" />
-                        </div>
-                        <div v-show="offerSuggestions.length > 0" class="autocomplete-dropdown">
-                            <div v-for="offer in offerSuggestions" :key="offer" class="autocomplete-item" @click="selectOffer(offer)">
-                                <code>{{offer}}</code>
-                            </div>
-                        </div>
-                    </div>
+                    <el-select
+                        v-model="selectedOffers"
+                        multiple
+                        filterable
+                        remote
+                        reserve-keyword
+                        placeholder="输入关键词搜索Offer"
+                        :remote-method="handleOfferSearch"
+                        :loading="offerLoading"
+                        style="width: 100%"
+                        @change="handleOfferChange"
+                        @visible-change="handleOfferVisibleChange"
+                    >
+                        <el-option
+                            v-for="offer in offerSuggestions"
+                            :key="offer.offerUuid"
+                            :label="`${offer.offerUuid} - ${offer.offerName}`"
+                            :value="offer.offerUuid"
+                        >
+                        </el-option>
+                    </el-select>
                     <el-button size="small" style="margin-top: 8px;" @click="copyOfferUuids">复制Offer UUID</el-button>
                 </div>
 
                 <!-- Channel选择 -->
                 <div style="margin-bottom: 24px;">
                     <label style="display: block; margin-bottom: 8px; font-weight: bold;">Channel UUID</label>
-                    <div class="position-relative">
-                        <div class="tag-input-container" @click="focusChannelInput">
-                            <div class="tag-list">
-                                <span v-for="channel in selectedChannels" :key="channel" class="tag-item">
-                                    <code>{{channel}}</code>
-                                    <span class="tag-remove" @click="removeChannel(channel)">&times;</span>
-                                </span>
-                            </div>
-                            <input ref="channelInput" class="tag-input" v-model="channelInputValue" @input="handleChannelInput" @keyup.enter="addChannelFromInput" @paste="handleChannelPaste" placeholder="输入关键词搜索或粘贴多个Channel UUID" />
-                        </div>
-                        <div v-show="channelSuggestions.length > 0" class="autocomplete-dropdown">
-                            <div v-for="channel in channelSuggestions" :key="channel" class="autocomplete-item" @click="selectChannel(channel)">
-                                <code>{{channel}}</code>
-                            </div>
-                        </div>
-                    </div>
+                    <el-select
+                        v-model="selectedChannels"
+                        multiple
+                        filterable
+                        remote
+                        reserve-keyword
+                        placeholder="输入关键词搜索Channel"
+                        :remote-method="handleChannelSearch"
+                        :loading="channelLoading"
+                        style="width: 100%"
+                        @change="handleChannelChange"
+                        @visible-change="handleChannelVisibleChange"
+                    >
+                        <el-option
+                            v-for="channel in channelSuggestions"
+                            :key="channel.channelUuid"
+                            :label="`${channel.channelUuid} - ${channel.channelName}`"
+                            :value="channel.channelUuid"
+                        >
+                        </el-option>
+                    </el-select>
                     <el-button size="small" style="margin-top: 8px;" @click="copyChannelUuids">复制Channel UUID</el-button>
                 </div>
 
@@ -431,10 +441,10 @@
                 // 添加抽屉相关
                 const selectedOffers = ref([]);
                 const selectedChannels = ref([]);
-                const offerInputValue = ref('');
-                const channelInputValue = ref('');
                 const offerSuggestions = ref([]);
                 const channelSuggestions = ref([]);
+                const offerLoading = ref(false);
+                const channelLoading = ref(false);
 
                 const defaultSettings = ref({
                     deduction: '',
@@ -504,8 +514,6 @@
                     addDrawerVisible.value = true;
                     selectedOffers.value = [];
                     selectedChannels.value = [];
-                    offerInputValue.value = '';
-                    channelInputValue.value = '';
                     offerSuggestions.value = [];
                     channelSuggestions.value = [];
                     resetDefaultSettings();
@@ -525,57 +533,37 @@
                 };
 
                 // Offer相关方法
-                const focusOfferInput = () => {
-                    nextTick(() => {
-                        document.querySelector('.tag-input').focus();
-                    });
+                const handleOfferSearch = (keyword) => {
+                    offerLoading.value = true;
+                    setTimeout(() => {
+                        if (!keyword || keyword.length < 1) {
+                            offerSuggestions.value = [];
+                            offerLoading.value = false;
+                            return;
+                        }
+                        
+                        const filtered = offers.filter(offer => 
+                            (offer.offerUuid.toLowerCase().includes(keyword.toLowerCase()) ||
+                            offer.offerName.toLowerCase().includes(keyword.toLowerCase())) &&
+                            !selectedOffers.value.includes(offer.offerUuid)
+                        ).slice(0, 10);
+                        
+                        offerSuggestions.value = filtered;
+                        offerLoading.value = false;
+                    }, 200);
                 };
 
-                const handleOfferInput = () => {
-                    const keyword = offerInputValue.value.trim();
-                    if (keyword) {
-                        offerSuggestions.value = offers
-                            .filter(offer => 
-                                offer.offerUuid.toLowerCase().includes(keyword.toLowerCase()) &&
-                                !selectedOffers.value.includes(offer.offerUuid)
-                            )
-                            .slice(0, 8)
-                            .map(offer => offer.offerUuid);
-                    } else {
+                const handleOfferChange = (values) => {
+                    // 选中项变化时更新建议列表
+                    offerSuggestions.value = offerSuggestions.value.filter(offer => 
+                        !values.includes(offer.offerUuid)
+                    );
+                };
+
+                const handleOfferVisibleChange = (visible) => {
+                    if (!visible) {
                         offerSuggestions.value = [];
                     }
-                };
-
-                const selectOffer = (offerUuid) => {
-                    if (!selectedOffers.value.includes(offerUuid)) {
-                        selectedOffers.value.push(offerUuid);
-                    }
-                    offerInputValue.value = '';
-                    offerSuggestions.value = [];
-                };
-
-                const removeOffer = (offer) => {
-                    selectedOffers.value = selectedOffers.value.filter(o => o !== offer);
-                };
-
-                const addOfferFromInput = () => {
-                    const offerUuid = offerInputValue.value.trim();
-                    if (offerUuid && offers.some(o => o.offerUuid === offerUuid)) {
-                        selectOffer(offerUuid);
-                    }
-                };
-
-                const handleOfferPaste = (event) => {
-                    event.preventDefault();
-                    const pastedText = (event.clipboardData || window.clipboardData).getData('text');
-                    const offerUuids = pastedText.split(/[,\n\t]/).map(o => o.trim()).filter(o => o);
-                    
-                    offerUuids.forEach(uuid => {
-                        if (offers.some(o => o.offerUuid === uuid) && !selectedOffers.value.includes(uuid)) {
-                            selectedOffers.value.push(uuid);
-                        }
-                    });
-                    offerInputValue.value = '';
                 };
 
                 const copyOfferUuids = () => {
@@ -588,57 +576,37 @@
                 };
 
                 // Channel相关方法
-                const focusChannelInput = () => {
-                    nextTick(() => {
-                        document.querySelectorAll('.tag-input')[1].focus();
-                    });
+                const handleChannelSearch = (keyword) => {
+                    channelLoading.value = true;
+                    setTimeout(() => {
+                        if (!keyword || keyword.length < 1) {
+                            channelSuggestions.value = [];
+                            channelLoading.value = false;
+                            return;
+                        }
+                        
+                        const filtered = channels.filter(channel => 
+                            (channel.channelUuid.toLowerCase().includes(keyword.toLowerCase()) ||
+                            channel.channelName.toLowerCase().includes(keyword.toLowerCase())) &&
+                            !selectedChannels.value.includes(channel.channelUuid)
+                        ).slice(0, 10);
+                        
+                        channelSuggestions.value = filtered;
+                        channelLoading.value = false;
+                    }, 200);
                 };
 
-                const handleChannelInput = () => {
-                    const keyword = channelInputValue.value.trim();
-                    if (keyword) {
-                        channelSuggestions.value = channels
-                            .filter(channel => 
-                                channel.channelUuid.toLowerCase().includes(keyword.toLowerCase()) &&
-                                !selectedChannels.value.includes(channel.channelUuid)
-                            )
-                            .slice(0, 8)
-                            .map(channel => channel.channelUuid);
-                    } else {
+                const handleChannelChange = (values) => {
+                    // 选中项变化时更新建议列表
+                    channelSuggestions.value = channelSuggestions.value.filter(channel => 
+                        !values.includes(channel.channelUuid)
+                    );
+                };
+
+                const handleChannelVisibleChange = (visible) => {
+                    if (!visible) {
                         channelSuggestions.value = [];
                     }
-                };
-
-                const selectChannel = (channelUuid) => {
-                    if (!selectedChannels.value.includes(channelUuid)) {
-                        selectedChannels.value.push(channelUuid);
-                    }
-                    channelInputValue.value = '';
-                    channelSuggestions.value = [];
-                };
-
-                const removeChannel = (channel) => {
-                    selectedChannels.value = selectedChannels.value.filter(c => c !== channel);
-                };
-
-                const addChannelFromInput = () => {
-                    const channelUuid = channelInputValue.value.trim();
-                    if (channelUuid && channels.some(c => c.channelUuid === channelUuid)) {
-                        selectChannel(channelUuid);
-                    }
-                };
-
-                const handleChannelPaste = (event) => {
-                    event.preventDefault();
-                    const pastedText = (event.clipboardData || window.clipboardData).getData('text');
-                    const channelUuids = pastedText.split(/[,\n\t]/).map(c => c.trim()).filter(c => c);
-                    
-                    channelUuids.forEach(uuid => {
-                        if (channels.some(c => c.channelUuid === uuid) && !selectedChannels.value.includes(uuid)) {
-                            selectedChannels.value.push(uuid);
-                        }
-                    });
-                    channelInputValue.value = '';
                 };
 
                 const copyChannelUuids = () => {
@@ -749,10 +717,10 @@
                     batchSettings,
                     selectedOffers,
                     selectedChannels,
-                    offerInputValue,
-                    channelInputValue,
                     offerSuggestions,
                     channelSuggestions,
+                    offerLoading,
+                    channelLoading,
                     defaultSettings,
                     filteredRecords,
                     handleSelect,
@@ -760,18 +728,12 @@
                     handleSelectionChange,
                     handleCapOpenChange,
                     showAddDrawer,
-                    focusOfferInput,
-                    focusChannelInput,
-                    handleOfferInput,
-                    handleChannelInput,
-                    selectOffer,
-                    selectChannel,
-                    removeOffer,
-                    removeChannel,
-                    addOfferFromInput,
-                    addChannelFromInput,
-                    handleOfferPaste,
-                    handleChannelPaste,
+                    handleOfferSearch,
+                    handleChannelSearch,
+                    handleOfferChange,
+                    handleChannelChange,
+                    handleOfferVisibleChange,
+                    handleChannelVisibleChange,
                     copyOfferUuids,
                     copyChannelUuids,
                     confirmAddS2S,
