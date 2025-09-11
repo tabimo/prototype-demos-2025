@@ -132,81 +132,66 @@
                         <el-button size="small" @click="sortByUpdateTime">按更新时间排序</el-button>
                     </div>
                 </template>
-                <div style="overflow-x: auto;">
-                    <el-table 
-                        :data="paginatedRecords" 
-                        @selection-change="handleSelectionChange" 
-                        stripe 
-                        border
-                        v-loading="tableLoading"
-                        style="width: 100%; min-width: 1600px;"
-                    >
-                        <el-table-column type="selection" width="55" align="center" />
-                        <el-table-column label="Offer UUID" width="150" align="left">
-                            <template #default="scope">
-                                <span>{{ scope.row.offerUuid }}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Channel UUID" width="150" align="left">
-                            <template #default="scope">
-                                <span>{{ scope.row.channelUuid }}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Pricing Model" width="120" align="left">
-                            <template #default="scope">
-                                <span>{{ scope.row.pricingModel }}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="S2S Status" width="100" align="center">
-                            <template #default="scope">
-                                <el-tag :type="scope.row.s2sStatus ? 'success' : 'danger'" size="small">
-                                    {{scope.row.s2sStatus ? 'Open' : 'Close'}}
-                                </el-tag>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Deduction (%)" width="120" align="left">
-                            <template #default="scope">
-                                <span>{{ scope.row.deduction }}%</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Channel Payout" width="140" align="left">
-                            <template #default="scope">
-                                <span>${{ scope.row.channelPayout }}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Daily Conversion Cap" width="160" align="left">
-                            <template #default="scope">
-                                <span>{{scope.row.dailyConversionCapOpen ? 'Open' : scope.row.dailyConversionCap}}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Over Conversion Cap Action" width="180" align="left">
-                            <template #default="scope">
-                                <span>{{ scope.row.overConversionCapAction }}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Daily Click Cap" width="140" align="left">
-                            <template #default="scope">
-                                <span>{{scope.row.dailyClickCapOpen ? 'Open' : scope.row.dailyClickCap}}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Over Click Cap Action" width="160" align="left">
-                            <template #default="scope">
-                                <span>{{ scope.row.overClickCapAction }}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Note" width="120" align="left" show-overflow-tooltip>
-                            <template #default="scope">
-                                <span>{{ scope.row.note }}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Event Reject" width="120" align="center">
-                            <template #default="scope">
-                                <el-tag v-if="scope.row.event" type="success" size="small">Event</el-tag>
-                                <el-tag v-if="scope.row.reject" type="warning" size="small" style="margin-left: 4px;">Reject</el-tag>
-                            </template>
-                        </el-table-column>
-                    </el-table>
-                </div>
+                <el-table 
+                    :data="paginatedRecords" 
+                    @selection-change="handleSelectionChange" 
+                    row-key="id"
+                    v-loading="tableLoading"
+                    style="width: 100%"
+                >
+                    <el-table-column type="selection" width="55"></el-table-column>
+                    <el-table-column prop="offerUuid" label="Offer UUID" width="150"></el-table-column>
+                    <el-table-column prop="channelUuid" label="Channel UUID" width="150"></el-table-column>
+                    <el-table-column prop="pricingModel" label="Pricing Model" width="120"></el-table-column>
+                    <el-table-column label="S2S Status" width="100">
+                        <template #default="scope">
+                            <el-tag :type="scope.row.s2sStatus ? 'success' : 'danger'" size="small">
+                                {{scope.row.s2sStatus ? 'Open' : 'Close'}}
+                            </el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="Deduction (%)" width="120">
+                        <template #default="scope">
+                            <span>{{ scope.row.deduction }}%</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="Channel Payout" width="140">
+                        <template #default="scope">
+                            <span>${{ scope.row.channelPayout }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="Daily Conversion Cap" width="160">
+                        <template #default="scope">
+                            <span>{{scope.row.dailyConversionCapOpen ? 'Open' : scope.row.dailyConversionCap}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="Over Conversion Cap Action" width="180">
+                        <template #default="scope">
+                            <span>{{ scope.row.overConversionCapAction }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="Daily Click Cap" width="140">
+                        <template #default="scope">
+                            <span>{{scope.row.dailyClickCapOpen ? 'Open' : scope.row.dailyClickCap}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="Over Click Cap Action" width="160">
+                        <template #default="scope">
+                            <span>{{ scope.row.overClickCapAction }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="Note" width="120">
+                        <template #default="scope">
+                            <span>{{ scope.row.note }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="Event Reject" width="120">
+                        <template #default="scope">
+                            <el-tag v-if="scope.row.event" type="success" size="small">Event</el-tag>
+                            <el-tag v-if="scope.row.reject" type="warning" size="small" style="margin-left: 4px;">Reject</el-tag>
+                        </template>
+                    </el-table-column>
+                </el-table>
 
                 <!-- 分页组件 -->
                 <div style="margin-top: 20px; text-align: right;">
