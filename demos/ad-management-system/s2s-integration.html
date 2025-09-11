@@ -292,7 +292,7 @@
                         <el-option
                             v-for="offer in offerSuggestions"
                             :key="offer.offerUuid"
-                            :label="`${offer.offerUuid} - ${offer.offerName}`"
+                            :label="`${offer.offerUuid} - ${offer.packageName || 'Unknown'}`"
                             :value="offer.offerUuid"
                         >
                         </el-option>
@@ -545,7 +545,7 @@
                         
                         const filtered = offers.filter(offer => 
                             (offer.offerUuid.toLowerCase().includes(keyword.toLowerCase()) ||
-                            offer.offerName.toLowerCase().includes(keyword.toLowerCase())) &&
+                            (offer.packageName && offer.packageName.toLowerCase().includes(keyword.toLowerCase()))) &&
                             !selectedOffers.value.includes(offer.offerUuid)
                         ).slice(0, 10);
                         
@@ -555,9 +555,19 @@
                 };
 
                 const handleOfferChange = (values) => {
-                    // 选中项变化时更新建议列表
+                    // 验证选中的UUID是否存在于Offer List中
+                    const validValues = values.filter(uuid => 
+                        offers.some(offer => offer.offerUuid === uuid)
+                    );
+                    
+                    if (validValues.length !== values.length) {
+                        selectedOffers.value = validValues;
+                        ElMessage.warning('部分Offer UUID不存在，已过滤');
+                    }
+                    
+                    // 更新建议列表
                     offerSuggestions.value = offerSuggestions.value.filter(offer => 
-                        !values.includes(offer.offerUuid)
+                        !selectedOffers.value.includes(offer.offerUuid)
                     );
                 };
 
