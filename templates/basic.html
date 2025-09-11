@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基础模板 - 需求原型</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../assets/css/main.css" rel="stylesheet">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">
+                <i class="fas fa-home"></i> 返回首页
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#features">功能特性</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#demo">演示区域</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 页面头部 -->
+    <header class="prototype-header text-center">
+        <div class="container">
+            <h1 class="display-4 mb-3">
+                <i class="fas fa-magic"></i>
+                基础原型模板
+            </h1>
+            <p class="lead">快速开始你的原型设计，复制此模板并修改内容</p>
+            <a href="#demo" class="btn btn-light btn-lg">
+                开始体验 <i class="fas fa-arrow-down"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- 功能特性 -->
+    <section id="features" class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-5">功能特性</h2>
+            <div class="row">
+                <div class="col-md-4 text-center mb-4">
+                    <div class="feature-icon text-primary">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h4>快速开发</h4>
+                    <p class="text-muted">基于Bootstrap 5，开箱即用的组件库</p>
+                </div>
+                <div class="col-md-4 text-center mb-4">
+                    <div class="feature-icon text-success">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h4>响应式设计</h4>
+                    <p class="text-muted">完美适配各种设备屏幕尺寸</p>
+                </div>
+                <div class="col-md-4 text-center mb-4">
+                    <div class="feature-icon text-info">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <h4>美观界面</h4>
+                    <p class="text-muted">现代化的UI设计，提升用户体验</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 演示区域 -->
+    <section id="demo" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center mb-5">交互演示</h2>
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">表单示例</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="demoForm">
+                                <div class="mb-3">
+                                    <label class="form-label">用户名</label>
+                                    <input type="text" class="form-control" placeholder="请输入用户名">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">邮箱</label>
+                                    <input type="email" class="form-control" placeholder="请输入邮箱">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">选择类型</label>
+                                    <select class="form-select">
+                                        <option>选项1</option>
+                                        <option>选项2</option>
+                                        <option>选项3</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">提交</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">按钮示例</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary" onclick="Utils.showToast('主要按钮被点击')">
+                                    <i class="fas fa-star"></i> 主要按钮
+                                </button>
+                                <button class="btn btn-success" onclick="Utils.showToast('成功按钮被点击', 'success')">
+                                    <i class="fas fa-check"></i> 成功按钮
+                                </button>
+                                <button class="btn btn-warning" onclick="Utils.showToast('警告按钮被点击', 'warning')">
+                                    <i class="fas fa-exclamation-triangle"></i> 警告按钮
+                                </button>
+                                <button class="btn btn-danger" onclick="Utils.showToast('危险按钮被点击', 'danger')">
+                                    <i class="fas fa-times"></i> 危险按钮
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-light py-4">
+        <div class="container text-center">
+            <p class="mb-0">
+                <i class="fas fa-code"></i>
+                需求原型演示项目 - 快速制作产品原型
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/main.js"></script>
+    <script>
+        // 页面特定脚本
+        document.getElementById('demoForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            Utils.showToast('表单提交成功！', 'success');
+        });
+    </script>
+</body>
+</html>

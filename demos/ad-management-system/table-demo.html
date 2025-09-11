@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Demo</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus/dist/index.full.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div style="padding: 20px;">
+            <h2>Table Selection Demo</h2>
+            <p>已选择: {{selectedRows.length}} 条记录</p>
+            
+            <el-table 
+                :data="tableData" 
+                @selection-change="handleSelectionChange"
+                row-key="id"
+                style="width: 100%"
+            >
+                <el-table-column type="selection" width="55"></el-table-column>
+                <el-table-column prop="offerUuid" label="Offer UUID" width="200"></el-table-column>
+                <el-table-column prop="channelUuid" label="Channel UUID" width="200"></el-table-column>
+                <el-table-column prop="status" label="Status" width="100"></el-table-column>
+            </el-table>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+
+        createApp({
+            setup() {
+                const selectedRows = ref([]);
+                
+                const tableData = ref([
+                    {
+                        id: '1',
+                        offerUuid: 'offer_demo_001',
+                        channelUuid: 'channel_001',
+                        status: 'Active'
+                    },
+                    {
+                        id: '2',
+                        offerUuid: 'offer_demo_002',
+                        channelUuid: 'channel_002',
+                        status: 'Inactive'
+                    },
+                    {
+                        id: '3',
+                        offerUuid: 'offer_demo_003',
+                        channelUuid: 'channel_003',
+                        status: 'Active'
+                    }
+                ]);
+
+                const handleSelectionChange = (selection) => {
+                    selectedRows.value = selection;
+                    console.log('Selected rows:', selection);
+                };
+
+                return {
+                    tableData,
+                    selectedRows,
+                    handleSelectionChange
+                };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

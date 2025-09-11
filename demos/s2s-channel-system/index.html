@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S2S渠道对接系统 - 首页</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/css/main.css" rel="stylesheet">
+    <style>
+        .feature-card {
+            transition: transform 0.2s ease-in-out;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 2rem 0;
+        }
+        .step-item {
+            display: flex;
+            align-items: center;
+            color: #6c757d;
+        }
+        .step-item.active {
+            color: #0d6efd;
+            font-weight: bold;
+        }
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            font-size: 14px;
+        }
+        .step-item.active .step-number {
+            background: #0d6efd;
+            color: white;
+        }
+        .step-arrow {
+            margin: 0 15px;
+            color: #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="../../index.html">
+                <i class="fas fa-home"></i> 返回首页
+            </a>
+            <span class="navbar-text">
+                <i class="fas fa-network-wired"></i> S2S渠道对接系统
+            </span>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 系统标题 -->
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h1 class="display-4 mb-3">
+                    <i class="fas fa-network-wired text-primary"></i>
+                    S2S渠道对接系统
+                </h1>
+                <p class="lead text-muted">高效管理Offer与渠道的对接配置，支持批量操作和智能匹配</p>
+            </div>
+        </div>
+
+        <!-- 操作流程指示 -->
+        <div class="step-indicator">
+            <div class="step-item">
+                <div class="step-number">1</div>
+                <span>渠道预设管理</span>
+            </div>
+            <div class="step-arrow">
+                <i class="fas fa-arrow-right"></i>
+            </div>
+            <div class="step-item">
+                <div class="step-number">2</div>
+                <span>创建Offer</span>
+            </div>
+            <div class="step-arrow">
+                <i class="fas fa-arrow-right"></i>
+            </div>
+            <div class="step-item">
+                <div class="step-number">3</div>
+                <span>S2S对接选择</span>
+            </div>
+            <div class="step-arrow">
+                <i class="fas fa-arrow-right"></i>
+            </div>
+            <div class="step-item">
+                <div class="step-number">4</div>
+                <span>S2S配置</span>
+            </div>
+        </div>
+
+        <!-- 功能模块 -->
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="card feature-card h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-cogs fa-3x text-primary"></i>
+                        </div>
+                        <h4 class="card-title">渠道预设管理</h4>
+                        <p class="card-text text-muted">
+                            管理可自动对接的渠道库，维护Third Party分类和Channel UUID，
+                            创建快捷模板提升配置效率。
+                        </p>
+                        <div class="mt-auto">
+                            <a href="channel-preset.html" class="btn btn-primary btn-lg">
+                                <i class="fas fa-arrow-right"></i> 开始管理
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-4">
+                <div class="card feature-card h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-plus-circle fa-3x text-success"></i>
+                        </div>
+                        <h4 class="card-title">创建Offer</h4>
+                        <p class="card-text text-muted">
+                            创建新的Offer，设置基本信息和对接策略，
+                            选择是否启用自动对接渠道功能。
+                        </p>
+                        <div class="mt-auto">
+                            <a href="create-offer.html" class="btn btn-success btn-lg">
+                                <i class="fas fa-arrow-right"></i> 创建Offer
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-4">
+                <div class="card feature-card h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-link fa-3x text-info"></i>
+                        </div>
+                        <h4 class="card-title">S2S对接选择</h4>
+                        <p class="card-text text-muted">
+                            选择要对接的Offer和Channel，支持批量操作、
+                            快捷模板和智能匹配功能。
+                        </p>
+                        <div class="mt-auto">
+                            <a href="s2s-selection.html" class="btn btn-info btn-lg">
+                                <i class="fas fa-arrow-right"></i> 开始对接
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-4">
+                <div class="card feature-card h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            <i class="fas fa-sliders-h fa-3x text-warning"></i>
+                        </div>
+                        <h4 class="card-title">S2S配置</h4>
+                        <p class="card-text text-muted">
+                            配置具体的对接参数，包括出价、Cap设置、
+                            扣量比例等，支持批量配置操作。
+                        </p>
+                        <div class="mt-auto">
+                            <a href="s2s-config.html" class="btn btn-warning btn-lg">
+                                <i class="fas fa-arrow-right"></i> 参数配置
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 系统特性 -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h3 class="text-center mb-4">系统特性</h3>
+            </div>
+            <div class="col-md-4 text-center mb-3">
+                <i class="fas fa-rocket fa-2x text-primary mb-2"></i>
+                <h5>高效批量操作</h5>
+                <p class="text-muted">支持批量选择、批量配置，大幅提升操作效率</p>
+            </div>
+            <div class="col-md-4 text-center mb-3">
+                <i class="fas fa-brain fa-2x text-success mb-2"></i>
+                <h5>智能匹配推荐</h5>
+                <p class="text-muted">基于历史数据和规则，智能推荐最优配置</p>
+            </div>
+            <div class="col-md-4 text-center mb-3">
+                <i class="fas fa-shield-alt fa-2x text-info mb-2"></i>
+                <h5>安全可靠</h5>
+                <p class="text-muted">多重验证机制，确保配置准确性和系统稳定性</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
+</body>
+</html>
