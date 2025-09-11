@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Channel List 管理</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.4.4/dist/index.css">
+    <script src="https://unpkg.com/vue@3.4.15/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus@2.4.4/dist/index.full.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: 'Helvetica Neue', Arial, sans-serif; }
+        .header { background: #409EFF; color: white; padding: 0 20px; height: 60px; line-height: 60px; }
+        .main-container { padding: 20px; }
+        .filter-section { margin-bottom: 20px; padding: 20px; background: #f5f7fa; border-radius: 8px; }
+        
+        .el-table {
+            width: 100% !important;
+            table-layout: fixed !important;
+        }
+        .el-table th, .el-table td {
+            white-space: nowrap !important;
+            text-align: left !important;
+            padding: 12px 0 !important;
+            border-right: 1px solid #EBEEF5 !important;
+        }
+        .el-table th:first-child, .el-table td:first-child {
+            padding-left: 16px !important;
+        }
+        .el-table th:last-child, .el-table td:last-child {
+            padding-right: 16px !important;
+            border-right: none !important;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #fafbfc;
+            border-radius: 8px;
+            border: 1px solid #e4e7ed;
+        }
+        
+        .section-title {
+            margin: 0 0 20px 0;
+            color: #303133;
+            font-size: 16px;
+            font-weight: 600;
+            border-bottom: 2px solid #409EFF;
+            padding-bottom: 8px;
+        }
+        
+        .el-menu--horizontal {
+            border: none !important;
+            width: 100% !important;
+        }
+        .el-sub-menu__hide-arrow {
+            display: none !important;
+        }
+        .el-menu--horizontal .el-sub-menu {
+            display: inline-block !important;
+            width: auto !important;
+            margin-right: 20px !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <el-container>
+            <!-- 顶部导航 -->
+            <el-header class="header">
+                <div style="display: flex; align-items: center; height: 100%;">
+                    <el-menu 
+                        mode="horizontal" 
+                        :default-active="activeMenu" 
+                        @select="handleMenuSelect"
+                        background-color="#409EFF"
+                        text-color="#fff"
+                        active-text-color="#fff">
+                        
+                        <el-sub-menu index="1">
+                            <template #title>Offer</template>
+                            <el-menu-item index="adv-user">Adv User</el-menu-item>
+                            <el-menu-item index="package-list">Package List</el-menu-item>
+                            <el-menu-item index="offer-list">Offer List</el-menu-item>
+                        </el-sub-menu>
+                        
+                        <el-sub-menu index="2">
+                            <template #title>Channel</template>
+                            <el-menu-item index="channel-list">Channel List</el-menu-item>
+                        </el-sub-menu>
+                        
+                        <el-sub-menu index="3">
+                            <template #title>Tools</template>
+                            <el-menu-item index="s2s-integration">S2S Integration</el-menu-item>
+                            <el-menu-item index="traffic-management">Traffic Management</el-menu-item>
+                        </el-sub-menu>
+                        
+                    </el-menu>
+                </div>
+            </el-header>
+
+            <!-- 主内容区 -->
+            <el-main class="main-container">
+    
+                <h2>Channel List 管理</h2>
+                
+                <!-- 筛选器 -->
+                <div class="filter-section">
+                    <el-row :gutter="20">
+                        <el-col :span="4">
+                            <el-select
+                                v-model="selectedChannel"
+                                filterable
+                                remote
+                                reserve-keyword
+                                placeholder="搜索 Channel UUID"
+                                :remote-method="searchChannels"
+                                :loading="searchLoading"
+                                clearable
+                                @change="handleChannelFilter"
+                                style="width: 100%">
+                                <el-option
+                                    v-for="channel in channelSearchResults"
+                                    :key="channel.channelUuid"
+                                    :label="channel.channelUuid"
+                                    :value="channel.channelUuid">
+                                </el-option>
+                            </el-select>
+                        </el-col>
+                        <el-col :span="4">
+                            <el-select
+                                v-model="selectedPricingModels"
+                                multiple
+                                placeholder="Pricing Model"
+                                clearable
+                                @change="handlePricingModelFilter"
+                                style="width: 100%">
+                                <el-option label="CPM" value="CPM"></el-option>
+                                <el-option label="CPS" value="CPS"></el-option>
+                                <el-option label="CPI" value="CPI"></el-option>
+                                <el-option label="CPE" value="CPE"></el-option>
+                            </el-select>
+                        </el-col>
+                        <el-col :span="4">
+                            <el-select
+                                v-model="selectedTO"
+                                filterable
+                                remote
+                                reserve-keyword
+                                placeholder="搜索 TO"
+                                :remote-method="searchTOs"
+                                :loading="toSearchLoading"
+                                clearable
+                                @change="handleTOFilter"
+                                style="width: 100%">
+                                <el-option
+                                    v-for="to in toSearchResults"
+                                    :key="to"
+                                    :label="to"
+                                    :value="to">
+                                </el-option>
+                            </el-select>
+                        </el-col>
+                        <el-col :span="4">
+                            <el-select
+                                v-model="selectedTrafficType"
+                                placeholder="Traffic Type"
+                                clearable
+                                @change="handleTrafficTypeFilter"
+                                style="width: 100%">
+                                <el-option label="B" value="B"></el-option>
+                                <el-option label="V" value="V"></el-option>
+                                <el-option label="QF" value="QF"></el-option>
+                                <el-option label="一部" value="一部"></el-option>
+                                <el-option label="二部" value="二部"></el-option>
+                            </el-select>
+                        </el-col>
+                        <el-col :span="4">
+                            <el-select
+                                v-model="selectedTrafficCategory"
+                                placeholder="Traffic Category"
+                                clearable
+                                @change="handleTrafficCategoryFilter"
+                                style="width: 100%">
+                                <el-option label="B||Miu" value="B||Miu"></el-option>
+                                <el-option label="B||ZJ" value="B||ZJ"></el-option>
+                                <el-option label="V||R" value="V||R"></el-option>
+                                <el-option label="V||Q" value="V||Q"></el-option>
+                            </el-select>
+                        </el-col>
+                        <el-col :span="4">
+                            <el-button type="primary" @click="createNewChannel">
+                                + 新建 Channel
+                            </el-button>
+                        </el-col>
+                    </el-row>
+                </div>
+
+                <!-- 数据表格 -->
+                <el-table 
+                    :data="paginatedChannels" 
+                    v-loading="loading"
+                    @sort-change="handleSortChange"
+                    stripe
+                    border
+                    style="width: 100%">
+                    <el-table-column prop="channelUuid" label="Channel UUID" sortable="custom" width="200" align="left"></el-table-column>
+                    <el-table-column prop="pricingModel" label="Pricing Model" width="180" align="left">
+                        <template #default="scope">
+                            {{ Array.isArray(scope.row.pricingModel) ? scope.row.pricingModel.join(', ') : scope.row.pricingModel }}
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="td" label="TD" width="120" align="left"></el-table-column>
+                    <el-table-column prop="trafficType" label="Traffic Type" width="120" align="left"></el-table-column>
+                    <el-table-column prop="trafficCategory" label="Traffic Category" width="150" align="left"></el-table-column>
+                    <el-table-column prop="updateTime" label="更新时间" sortable="custom" width="160" align="left"></el-table-column>
+                    <el-table-column label="操作" width="150" align="center">
+                        <template #default="scope">
+                            <div style="display: flex; gap: 8px; justify-content: center;">
+                                <el-button size="small" @click="editChannel(scope.row)">编辑</el-button>
+                                <el-button size="small" type="danger" @click="deleteChannel(scope.row)">删除</el-button>
+                            </div>
+                        </template>
+                    </el-table-column>
+                </el-table>
+
+                <!-- 分页 -->
+                <div style="margin-top: 20px; text-align: right;">
+                    <el-pagination
+                        v-model:current-page="currentPage"
+                        v-model:page-size="pageSize"
+                        :page-sizes="[10, 20, 50]"
+                        :total="filteredChannels.length"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        @size-change="handleSizeChange"
+                        @current-change="handleCurrentChange">
+                    </el-pagination>
+                </div>
+            </el-main>
+        </el-container>
+
+        <!-- 新建/编辑Channel抽屉 -->
+        <el-drawer 
+            v-model="showCreateDrawer" 
+            :title="editingChannel ? '编辑 Channel' : '新建 Channel'"
+            size="800px"
+            direction="rtl">
+            <div style="padding: 0 20px;">
+                <el-form :model="channelForm" :rules="channelRules" ref="channelFormRef" label-width="160px">
+                    <!-- 基础信息 -->
+                    <div class="form-section">
+                        <h3 class="section-title">📝 基础信息</h3>
+                        <el-form-item label="Channel UUID" prop="channelUuid">
+                            <el-input v-model="channelForm.channelUuid" :disabled="!!editingChannel" placeholder="支持英文字母、数字、下划线、横杠"></el-input>
+                        </el-form-item>
+                        <el-form-item label="Pricing Model" prop="pricingModel">
+                            <el-checkbox-group v-model="channelForm.pricingModel">
+                                <el-checkbox label="CPM">CPM</el-checkbox>
+                                <el-checkbox label="CPS">CPS</el-checkbox>
+                                <el-checkbox label="CPI">CPI</el-checkbox>
+                                <el-checkbox label="CPE">CPE</el-checkbox>
+                            </el-checkbox-group>
+                        </el-form-item>
+                        <el-form-item label="TD" prop="td">
+                            <el-select v-model="channelForm.td" placeholder="选择TD" style="width: 100%">
+                                <el-option v-for="td in tdList" :key="td" :label="td" :value="td"></el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="Traffic Type" prop="trafficType">
+                            <el-select v-model="channelForm.trafficType" placeholder="选择Traffic Type" @change="handleTrafficTypeChange" style="width: 100%">
+                                <el-option label="B" value="B"></el-option>
+                                <el-option label="V" value="V"></el-option>
+                                <el-option label="QF" value="QF"></el-option>
+                                <el-option label="一部" value="一部"></el-option>
+                                <el-option label="二部" value="二部"></el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="Traffic Category" prop="trafficCategory">
+                            <el-select v-model="channelForm.trafficCategory" placeholder="选择Traffic Category" :disabled="!channelForm.trafficType" style="width: 100%">
+                                <el-option v-for="category in availableCategories" :key="category" :label="category" :value="category"></el-option>
+                            </el-select>
+                        </el-form-item>
+                    </div>
+                </el-form>
+            </div>
+            <template #footer>
+                <div style="text-align: right; padding: 20px 0;">
+                    <el-button @click="cancelEdit">取消</el-button>
+                    <el-button type="primary" @click="saveChannel">保存</el-button>
+                </div>
+            </template>
+        </el-drawer>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted, watch } = Vue;
+        const { ElMessage, ElMessageBox } = ElementPlus;
+
+        createApp({
+            setup() {
+                // 响应式数据
+                const activeMenu = ref('channel-list');
+                const loading = ref(false);
+                const searchLoading = ref(false);
+                const toSearchLoading = ref(false);
+                const showCreateDrawer = ref(false);
+                const editingChannel = ref(null);
+                
+                const selectedChannel = ref('');
+                const selectedPricingModels = ref([]);
+                const selectedTO = ref('');
+                const selectedTrafficType = ref('');
+                const selectedTrafficCategory = ref('');
+                
+                const channelSearchResults = ref([]);
+                const toSearchResults = ref([]);
+                
+                const currentPage = ref(1);
+                const pageSize = ref(20);
+                const sortField = ref('updateTime');
+                const sortOrder = ref('desc');
+
+                // 表单数据
+                const channelForm = ref({
+                    channelUuid: '',
+                    pricingModel: [],
+                    td: '',
+                    trafficType: '',
+                    trafficCategory: ''
+                });
+
+                // 数据
+                const channels = ref([]);
+                const tdList = ref(['张三TD', '李四TD', '王五TD', '赵六TD', '钱七TD', '孙八TD', '周九TD', '吴十TD']);
+
+                // Traffic Category映射
+                const trafficCategoryMap = {
+                    'B': ['B||Miu', 'B||ZJ'],
+                    'V': ['V||R', 'V||Q'],
+                    'QF': ['QF||A', 'QF||B'],
+                    '一部': ['一部||X', '一部||Y'],
+                    '二部': ['二部||M', '二部||N']
+                };
+
+                // 表单验证规则
+                const channelRules = {
+                    channelUuid: [
+                        { required: true, message: '请输入Channel UUID', trigger: 'blur' },
+                        { pattern: /^[a-zA-Z0-9_-]+$/, message: '只支持英文字母、数字、下划线、横杠', trigger: 'blur' }
+                    ],
+                    pricingModel: [{ required: true, message: '请选择Pricing Model', trigger: 'change' }],
+                    td: [{ required: true, message: '请选择TD', trigger: 'change' }],
+                    trafficType: [{ required: true, message: '请选择Traffic Type', trigger: 'change' }]
+                };
+
+                // 计算属性
+                const availableCategories = computed(() => {
+                    return trafficCategoryMap[channelForm.value.trafficType] || [];
+                });
+
+                const filteredChannels = computed(() => {
+                    let result = channels.value;
+                    
+                    if (selectedChannel.value) {
+                        result = result.filter(channel => channel.channelUuid.includes(selectedChannel.value));
+                    }
+                    if (selectedPricingModels.value.length > 0) {
+                        result = result.filter(channel => {
+                            const channelModels = Array.isArray(channel.pricingModel) ? channel.pricingModel : [channel.pricingModel];
+                            return selectedPricingModels.value.some(model => channelModels.includes(model));
+                        });
+                    }
+                    if (selectedTO.value) {
+                        result = result.filter(channel => channel.td === selectedTO.value);
+                    }
+                    if (selectedTrafficType.value) {
+                        result = result.filter(channel => channel.trafficType === selectedTrafficType.value);
+                    }
+                    if (selectedTrafficCategory.value) {
+                        result = result.filter(channel => channel.trafficCategory === selectedTrafficCategory.value);
+                    }
+                    
+                    // 排序
+                    result.sort((a, b) => {
+                        const aVal = a[sortField.value];
+                        const bVal = b[sortField.value];
+                        if (sortOrder.value === 'asc') {
+                            return aVal > bVal ? 1 : -1;
+                        } else {
+                            return aVal < bVal ? 1 : -1;
+                        }
+                    });
+                    
+                    return result;
+                });
+
+                const paginatedChannels = computed(() => {
+                    const start = (currentPage.value - 1) * pageSize.value;
+                    const end = start + pageSize.value;
+                    return filteredChannels.value.slice(start, end);
+                });
+
+                // 监听Traffic Type变化
+                watch(() => channelForm.value.trafficType, (newType) => {
+                    channelForm.value.trafficCategory = '';
+                });
+
+                // 方法
+                const handleMenuSelect = (key) => {
+                    activeMenu.value = key;
+                    if (key === 'adv-user') {
+                        window.location.href = './adv-user.html';
+                    } else if (key === 'package-list') {
+                        window.location.href = './package-list.html';
+                    } else if (key === 'offer-list') {
+                        window.location.href = './index.html';
+                    } else if (key === 's2s-integration') {
+                        window.location.href = './s2s-integration.html';
+                    } else if (key === 'traffic-management') {
+                        window.location.href = './traffic-management.html';
+                    }
+                };
+
+                const searchChannels = (query) => {
+                    if (query) {
+                        searchLoading.value = true;
+                        setTimeout(() => {
+                            channelSearchResults.value = channels.value.filter(channel => 
+                                channel.channelUuid.toLowerCase().includes(query.toLowerCase())
+                            ).slice(0, 10);
+                            searchLoading.value = false;
+                        }, 200);
+                    } else {
+                        channelSearchResults.value = [];
+                    }
+                };
+
+                const searchTOs = (query) => {
+                    if (query) {
+                        toSearchLoading.value = true;
+                        setTimeout(() => {
+                            const allTDs = [...new Set(channels.value.map(c => c.td))];
+                            toSearchResults.value = allTDs.filter(td => 
+                                td.toLowerCase().includes(query.toLowerCase())
+                            ).slice(0, 10);
+                            toSearchLoading.value = false;
+                        }, 200);
+                    } else {
+                        toSearchResults.value = [];
+                    }
+                };
+
+                const handleChannelFilter = (value) => {
+                    selectedChannel.value = value;
+                    currentPage.value = 1;
+                };
+
+                const handlePricingModelFilter = (value) => {
+                    selectedPricingModels.value = value;
+                    currentPage.value = 1;
+                };
+
+                const handleTOFilter = (value) => {
+                    selectedTO.value = value;
+                    currentPage.value = 1;
+                };
+
+                const handleTrafficTypeFilter = (value) => {
+                    selectedTrafficType.value = value;
+                    currentPage.value = 1;
+                };
+
+                const handleTrafficCategoryFilter = (value) => {
+                    selectedTrafficCategory.value = value;
+                    currentPage.value = 1;
+                };
+
+                const handleSortChange = ({ prop, order }) => {
+                    sortField.value = prop;
+                    sortOrder.value = order === 'ascending' ? 'asc' : 'desc';
+                };
+
+                const handleSizeChange = (size) => {
+                    pageSize.value = size;
+                    currentPage.value = 1;
+                };
+
+                const handleCurrentChange = (page) => {
+                    currentPage.value = page;
+                };
+
+                const editChannel = (channel) => {
+                    editingChannel.value = channel;
+                    channelForm.value = {
+                        ...channel,
+                        pricingModel: Array.isArray(channel.pricingModel) ? [...channel.pricingModel] : [channel.pricingModel]
+                    };
+                    showCreateDrawer.value = true;
+                };
+
+                const deleteChannel = async (channel) => {
+                    try {
+                        await ElMessageBox.confirm('确定要删除这个Channel吗？', '确认删除', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            type: 'warning'
+                        });
+                        
+                        const index = channels.value.findIndex(c => c.channelUuid === channel.channelUuid);
+                        if (index > -1) {
+                            channels.value.splice(index, 1);
+                            saveToStorage();
+                            ElMessage.success('删除成功');
+                        }
+                    } catch {
+                        // 用户取消删除
+                    }
+                };
+
+                const handleTrafficTypeChange = (value) => {
+                    channelForm.value.trafficCategory = '';
+                };
+
+                const cancelEdit = () => {
+                    showCreateDrawer.value = false;
+                    editingChannel.value = null;
+                    resetForm();
+                };
+
+                const createNewChannel = () => {
+                    editingChannel.value = null;
+                    resetForm();
+                    showCreateDrawer.value = true;
+                };
+
+                const resetForm = () => {
+                    channelForm.value = {
+                        channelUuid: '',
+                        pricingModel: [],
+                        td: '',
+                        trafficType: '',
+                        trafficCategory: ''
+                    };
+                };
+
+                const saveChannel = async () => {
+                    if (!channelForm.value.channelUuid || !channelForm.value.pricingModel.length || !channelForm.value.td || !channelForm.value.trafficType) {
+                        ElMessage.error('请填写完整信息');
+                        return;
+                    }
+
+                    const now = new Date().toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                    }).replace(/\//g, '-');
+
+                    if (editingChannel.value) {
+                        // 编辑
+                        const index = channels.value.findIndex(c => c.channelUuid === editingChannel.value.channelUuid);
+                        if (index > -1) {
+                            channels.value[index] = {
+                                ...channelForm.value,
+                                updateTime: now
+                            };
+                        }
+                        ElMessage.success('更新成功');
+                    } else {
+                        // 新建
+                        if (channels.value.some(c => c.channelUuid === channelForm.value.channelUuid)) {
+                            ElMessage.error('Channel UUID已存在');
+                            return;
+                        }
+                        
+                        channels.value.push({
+                            ...channelForm.value,
+                            updateTime: now
+                        });
+                        ElMessage.success('创建成功');
+                    }
+
+                    saveToStorage();
+                    showCreateDrawer.value = false;
+                    editingChannel.value = null;
+                    resetForm();
+                };
+
+                const saveToStorage = () => {
+                    localStorage.setItem('channels', JSON.stringify(channels.value));
+                };
+
+                const loadFromStorage = () => {
+                    try {
+                        const storedChannels = localStorage.getItem('channels');
+                        if (storedChannels) {
+                            channels.value = JSON.parse(storedChannels);
+                        } else {
+                            initSampleData();
+                        }
+                    } catch (error) {
+                        console.error('加载数据失败:', error);
+                        initSampleData();
+                    }
+                };
+
+                const initSampleData = () => {
+                    channels.value = [
+                        {
+                            channelUuid: 'channel_001',
+                            pricingModel: ['CPI', 'CPE'],
+                            td: '张三TD',
+                            trafficType: 'B',
+                            trafficCategory: 'B||Miu',
+                            updateTime: '2025-01-15 10:30:25'
+                        },
+                        {
+                            channelUuid: 'channel_002',
+                            pricingModel: ['CPM'],
+                            td: '李四TD',
+                            trafficType: 'V',
+                            trafficCategory: 'V||R',
+                            updateTime: '2025-01-14 16:45:12'
+                        },
+                        {
+                            channelUuid: 'channel_003',
+                            pricingModel: ['CPS', 'CPI'],
+                            td: '王五TD',
+                            trafficType: 'QF',
+                            trafficCategory: 'QF||A',
+                            updateTime: '2025-01-13 09:15:33'
+                        },
+                        {
+                            channelUuid: 'channel_004',
+                            pricingModel: ['CPE'],
+                            td: '赵六TD',
+                            trafficType: '一部',
+                            trafficCategory: '一部||X',
+                            updateTime: '2025-01-12 14:20:18'
+                        },
+                        {
+                            channelUuid: 'channel_005',
+                            pricingModel: ['CPM', 'CPI'],
+                            td: '钱七TD',
+                            trafficType: '二部',
+                            trafficCategory: '二部||M',
+                            updateTime: '2025-01-11 09:45:30'
+                        }
+                    ];
+                    saveToStorage();
+                };
+
+                // 生命周期
+                onMounted(() => {
+                    loadFromStorage();
+                });
+
+                return {
+                    activeMenu,
+                    loading,
+                    searchLoading,
+                    toSearchLoading,
+                    showCreateDrawer,
+                    editingChannel,
+                    selectedChannel,
+                    selectedPricingModels,
+                    selectedTO,
+                    selectedTrafficType,
+                    selectedTrafficCategory,
+                    channelSearchResults,
+                    toSearchResults,
+                    currentPage,
+                    pageSize,
+                    channelForm,
+                    channels,
+                    tdList,
+                    channelRules,
+                    availableCategories,
+                    filteredChannels,
+                    paginatedChannels,
+                    handleMenuSelect,
+                    searchChannels,
+                    searchTOs,
+                    handleChannelFilter,
+                    handlePricingModelFilter,
+                    handleTOFilter,
+                    handleTrafficTypeFilter,
+                    handleTrafficCategoryFilter,
+                    handleSortChange,
+                    handleSizeChange,
+                    handleCurrentChange,
+                    editChannel,
+                    deleteChannel,
+                    handleTrafficTypeChange,
+                    cancelEdit,
+                    createNewChannel,
+                    saveChannel
+                };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>
