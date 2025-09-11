@@ -422,6 +422,49 @@
                 const offers = JSON.parse(localStorage.getItem('offers') || '[]');
                 const channels = JSON.parse(localStorage.getItem('channels') || '[]');
                 const s2sRecords = ref(JSON.parse(localStorage.getItem('s2sRecords') || '[]'));
+                
+                // 初始化示例数据（如果没有数据）
+                if (s2sRecords.value.length === 0) {
+                    s2sRecords.value = [
+                        {
+                            id: 'offer_demo_001_channel_001',
+                            offerUuid: 'offer_demo_001',
+                            channelUuid: 'channel_001',
+                            pricingModel: 'CPI',
+                            deduction: 5,
+                            channelPayout: 0.05,
+                            dailyConversionCap: 1000,
+                            dailyConversionCapOpen: false,
+                            overConversionCapAction: 'Stop',
+                            dailyClickCap: 10000,
+                            dailyClickCapOpen: false,
+                            overClickCapAction: 'Stop',
+                            note: '',
+                            s2sStatus: true,
+                            event: false,
+                            reject: true
+                        },
+                        {
+                            id: 'offer_test_002_channel_002',
+                            offerUuid: 'offer_test_002',
+                            channelUuid: 'channel_002',
+                            pricingModel: 'CPE',
+                            deduction: 8,
+                            channelPayout: 0.08,
+                            dailyConversionCap: 500,
+                            dailyConversionCapOpen: false,
+                            overConversionCapAction: 'Keep going',
+                            dailyClickCap: 5000,
+                            dailyClickCapOpen: false,
+                            overClickCapAction: 'Stop',
+                            note: 'Test record',
+                            s2sStatus: false,
+                            event: true,
+                            reject: false
+                        }
+                    ];
+                    localStorage.setItem('s2sRecords', JSON.stringify(s2sRecords.value));
+                }
 
                 // 批量设置
                 const batchSettings = ref({
