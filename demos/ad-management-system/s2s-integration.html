@@ -536,19 +536,19 @@
                     if (keyword) {
                         offerSuggestions.value = offers
                             .filter(offer => 
-                                offer.uuid.toLowerCase().includes(keyword.toLowerCase()) &&
-                                !selectedOffers.value.includes(offer.uuid)
+                                offer.offerUuid.toLowerCase().includes(keyword.toLowerCase()) &&
+                                !selectedOffers.value.includes(offer.offerUuid)
                             )
                             .slice(0, 8)
-                            .map(offer => offer.uuid);
+                            .map(offer => offer.offerUuid);
                     } else {
                         offerSuggestions.value = [];
                     }
                 };
 
-                const selectOffer = (offer) => {
-                    if (!selectedOffers.value.includes(offer)) {
-                        selectedOffers.value.push(offer);
+                const selectOffer = (offerUuid) => {
+                    if (!selectedOffers.value.includes(offerUuid)) {
+                        selectedOffers.value.push(offerUuid);
                     }
                     offerInputValue.value = '';
                     offerSuggestions.value = [];
@@ -559,9 +559,9 @@
                 };
 
                 const addOfferFromInput = () => {
-                    const offer = offerInputValue.value.trim();
-                    if (offer && offers.some(o => o.uuid === offer)) {
-                        selectOffer(offer);
+                    const offerUuid = offerInputValue.value.trim();
+                    if (offerUuid && offers.some(o => o.offerUuid === offerUuid)) {
+                        selectOffer(offerUuid);
                     }
                 };
 
@@ -571,7 +571,7 @@
                     const offerUuids = pastedText.split(/[,\n\t]/).map(o => o.trim()).filter(o => o);
                     
                     offerUuids.forEach(uuid => {
-                        if (offers.some(o => o.uuid === uuid) && !selectedOffers.value.includes(uuid)) {
+                        if (offers.some(o => o.offerUuid === uuid) && !selectedOffers.value.includes(uuid)) {
                             selectedOffers.value.push(uuid);
                         }
                     });
@@ -599,19 +599,19 @@
                     if (keyword) {
                         channelSuggestions.value = channels
                             .filter(channel => 
-                                channel.uuid.toLowerCase().includes(keyword.toLowerCase()) &&
-                                !selectedChannels.value.includes(channel.uuid)
+                                channel.channelUuid.toLowerCase().includes(keyword.toLowerCase()) &&
+                                !selectedChannels.value.includes(channel.channelUuid)
                             )
                             .slice(0, 8)
-                            .map(channel => channel.uuid);
+                            .map(channel => channel.channelUuid);
                     } else {
                         channelSuggestions.value = [];
                     }
                 };
 
-                const selectChannel = (channel) => {
-                    if (!selectedChannels.value.includes(channel)) {
-                        selectedChannels.value.push(channel);
+                const selectChannel = (channelUuid) => {
+                    if (!selectedChannels.value.includes(channelUuid)) {
+                        selectedChannels.value.push(channelUuid);
                     }
                     channelInputValue.value = '';
                     channelSuggestions.value = [];
@@ -622,9 +622,9 @@
                 };
 
                 const addChannelFromInput = () => {
-                    const channel = channelInputValue.value.trim();
-                    if (channel && channels.some(c => c.uuid === channel)) {
-                        selectChannel(channel);
+                    const channelUuid = channelInputValue.value.trim();
+                    if (channelUuid && channels.some(c => c.channelUuid === channelUuid)) {
+                        selectChannel(channelUuid);
                     }
                 };
 
@@ -634,7 +634,7 @@
                     const channelUuids = pastedText.split(/[,\n\t]/).map(c => c.trim()).filter(c => c);
                     
                     channelUuids.forEach(uuid => {
-                        if (channels.some(c => c.uuid === uuid) && !selectedChannels.value.includes(uuid)) {
+                        if (channels.some(c => c.channelUuid === uuid) && !selectedChannels.value.includes(uuid)) {
                             selectedChannels.value.push(uuid);
                         }
                     });
@@ -659,12 +659,12 @@
                     const newRecords = [];
                     selectedOffers.value.forEach(offerUuid => {
                         selectedChannels.value.forEach(channelUuid => {
-                            const offer = offers.find(o => o.uuid === offerUuid);
+                            const offer = offers.find(o => o.offerUuid === offerUuid);
                             const record = {
                                 id: `${offerUuid}_${channelUuid}`,
                                 offerUuid,
                                 channelUuid,
-                                pricingModel: offer?.pricingModel || 'CPI',
+                                pricingModel: offer?.advPricingModel || 'CPI',
                                 deduction: defaultSettings.value.deduction || 5,
                                 channelPayout: defaultSettings.value.channelPayout || 0.05,
                                 dailyConversionCap: defaultSettings.value.dailyConversionCap || 1000,
