@@ -317,50 +317,8 @@
                 // 获取数据
                 const offers = JSON.parse(localStorage.getItem('offers') || '[]');
                 const channels = JSON.parse(localStorage.getItem('channels') || '[]');
-                const allRecords = ref(JSON.parse(localStorage.getItem('s2sRecords') || '[]'));
-                
-                // 初始化示例数据（如果没有数据）
-                if (allRecords.value.length === 0) {
-                    allRecords.value = [
-                        {
-                            id: 'offer_demo_001_channel_001',
-                            offerUuid: 'offer_demo_001',
-                            channelUuid: 'channel_001',
-                            pricingModel: 'CPI',
-                            deduction: 5,
-                            channelPayout: 0.05,
-                            dailyConversionCap: 1000,
-                            dailyConversionCapOpen: false,
-                            overConversionCapAction: 'Stop',
-                            dailyClickCap: 10000,
-                            dailyClickCapOpen: false,
-                            overClickCapAction: 'Stop',
-                            note: '',
-                            s2sStatus: true,
-                            event: false,
-                            reject: true
-                        },
-                        {
-                            id: 'offer_test_002_channel_002',
-                            offerUuid: 'offer_test_002',
-                            channelUuid: 'channel_002',
-                            pricingModel: 'CPE',
-                            deduction: 8,
-                            channelPayout: 0.08,
-                            dailyConversionCap: 500,
-                            dailyConversionCapOpen: false,
-                            overConversionCapAction: 'Keep going',
-                            dailyClickCap: 5000,
-                            dailyClickCapOpen: false,
-                            overClickCapAction: 'Stop',
-                            note: 'Test record',
-                            s2sStatus: false,
-                            event: true,
-                            reject: false
-                        }
-                    ];
-                    localStorage.setItem('s2sRecords', JSON.stringify(allRecords.value));
-                }
+                // 从trafficRecords读取已提交的S2S记录
+                const allRecords = ref(JSON.parse(localStorage.getItem('trafficRecords') || '[]'));
 
                 // 批量S2S设置
                 const batchS2SSettings = ref({
@@ -395,7 +353,7 @@
                         records = records.filter(record => record.s2sStatus === status);
                     }
 
-                    return records.sort((a, b) => new Date(b.updateTime || 0) - new Date(a.updateTime || 0));
+                    return records.sort((a, b) => new Date(b.createTime || 0) - new Date(a.createTime || 0));
                 });
 
                 const totalRecords = computed(() => filteredRecords.value.length);
@@ -431,8 +389,9 @@
                         offerLoading.value = true;
                         setTimeout(() => {
                             offerOptions.value = offers
-                                .filter(offer => offer.uuid.toLowerCase().includes(query.toLowerCase()))
-                                .slice(0, 10);
+                                .filter(offer => offer.offerUuid.toLowerCase().includes(query.toLowerCase()))
+                                .slice(0, 10)
+                                .map(offer => ({ uuid: offer.offerUuid }));
                             offerLoading.value = false;
                         }, 200);
                     } else {
@@ -445,8 +404,9 @@
                         channelLoading.value = true;
                         setTimeout(() => {
                             channelOptions.value = channels
-                                .filter(channel => channel.uuid.toLowerCase().includes(query.toLowerCase()))
-                                .slice(0, 10);
+                                .filter(channel => channel.channelUuid.toLowerCase().includes(query.toLowerCase()))
+                                .slice(0, 10)
+                                .map(channel => ({ uuid: channel.channelUuid }));
                             channelLoading.value = false;
                         }, 200);
                     } else {
@@ -551,12 +511,12 @@
                                 }
                             });
                             
-                            record.updateTime = new Date().toISOString();
+                            record.createTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
                         }
                     });
 
                     allRecords.value = updatedRecords;
-                    localStorage.setItem('s2sRecords', JSON.stringify(allRecords.value));
+                    localStorage.setItem('trafficRecords', JSON.stringify(allRecords.value));
                     
                     batchS2SVisible.value = false;
                     ElMessage.success(`已对 ${selectedRecords.value.length} 条记录应用批量设置`);
