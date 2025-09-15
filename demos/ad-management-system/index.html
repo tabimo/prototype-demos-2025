@@ -1550,21 +1550,19 @@
                         
                         ElMessage.success('创建成功');
                         
-                        // 如果选择了接入自动对接渠道，则询问是否马上对接
-                        if (newOffer.autoChannelIntegration === 'yes') {
-                            setTimeout(async () => {
-                                try {
-                                    await ElMessageBox.confirm('是否需要马上对接渠道？', '对接渠道', {
-                                        confirmButtonText: '是',
-                                        cancelButtonText: '否',
-                                        type: 'info'
-                                    });
-                                    goToS2SIntegration(createdOfferUuid);
-                                } catch {
-                                    // 用户选择不对接
-                                }
-                            }, 500);
-                        }
+                        // 无论选择接入还是不接入，都询问是否马上对接渠道
+                        setTimeout(async () => {
+                            try {
+                                await ElMessageBox.confirm('是否需要马上对接渠道？', '对接渠道', {
+                                    confirmButtonText: '是',
+                                    cancelButtonText: '否',
+                                    type: 'info'
+                                });
+                                goToS2SIntegration(createdOfferUuid);
+                            } catch {
+                                // 用户选择不对接
+                            }
+                        }, 500);
                         return;
                     }
 
