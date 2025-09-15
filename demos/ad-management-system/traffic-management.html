@@ -185,10 +185,23 @@
                             <span>{{ scope.row.note }}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column label="Event Reject" width="120">
+                    <el-table-column label="Event" width="80">
                         <template #default="scope">
-                            <el-tag v-if="scope.row.event" type="success" size="small">Event</el-tag>
-                            <el-tag v-if="scope.row.reject" type="warning" size="small" style="margin-left: 4px;">Reject</el-tag>
+                            <el-tag :type="scope.row.event ? 'success' : 'info'" size="small">
+                                {{scope.row.event ? '开' : '关'}}
+                            </el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="Reject" width="80">
+                        <template #default="scope">
+                            <el-tag :type="scope.row.reject ? 'warning' : 'info'" size="small">
+                                {{scope.row.reject ? '开' : '关'}}
+                            </el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="更新时间" width="160">
+                        <template #default="scope">
+                            <span>{{ scope.row.createTime || '-' }}</span>
                         </template>
                     </el-table-column>
                 </el-table>
@@ -513,7 +526,15 @@
                                 }
                             });
                             
-                            record.createTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+                            record.createTime = new Date().toLocaleString('zh-CN', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                                hour12: false
+                            }).replace(/\//g, '-');
                         }
                     });
 
