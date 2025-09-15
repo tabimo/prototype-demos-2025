@@ -385,17 +385,17 @@
                         stripe
                         border
                         style="width: 100%">
-                        <el-table-column prop="channelUuid" label="Channel UUID" sortable="custom" width="200" align="left"></el-table-column>
-                        <el-table-column prop="pricingModel" label="Pricing Model" width="180" align="left">
+                        <el-table-column prop="channelUuid" label="Channel UUID" sortable="custom" min-width="200" align="left"></el-table-column>
+                        <el-table-column prop="pricingModel" label="Pricing Model" min-width="150" align="left">
                             <template #default="scope">
                                 {{ Array.isArray(scope.row.pricingModel) ? scope.row.pricingModel.join(', ') : scope.row.pricingModel }}
                             </template>
                         </el-table-column>
-                        <el-table-column prop="td" label="TD" width="120" align="left"></el-table-column>
-                        <el-table-column prop="trafficType" label="Traffic Type" width="120" align="left"></el-table-column>
-                        <el-table-column prop="trafficCategory" label="Traffic Category" width="150" align="left"></el-table-column>
-                        <el-table-column prop="updateTime" label="更新时间" sortable="custom" width="160" align="left"></el-table-column>
-                        <el-table-column label="操作" width="150" align="center">
+                        <el-table-column prop="td" label="TD" min-width="120" align="left"></el-table-column>
+                        <el-table-column prop="trafficType" label="Traffic Type" min-width="120" align="left"></el-table-column>
+                        <el-table-column prop="trafficCategory" label="Traffic Category" min-width="150" align="left"></el-table-column>
+                        <el-table-column prop="updateTime" label="更新时间" sortable="custom" min-width="160" align="left"></el-table-column>
+                        <el-table-column label="操作" width="150" align="center" fixed="right">
                             <template #default="scope">
                                 <div style="display: flex; gap: 8px; justify-content: center;">
                                     <el-button size="small" @click="editChannel(scope.row)">编辑</el-button>
