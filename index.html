@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prototype Demos 2025</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.4.4/dist/index.css">
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; 
+            font-family: 'Helvetica Neue', Arial, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+        }
+        .header h1 {
+            font-size: 3rem;
+            margin: 0 0 10px 0;
+            font-weight: 300;
+        }
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin: 0;
+        }
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .demo-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        .demo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        .demo-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0 0 15px 0;
+        }
+        .demo-desc {
+            color: #7f8c8d;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .demo-link {
+            display: inline-block;
+            background: #409EFF;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+        .demo-link:hover {
+            background: #337ecc;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        .status-active {
+            background: #e8f5e8;
+            color: #52c41a;
+        }
+        .status-dev {
+            background: #fff7e6;
+            color: #fa8c16;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Prototype Demos 2025</h1>
+            <p>原型演示系统集合 - 探索各种管理系统的原型设计</p>
+        </div>
+
+        <div class="demo-grid">
+            <!-- 广告管理系统 -->
+            <div class="demo-card" onclick="window.open('./demos/ad-management-system/index.html', '_blank')">
+                <div class="demo-title">
+                    📊 广告管理系统
+                    <span class="status-badge status-active">已完成</span>
+                </div>
+                <div class="demo-desc">
+                    完整的广告产品管理系统，包含 Offer List、Channel List、S2S Integration 和 Traffic Management 四大核心模块。支持 CPI/CPE/CPS 定价模式，地理定向设置，以及复杂的表单验证。
+                </div>
+                <a href="./demos/ad-management-system/index.html" class="demo-link" onclick="event.stopPropagation()">
+                    进入系统 →
+                </a>
+            </div>
+
+            <!-- 出价配置管理 -->
+            <div class="demo-card" onclick="window.open('./demos/bid-config-management/index.html', '_blank')">
+                <div class="demo-title">
+                    💰 出价配置管理
+                    <span class="status-badge status-dev">开发中</span>
+                </div>
+                <div class="demo-desc">
+                    Channel 包名出价配置管理系统，支持批量出价设置、多维度筛选和实时数据更新。提供灵活的出价策略配置和历史记录追踪。
+                </div>
+                <a href="./demos/bid-config-management/index.html" class="demo-link" onclick="event.stopPropagation()">
+                    进入系统 →
+                </a>
+            </div>
+
+            <!-- Offer 管理 -->
+            <div class="demo-card" onclick="window.open('./demos/offer-management/index.html', '_blank')">
+                <div class="demo-title">
+                    🎯 Offer 管理系统
+                    <span class="status-badge status-dev">开发中</span>
+                </div>
+                <div class="demo-desc">
+                    专业的 Offer 管理平台，包含渠道设置、定向配置和性能监控。支持多种广告形式和复杂的定向规则设置。
+                </div>
+                <a href="./demos/offer-management/index.html" class="demo-link" onclick="event.stopPropagation()">
+                    进入系统 →
+                </a>
+            </div>
+
+            <!-- S2S 渠道系统 -->
+            <div class="demo-card" onclick="window.open('./demos/s2s-channel-system/index.html', '_blank')">
+                <div class="demo-title">
+                    🔗 S2S 渠道系统
+                    <span class="status-badge status-dev">开发中</span>
+                </div>
+                <div class="demo-desc">
+                    Server-to-Server 渠道对接管理系统，提供渠道集成配置、数据同步监控和性能分析功能。
+                </div>
+                <a href="./demos/s2s-channel-system/index.html" class="demo-link" onclick="event.stopPropagation()">
+                    进入系统 →
+                </a>
+            </div>
+
+            <!-- 包定价管理 -->
+            <div class="demo-card" onclick="window.open('./demos/package-pricing-management.html', '_blank')">
+                <div class="demo-title">
+                    📦 包定价管理
+                    <span class="status-badge status-dev">开发中</span>
+                </div>
+                <div class="demo-desc">
+                    应用包定价策略管理系统，支持动态定价规则、市场分析和竞争对手监控。提供智能定价建议和收益优化。
+                </div>
+                <a href="./demos/package-pricing-management.html" class="demo-link" onclick="event.stopPropagation()">
+                    进入系统 →
+                </a>
+            </div>
+
+            <!-- Demo1 -->
+            <div class="demo-card" onclick="window.open('./demos/demo1/index.html', '_blank')">
+                <div class="demo-title">
+                    🧪 Demo1 测试项目
+                    <span class="status-badge status-dev">测试中</span>
+                </div>
+                <div class="demo-desc">
+                    基础功能测试和原型验证项目，用于测试新的 UI 组件和交互模式。
+                </div>
+                <a href="./demos/demo1/index.html" class="demo-link" onclick="event.stopPropagation()">
+                    进入系统 →
+                </a>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 60px; color: white; opacity: 0.8;">
+            <p>© 2025 Prototype Demos - 持续更新中</p>
+        </div>
+    </div>
+</body>
+</html>
